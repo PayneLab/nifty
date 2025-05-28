@@ -13,7 +13,12 @@ class ParameterChecker:
             raise ValueError("Two parameters are required: the path to the Quant file and the path to the Meta file.")
 
     def check_file_format(self):
-        '''Check if the file format is valid based on whether the extension is "csv" or "tsv".'''
+        '''Ensures rows are samples and columns are features.'''
+        # I'm not sure how to do this
+        pass
+
+    def check_file_type(self):
+        '''Check if the file type is valid based on the extension.'''
         for parameter in self.parameters:
             lower_name = parameter.lower().split('.')
 
