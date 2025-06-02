@@ -67,8 +67,10 @@ class DataTableChecker:
 
     def check_duplicate_proteins(self, quant_df):
         # Check for no duplicate protein names in quant files.
-
-        pass
+        if any(quant_df.columns.duplicated()):
+            print("Duplicate protein names in quant data file.")
+            return 1
+        return 0
 
     def check_duplicate_samples(self, quant_df, meta_df):
         # Check that there are no duplicate sample IDs in both files.
