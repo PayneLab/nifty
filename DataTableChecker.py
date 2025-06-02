@@ -82,8 +82,30 @@ class DataTableChecker:
             return 2
         return 0
 
-    def check_missingness(self):
-        pass
+    def filter_proteins(self, quant_df, fraction_na=0.5):
+        '''Filter out proteins that have more than fraction_na of their values as NaN'''
+        sample_col = quant_df.iloc[:, 0]
+        protein_data = quant_df.iloc[:, 1:]
+        # Calculate the fraction of NaN values for each protein
+        na_fractions = protein_data.isna().mean()
 
-    def check_enough_samples(self, quant_df, meta_df):
-        pass
+        #Filter proteins based on the specified fraction of NaN values
+        filtered_proteins = protein_data.loc[:, na_fractions <= fraction_na]
+
+        #construct df to return
+        filtered_df = pd.concat([sample_col, filtered_proteins], axis=1)
+        
+        return filtered_df
+
+    def check_enough_samples(self, meta_df, min_samples = 15):
+        '''Ensures there are enough samples per class'''
+
+        #Create series with counts of each label
+        label_counts = meta_df['sample_id'].value_counts()
+
+        for label, count in label_counts.items():
+            if count < min_samples:
+                print(f"Not enough samples for label '{label}': {count} samples found, minimum required is {min_samples}.")
+                return 2
+            
+        return 0
