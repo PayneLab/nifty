@@ -44,8 +44,12 @@ class DataTableChecker:
 
     def check_duplicate_proteins(self, quant_df):
         # Check for no duplicate protein names in quant files.
+        protein_ids = list(quant_df.columns[1:])
 
-        pass
+        if len(protein_ids) != len(set(protein_ids)):
+            print(f"Duplicate protein IDs in quant data file {len(quant_df)}.")
+            return 1
+        return 0
 
     def check_duplicate_samples(self, quant_df, meta_df):
         # Check that there are no duplicate sample IDs in both files.
