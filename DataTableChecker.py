@@ -50,7 +50,20 @@ class DataTableChecker:
         if quant_df.isna().all().all():
             print("Quant data file is empty or contains only NaN values.")
             return 4
-        pass
+        
+        #check for non-numeric values and NaN values
+        def is_valid(x):
+            return pd.isna(x) or isinstance(x, (int, float, np.integer, np.floating))
+
+        #check each value in df
+        data = quant_df.iloc[:,1:]
+        invalid_mask = ~data.applymap(is_valid)
+
+        if invalid_mask.any().any():
+            invalid_value = quant_df[invalid_mask].stack().iloc[0]
+            print(f"Error: Found non-numeric, non-NA value in quant data: '{invalid_value}'")
+            return 4
+        return 0
 
     def check_duplicate_proteins(self, quant_df):
         # Check for no duplicate protein names in quant files.
