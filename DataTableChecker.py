@@ -1,3 +1,6 @@
+import numpy as np
+import pandas as pd
+
 class DataTableChecker:
     def __init__(self):
         pass
@@ -38,16 +41,34 @@ class DataTableChecker:
             return 3
         return 0
 
-    def check_quant_data(self):
-        # Missing Implementation
-        pass
+    def check_quant_data(self, quant_df):
+        '''Ensures values of quant table are either numeric or NA'''
+        #replace empty cells or empty strings with NaN
+        quant_df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+
+        #ensures df is not empty
+        if quant_df.isna().all().all():
+            print("Quant data file is empty or contains only NaN values.")
+            return 4
+        
+        #check for non-numeric values and NaN values
+        def is_valid(x):
+            return pd.isna(x) or isinstance(x, (int, float, np.integer, np.floating))
+
+        #check each value in df
+        data = quant_df.iloc[:,1:]
+        invalid_mask = ~data.applymap(is_valid)
+
+        if invalid_mask.any().any():
+            invalid_value = quant_df[invalid_mask].stack().iloc[0]
+            print(f"Error: Found non-numeric, non-NA value in quant data: '{invalid_value}'")
+            return 4
+        return 0
 
     def check_duplicate_proteins(self, quant_df):
         # Check for no duplicate protein names in quant files.
-        protein_ids = list(quant_df.columns[1:])
-
-        if len(protein_ids) != len(set(protein_ids)):
-            print(f"Duplicate protein IDs in quant data file {len(quant_df)}.")
+        if any(quant_df.columns.duplicated()):
+            print("Duplicate protein names in quant data file.")
             return 1
         return 0
 
@@ -61,8 +82,30 @@ class DataTableChecker:
             return 2
         return 0
 
-    def check_missingness(self):
-        pass
+    def filter_proteins(self, quant_df, fraction_na=0.5):
+        '''Filter out proteins that have more than fraction_na of their values as NaN'''
+        sample_col = quant_df.iloc[:, 0]
+        protein_data = quant_df.iloc[:, 1:]
+        # Calculate the fraction of NaN values for each protein
+        na_fractions = protein_data.isna().mean()
 
-    def check_enough_samples(self, quant_df, meta_df):
-        pass
+        #Filter proteins based on the specified fraction of NaN values
+        filtered_proteins = protein_data.loc[:, na_fractions <= fraction_na]
+
+        #construct df to return
+        filtered_df = pd.concat([sample_col, filtered_proteins], axis=1)
+        
+        return filtered_df
+
+    def check_enough_samples(self, meta_df, min_samples = 15):
+        '''Ensures there are enough samples per class'''
+
+        #Create series with counts of each label
+        label_counts = meta_df['sample_id'].value_counts()
+
+        for label, count in label_counts.items():
+            if count < min_samples:
+                print(f"Not enough samples for label '{label}': {count} samples found, minimum required is {min_samples}.")
+                return 2
+            
+        return 0
