@@ -96,7 +96,7 @@ class DataTableChecker:
         filtered_df = pd.concat([sample_col, filtered_proteins], axis=1)
 
         #check if filtered_df is empty
-        if filtered_df.empty:
+        if filtered_df.shape[1] <= 1:  # only sample_id column left
             print("No proteins left after filtering. Please adjust the fraction_na parameter.")
             return 8
         return filtered_df
