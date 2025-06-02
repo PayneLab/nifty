@@ -1,3 +1,6 @@
+import numpy as np
+import pandas as pd
+
 class DataTableChecker:
     def __init__(self):
         pass
@@ -30,7 +33,15 @@ class DataTableChecker:
             return 3
         return 0
 
-    def check_quant_data(self):
+    def check_quant_data(self, quant_df):
+        '''Ensures values of quant table are either numeric or NA'''
+        #replace empty cells or empty strings with NaN
+        quant_df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
+
+        #ensures df is not empty
+        if quant_df.isna().all().all():
+            print("Quant data file is empty or contains only NaN values.")
+            return 4
         pass
 
     def check_duplicate_proteins(self):
