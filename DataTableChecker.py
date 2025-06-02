@@ -94,7 +94,11 @@ class DataTableChecker:
 
         #construct df to return
         filtered_df = pd.concat([sample_col, filtered_proteins], axis=1)
-        
+
+        #check if filtered_df is empty
+        if filtered_df.empty:
+            print("No proteins left after filtering. Please adjust the fraction_na parameter.")
+            return 8
         return filtered_df
 
     def check_enough_samples(self, meta_df, min_samples = 15):
