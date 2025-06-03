@@ -39,15 +39,15 @@ class TestDataTableChecker(unittest.TestCase):
 
         # Different sample counts
         meta_df_fewer = meta_df.iloc[:1]
-        self.assertEqual(self.checker.check_samples(quant_df, meta_df_fewer), 2)
+        self.assertEqual(self.checker.check_samples(quant_df, meta_df_fewer), 4)
 
         # Different sample IDs
         meta_df_wrong_ids = pd.DataFrame({'sample_id': ['X1', 'X2'], 'classification_label': ['A', 'B']})
-        self.assertEqual(self.checker.check_samples(quant_df, meta_df_wrong_ids), 3)
+        self.assertEqual(self.checker.check_samples(quant_df, meta_df_wrong_ids), 5)
 
         # Wrong column name in quant
         quant_df_wrong_col = pd.DataFrame({'SampleID': ['S1', 'S2'], 'P1': [1, 2]})
-        self.assertEqual(self.checker.check_samples(quant_df_wrong_col, meta_df), 1)
+        self.assertEqual(self.checker.check_samples(quant_df_wrong_col, meta_df), 2)
 
     def test_check_quant_data(self):
         # All numeric
@@ -56,7 +56,7 @@ class TestDataTableChecker(unittest.TestCase):
 
         # All NaN
         df_nan = pd.DataFrame({'sample_id': ['S1'], 'P1': [np.nan], 'P2': [np.nan]})
-        self.assertEqual(self.checker.check_quant_data(df_nan), 4)
+        self.assertEqual(self.checker.check_quant_data(df_nan), 6)
 
         # Mix valid + NaN
         df_mix = pd.DataFrame({'sample_id': ['S1'], 'P1': [1.0], 'P2': [np.nan]})
@@ -64,7 +64,7 @@ class TestDataTableChecker(unittest.TestCase):
 
         # Invalid string value
         df_invalid = pd.DataFrame({'sample_id': ['S1'], 'P1': [1.0], 'P2': ['abc']})
-        self.assertEqual(self.checker.check_quant_data(df_invalid), 4)
+        self.assertEqual(self.checker.check_quant_data(df_invalid), 7)
 
     def test_check_duplicate_proteins(self):
         df_unique = pd.DataFrame({'sample_id': ['S1'], 'P1': [1], 'P2': [2]})
@@ -72,7 +72,7 @@ class TestDataTableChecker(unittest.TestCase):
 
         # Manually create duplicate columns
         df_dup = pd.DataFrame([[1, 2, 3]], columns=['sample_id', 'P1', 'P1'])
-        self.assertEqual(self.checker.check_duplicate_proteins(df_dup), 1)
+        self.assertEqual(self.checker.check_duplicate_proteins(df_dup), 8)
 
     def test_check_duplicate_samples(self):
         df_quant = pd.DataFrame({'sample_id': ['S1', 'S2'], 'P1': [1, 2]})
@@ -80,10 +80,10 @@ class TestDataTableChecker(unittest.TestCase):
         self.assertEqual(self.checker.check_duplicate_samples(df_quant, df_meta), 0)
 
         df_quant_dup = pd.DataFrame({'sample_id': ['S1', 'S1'], 'P1': [1, 2]})
-        self.assertEqual(self.checker.check_duplicate_samples(df_quant_dup, df_meta), 1)
+        self.assertEqual(self.checker.check_duplicate_samples(df_quant_dup, df_meta), 9)
 
         df_meta_dup = pd.DataFrame({'sample_id': ['S1', 'S1'], 'classification_label': ['A', 'B']})
-        self.assertEqual(self.checker.check_duplicate_samples(df_quant, df_meta_dup), 2)
+        self.assertEqual(self.checker.check_duplicate_samples(df_quant, df_meta_dup), 10)
 
     def test_filter_proteins(self):
         df = pd.DataFrame({
@@ -115,7 +115,7 @@ class TestDataTableChecker(unittest.TestCase):
         result = self.checker.filter_proteins(df)
 
         # Shoult return empty df
-        self.assertEqual(result, 8)
+        self.assertEqual(result, 11)
 
 
     def test_check_enough_samples(self):
@@ -129,7 +129,7 @@ class TestDataTableChecker(unittest.TestCase):
             'sample_id': [f'S{i}' for i in range(10)],
             'classification_label': ['A'] * 5 + ['B'] * 5
         })
-        self.assertEqual(self.checker.check_enough_samples(df_invalid, min_samples=6), 2)
+        self.assertEqual(self.checker.check_enough_samples(df_invalid, min_samples=6), 12)
 
 if __name__ == "__main__":
     unittest.main()
