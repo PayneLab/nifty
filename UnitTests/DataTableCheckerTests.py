@@ -118,7 +118,6 @@ class TestDataTableChecker(unittest.TestCase):
         self.assertEqual(result, 8)
 
 
-
     def test_check_enough_samples(self):
         df_valid = pd.DataFrame({
             'sample_id': [f'S{i}' for i in range(30)],

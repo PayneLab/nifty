@@ -47,7 +47,8 @@ class DataTableChecker:
         quant_df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
 
         #ensures df is not empty
-        if quant_df.isna().all().all():
+        quant_df_values = quant_df.drop(columns=['sample_id'], errors='ignore')
+        if quant_df_values.isna().all().all():
             print("Quant data file is empty or contains only NaN values.")
             return 4
         
@@ -56,11 +57,11 @@ class DataTableChecker:
             return pd.isna(x) or isinstance(x, (int, float, np.integer, np.floating))
 
         #check each value in df
-        data = quant_df.iloc[:,1:]
+        data = quant_df_values.iloc[:,1:]
         invalid_mask = ~data.applymap(is_valid)
 
         if invalid_mask.any().any():
-            invalid_value = quant_df[invalid_mask].stack().iloc[0]
+            invalid_value = quant_df_values[invalid_mask].stack().iloc[0]
             print(f"Error: Found non-numeric, non-NA value in quant data: '{invalid_value}'")
             return 4
         return 0
@@ -105,7 +106,7 @@ class DataTableChecker:
         '''Ensures there are enough samples per class'''
 
         #Create series with counts of each label
-        label_counts = meta_df['sample_id'].value_counts()
+        label_counts = meta_df['classification_label'].value_counts()
 
         for label, count in label_counts.items():
             if count < min_samples:
