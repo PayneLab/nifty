@@ -47,6 +47,10 @@ class TestDataTableChecker(unittest.TestCase):
         meta_df_wrong_ids = pd.DataFrame({'sample_id': ['X1', 'X2'], 'classification_label': ['A', 'B']})
         self.assertEqual(self.checker.check_samples(quant_df, meta_df_wrong_ids), 5)
 
+        # Different sorting order
+        quant_df_wrong_order = pd.DataFrame({'sample_id': ['S2', 'S1'], 'P1': [2, 1]})
+        self.assertEqual(self.checker.check_samples(quant_df_wrong_order, meta_df), 5) # TODO check number 6
+
         # Wrong column name in quant
         quant_df_wrong_col = pd.DataFrame({'SampleID': ['S1', 'S2'], 'P1': [1, 2]})
         self.assertEqual(self.checker.check_samples(quant_df_wrong_col, meta_df), 2)
