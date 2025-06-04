@@ -8,9 +8,6 @@ class GenerateRules:
     def get_protein_list(self, quant_df):
         """Extracts the list of proteins from the quantification DataFrame."""
 
-        if 'sample_id' not in quant_df.columns:
-            return 1
-        
         protein_list = list(quant_df.columns[1:])
         return protein_list
     

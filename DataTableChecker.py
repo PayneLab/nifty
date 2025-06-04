@@ -149,3 +149,5 @@ class DataTableChecker:
                 return 12
             
         return 0
+    
+    # TODO Check that there is more than one protein

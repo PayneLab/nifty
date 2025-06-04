@@ -21,11 +21,6 @@ class TestGenerateRules(unittest.TestCase):
         result = self.generator.get_protein_list(df)
         self.assertEqual(result, expected)
 
-    def test_get_protein_list_missing_sample_id(self):
-        df = pd.DataFrame(columns=['P1', 'P2', 'P3'])
-        result = self.generator.get_protein_list(df)
-        self.assertEqual(result, 1)
-
     def test_generate_rule_pairs_typical(self):
         df = pd.DataFrame(columns=['sample_id', 'P1', 'P2', 'P3'])
         expected_rules = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
@@ -43,6 +38,8 @@ class TestGenerateRules(unittest.TestCase):
         expected_rules = []
         result = self.generator.generate_rule_pairs(df)
         self.assertEqual(result, expected_rules)
+
+    # TODO make into one function
 
 if __name__ == '__main__':
     unittest.main()
