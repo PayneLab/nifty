@@ -55,6 +55,7 @@ class TestDataTableChecker(unittest.TestCase):
         quant_df_wrong_col = pd.DataFrame({'SampleID': ['S1', 'S2'], 'P1': [1, 2]})
         self.assertEqual(self.checker.check_samples(quant_df_wrong_col, meta_df), 2)
 
+        #TODO get rid of this test
         wrong_sorted_quant_df = pd.DataFrame({'sample_id': ['S2', 'S1', 'S1'], 'P1': [1, 2, 3]})
         wrong_sorted_meta_df = pd.DataFrame({'sample_id': ['S1', 'S2', 'S2'], 'classification_label': ['A', 'B', 'C']})
         self.assertEqual(self.checker.check_samples(wrong_sorted_quant_df, wrong_sorted_meta_df), 6)
@@ -75,6 +76,8 @@ class TestDataTableChecker(unittest.TestCase):
         # Invalid string value
         df_invalid = pd.DataFrame({'sample_id': ['S1'], 'P1': [1.0], 'P2': ['abc']})
         self.assertEqual(self.checker.check_quant_data(df_invalid), 8)
+
+        # TODO special character check
 
     def test_check_duplicate_proteins(self):
         df_unique = pd.DataFrame({'sample_id': ['S1'], 'P1': [1], 'P2': [2]})
@@ -113,7 +116,10 @@ class TestDataTableChecker(unittest.TestCase):
         filtered_df = self.checker.filter_proteins(df, fraction_na=0.5)
         pd.testing.assert_frame_equal(filtered_df.reset_index(drop=True), expected_df.reset_index(drop=True))
 
+        # TODO test different fraction_na values (0.1, 0.9)
+
     def test_filter_proteins_all_filtered(self):
+        #TODO combine with above test
         # All proteins have >50% missing values
         df = pd.DataFrame({
             'sample_id': ['S1', 'S2', 'S3', 'S4'],
@@ -140,6 +146,9 @@ class TestDataTableChecker(unittest.TestCase):
             'classification_label': ['A'] * 5 + ['B'] * 5
         })
         self.assertEqual(self.checker.check_enough_samples(df_invalid, min_samples=6), 12)
+
+        #TODO add test so A is good and B is not and vice versa
+        #TODO change default min_samples in testing
 
 if __name__ == "__main__":
     unittest.main()
