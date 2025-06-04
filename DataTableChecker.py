@@ -53,6 +53,10 @@ class DataTableChecker:
             print(f"Number of rows in quant data file {len(quant_df)} does not match number of meta data file {len(meta_df)}")
             return 4
 
+        # TO DO
+        # Delete the set.
+        # Put in ia list and make sure they are the same.
+
         meta_ids = set(meta_df["sample_id"].astype(str).str.strip())
         quant_ids = set(quant_df["sample_id"].astype(str).str.strip())
 
@@ -61,6 +65,8 @@ class DataTableChecker:
             print(f"IDs in quant data file does not match IDs in meta data file.")
             return 5
         # Sort them
+        # MOVE!
+        # Take them out of the set and sort them into a list.
         sorted_meta_df = meta_df.sort_values("sample_id").reset_index(drop=True)
         sorted_quant_df = quant_df.sort_values("sample_id").reset_index(drop=True)
 
