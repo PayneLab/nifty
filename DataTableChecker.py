@@ -17,6 +17,7 @@ class DataTableChecker:
     10 = Duplicate sample_id in file.
     11 = All proteins were filtered out.
     12 = Not enough samples per class.
+    13 = Not enough proteins in quantification data.
 
     """
 
@@ -57,8 +58,8 @@ class DataTableChecker:
         # Delete the set.
         # Put in ia list and make sure they are the same.
 
-        meta_ids = set(meta_df["sample_id"].astype(str).str.strip())
-        quant_ids = set(quant_df["sample_id"].astype(str).str.strip())
+        meta_ids = sorted(meta_df["sample_id"].astype(str).str.strip())
+        quant_ids = sorted(quant_df["sample_id"].astype(str).str.strip())
 
         # Quant df and meta df do not have the same sample IDs.
         if quant_ids != meta_ids:
@@ -150,4 +151,11 @@ class DataTableChecker:
             
         return 0
     
-    # TODO Check that there is more than one protein
+    def check_protein_amount(self, quant_df, min_proteins=2):
+        ''' Ensures there are enough proteins in the quantification data '''
+        protein_count = quant_df.shape[1] - 1
+        if protein_count < min_proteins:
+            print(f"Not enough proteins in quant data file: {protein_count} proteins found, minimum required is {min_proteins}.")
+            return 13
+        
+        return 0

@@ -1,6 +1,5 @@
 import unittest
 import pandas as pd
-from itertools import combinations
 import sys
 import os
 
