@@ -1,6 +1,6 @@
 import numpy as np
 
-class GenerateRules:
+class EvaluateRules:
     def __init__(self):
         pass
 
@@ -33,7 +33,7 @@ class GenerateRules:
     
     def score_pair(pair: list, quant_df, meta_df) -> float:
         '''Scores a pair of proteins based on how well they separate the classes in the meta data'''
-        bool_vector = GenerateRules.vectorize_pair(pair, quant_df)
+        bool_vector = EvaluateRules.vectorize_pair(pair, quant_df)
         class_labels = meta_df['classification_label'].values
 
         # Change labels to 0 and 1
@@ -56,7 +56,7 @@ class GenerateRules:
         '''Evaluates all pairs of proteins and returns a list of tuples with the pair and its score'''
         scored_pairs = []
         for pair in pairs:
-            score = GenerateRules.score_pair(pair, quant_df, meta_df)
+            score = EvaluateRules.score_pair(pair, quant_df, meta_df)
             scored_pairs.append((pair, score))
         
         return scored_pairs
