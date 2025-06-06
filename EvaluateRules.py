@@ -4,7 +4,7 @@ class GenerateRules:
     def __init__(self):
         pass
 
-    def vectorize_pair(pair: list, quant_df):
+    def vectorize_pair(pair: list, quant_df) -> np.ndarray:
         '''Gets all values for two proteins of a pair, compares them and returns a boolean vector'''
         prot1 = pair[0]
         prot2 = pair[1]
@@ -31,7 +31,7 @@ class GenerateRules:
 
         return bool_vector
     
-    def score_pair(pair: list, quant_df, meta_df):
+    def score_pair(pair: list, quant_df, meta_df) -> float:
         '''Scores a pair of proteins based on how well they separate the classes in the meta data'''
         bool_vector = GenerateRules.vectorize_pair(pair, quant_df)
         class_labels = meta_df['classification_label'].values
