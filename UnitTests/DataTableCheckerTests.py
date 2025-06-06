@@ -11,6 +11,8 @@ sys.path.append(parent_dir)
 
 from DataTableChecker import DataTableChecker
 
+#TODO make each function only have one assert
+#TODO try/catch in main 
 class TestDataTableChecker(unittest.TestCase):
     def setUp(self):
         self.checker = DataTableChecker()

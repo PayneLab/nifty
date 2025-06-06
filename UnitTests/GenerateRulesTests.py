@@ -10,6 +10,8 @@ sys.path.append(parent_dir)
 
 from GenerateRules import GenerateRules
 
+# TODO make each function only have one assert
+
 class TestGenerateRules(unittest.TestCase):
     def setUp(self):
         self.generator = GenerateRules()

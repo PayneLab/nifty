@@ -39,6 +39,9 @@ class EvaluateRules:
         # Change labels to 0 and 1
         class_labels = np.array([1 if label == class_labels[0] else 0 for label in class_labels])
 
+        # TODO add check in other class that the classes are the same order in quant and meta
+        # TODO This only works if they are in the same order! Make a sort function
+
         # Find TP and FP values
         TP = np.sum((bool_vector == 1) & (class_labels == 1))
         FP = np.sum((bool_vector == 1) & (class_labels == 0))
