@@ -61,6 +61,12 @@ class DataTableChecker:
 
         return 0
 
+    def sort_data(self, quant_df, meta_df):
+        quant_df = quant_df.sort_values(by="sample_id").reset_index(drop=True)
+        meta_df =  meta_df.sort_values(by="sample_id").reset_index(drop=True)
+        #Add and error?
+        return quant_df, meta_df
+
     def check_quant_data(self, quant_df):
         ''' Ensures values of quant table are either numeric or NA'''
         #replace empty cells or empty strings with NaN
