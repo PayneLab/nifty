@@ -4,7 +4,7 @@ class EvaluateRules:
     def __init__(self):
         pass
 
-    def vectorize_pair(pair: list, quant_df) -> np.ndarray:
+    def vectorize_pair(self, pair: list, quant_df) -> np.ndarray:
         '''Gets all values for two proteins of a pair, compares them and returns a boolean vector'''
         prot1 = pair[0]
         prot2 = pair[1]
