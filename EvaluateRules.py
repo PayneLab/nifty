@@ -31,9 +31,9 @@ class EvaluateRules:
 
         return bool_vector
     
-    def score_pair(pair: list, quant_df, meta_df) -> float:
+    def score_pair(self, pair: list, quant_df, meta_df) -> float:
         '''Scores a pair of proteins based on how well they separate the classes in the meta data'''
-        bool_vector = EvaluateRules.vectorize_pair(pair, quant_df)
+        bool_vector = EvaluateRules.vectorize_pair(self, pair, quant_df)
         class_labels = meta_df['classification_label'].values
 
         # Change labels to 0 and 1

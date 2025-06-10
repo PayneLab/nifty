@@ -25,6 +25,7 @@ class TestDataTableChecker(unittest.TestCase):
             'P3': [np.nan, np.nan, np.nan]
         })
 
+    # check_meta_file tests.
     def test_check_meta_file_valid(self):
         try:
             valid_df = pd.DataFrame({'sample_id': ['S1'], 'classification_label': ['A']})
@@ -53,6 +54,7 @@ class TestDataTableChecker(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
+    # check_samples tests.
     def test_check_samples_valid(self):
         try:
             self.assertEqual(self.checker.check_samples(self.quant_df, self.meta_df), 0)
@@ -87,6 +89,7 @@ class TestDataTableChecker(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
+    # sort_data tests.
     def test_sort_quant_data(self):
         try:
             quant_df = pd.DataFrame({'sample_id': ['S2', 'S1'], 'P1': [2, 1]})
@@ -110,6 +113,32 @@ class TestDataTableChecker(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
+    def test_sort_already_sort(self):
+        # Data is already sorted.
+        try:
+            quant_df = pd.DataFrame({'sample_id': ['S1', 'S2', 'S3', 'S4', 'S5'], 'P1': [1, 2, 3, 4, 5]})
+            meta_df = pd.DataFrame({'sample_id': ['S1', 'S2', 'S3', 'S4', 'S5'], 'classification_label': ['A', 'B', 'C', 'D', 'E']})
+            sorted_quant, sorted_meta = self.checker.sort_data(quant_df, meta_df)
+
+            pd.testing.assert_frame_equal(sorted_quant, quant_df)
+            pd.testing.assert_frame_equal(sorted_meta, meta_df)
+        except Exception as e:
+            self.fail(f"Unexpected exception thrown: {e}")
+
+    def test_sort_quant_sorter_meta_unsorted(self):
+        # Quant_df is sorted by sample_id, but meta_df is not sorted.
+        try:
+            quant_df = pd.DataFrame({'sample_id': ['S1', 'S2', 'S3', 'S4', 'S5'], 'P1': [1, 2, 3, 4, 5]})
+            meta_df = pd.DataFrame({'sample_id': ['S3', 'S1', 'S2', 'S4', 'S5'], 'classification_label': ['C', 'A', 'B', 'D', 'E']})
+            sorted_quant, sorted_meta = self.checker.sort_data(quant_df, meta_df)
+
+            expected_order_meta = pd.DataFrame({'sample_id': ['S1', 'S2', 'S3', 'S4', 'S5'], 'classification_label': ['A', 'B', 'C', 'D', 'E']})
+            pd.testing.assert_frame_equal(sorted_quant, quant_df)
+            pd.testing.assert_frame_equal(sorted_meta, expected_order_meta)
+        except Exception as e:
+            self.fail(f"Unexpected exception thrown: {e}")
+
+    # check_quant_data tests.
     def test_check_quant_data_valid(self):
         try:
             df_numeric = pd.DataFrame({'sample_id': ['S1'], 'P1': [1.0], 'P2': [2.0]})
@@ -145,6 +174,7 @@ class TestDataTableChecker(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
+    # check_duplicate_proteins tests.
     def test_check_duplicate_proteins_valid(self):
         try:
             df_unique = pd.DataFrame({'sample_id': ['S1'], 'P1': [1], 'P2': [2]})
@@ -160,6 +190,7 @@ class TestDataTableChecker(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
+    # check_duplicate_samples tests.
     def test_check_duplicate_samples_valid(self):
         try:
             self.assertEqual(self.checker.check_duplicate_samples(self.quant_df, self.meta_df), 0)
@@ -180,6 +211,7 @@ class TestDataTableChecker(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
+    # filter_proteins tests.
     def test_filter_proteins_50(self):
         try:
             expected_df = pd.DataFrame({
@@ -226,6 +258,7 @@ class TestDataTableChecker(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
+    # check_enough_samples tests.
     def test_check_enough_samples_valid(self):
         try:
             df_valid = pd.DataFrame({
@@ -276,6 +309,7 @@ class TestDataTableChecker(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
+    # check_protein_amount tests.
     def test_check_protein_amount_valid(self):
         try:
             df_valid = pd.DataFrame({

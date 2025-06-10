@@ -75,6 +75,21 @@ class TestEvaluateRules(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
+    def test_score_pair_perfect_separation(self):
+        quant_df = pd.DataFrame({
+            'sample_id': ['S1', 'S2', 'S3', 'S4'],
+            'P1': [1, 6, 3, 8],
+            'P2': [4, 5, 6, 1]
+        })
+
+        # P1 > P2: False, True, False, True.
+        meta_df = pd.DataFrame({
+            'sample_id': ['S1', 'S2', 'S3', 'S4'],
+            'classification_label': ['B', 'A', 'B', 'A']
+        })
+        expected_scores = abs(1.0)
+        self.assertAlmostEqual(self.evaluator.score_pair(['P1', 'P2'], quant_df, meta_df), expected_scores)
+
 
 if __name__ == '__main__':
     unittest.main()
