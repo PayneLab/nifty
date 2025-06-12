@@ -15,6 +15,11 @@ from EvaluateRules import EvaluateRules
 class TestEvaluateRules(unittest.TestCase):
     def setUp(self):
         self.evaluator = EvaluateRules()
+        self.quant_df_evaluate_pairs = pd.DataFrame({
+            'sample_id': ['S1', 'S2', 'S3', 'S4'],
+            'P1': [1, 6, 3, 8],
+            'P2': [4, 5, 6, 1]
+        })
 
     def test_vectorize_pair_no_na(self):
         # Pair without NA values.
@@ -76,19 +81,32 @@ class TestEvaluateRules(unittest.TestCase):
             self.fail(f"Unexpected exception thrown: {e}")
 
     def test_score_pair_perfect_separation(self):
-        quant_df = pd.DataFrame({
-            'sample_id': ['S1', 'S2', 'S3', 'S4'],
-            'P1': [1, 6, 3, 8],
-            'P2': [4, 5, 6, 1]
-        })
+        try:
+            # P1 > P2: False, True, False, True.
+            meta_df = pd.DataFrame({
+                'sample_id': ['S1', 'S2', 'S3', 'S4'],
+                'classification_label': ['H', 'D', 'H', 'D']
+            })
+            expected_score = abs(1.0)
+            self.assertAlmostEqual(self.evaluator.score_pair(['P1', 'P2'], self.quant_df_evaluate_pairs, meta_df), expected_score)
+        except Exception as e:
+            self.fail(f"Unexpected exception thrown: {e}")
 
-        # P1 > P2: False, True, False, True.
-        meta_df = pd.DataFrame({
-            'sample_id': ['S1', 'S2', 'S3', 'S4'],
-            'classification_label': ['B', 'A', 'B', 'A']
-        })
-        expected_scores = abs(1.0)
-        self.assertAlmostEqual(self.evaluator.score_pair(['P1', 'P2'], quant_df, meta_df), expected_scores)
+    def test_randomize_labels(self):
+        try:
+            meta_df = pd.DataFrame({
+                'sample_id': ['S1', 'S2', 'S3', 'S4'],
+                'classification_label': ['H', 'D', 'H', 'D']
+            })
+
+            randomized = self.evaluator.randomize_labels(meta_df)
+
+            original_labeled_meta_df = meta_df['classification_label'].tolist()
+            new_labeled_meta_df = randomized['classification_label'].tolist()
+            #print(new_labeled_meta_df)
+            self.assertNotEqual(original_labeled_meta_df, new_labeled_meta_df)
+        except Exception as e:
+            self.fail(f"Unexpected exception thrown: {e}")
 
 
 if __name__ == '__main__':

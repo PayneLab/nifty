@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+
 
 class EvaluateRules:
     def __init__(self):
@@ -36,7 +38,6 @@ class EvaluateRules:
         bool_vector = EvaluateRules.vectorize_pair(self, pair, quant_df)
         class_labels = meta_df['classification_label'].values
 
-        # Change labels to 0 and 1
         class_labels = np.array([1 if label == class_labels[0] else 0 for label in class_labels])
 
         # TODO add check in other class that the classes are the same order in quant and meta
@@ -61,6 +62,11 @@ class EvaluateRules:
         for pair in pairs:
             score = EvaluateRules.score_pair(pair, quant_df, meta_df)
             scored_pairs.append((pair, score))
-        
+        # Another var with permutation base probability.
         return scored_pairs
-        
+
+    def randomize_labels(self, meta_df) -> pd.DataFrame:
+        '''Randomizes the labels in the metadata and returns a new DataFrame.'''
+        randomized_meta_df = meta_df.copy()
+        randomized_meta_df['classification_label'] = np.random.permutation(meta_df['classification_label'].values)
+        return randomized_meta_df
