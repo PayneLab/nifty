@@ -92,7 +92,62 @@ class TestEvaluateRules(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
-    #TODO Add in more tests for different score values
+    def test_score_pair_no_separation(self):
+        try:
+            quant_df = pd.DataFrame({
+                'P1': [1, 2, 3, 4],
+                'P2': [4, 3, 2, 1]
+            })
+            meta_df = pd.DataFrame({
+                'sample_id': ['S1', 'S2', 'S3', 'S4'],
+                'classification_label': ['H', 'D', 'H', 'D']
+            })
+            expected_score = 0.0
+            self.assertAlmostEqual(self.evaluator.score_pair(['P1', 'P2'], quant_df, meta_df), expected_score)
+        except Exception as e:
+            self.fail(f"Unexpected exception thrown: {e}")
+
+    def test_score_pair_half_separation(self):
+        try:
+            quant_df = pd.DataFrame({
+                'P1': [1, 6, 4, 7],
+                'P2': [5, 5, 4, 8]
+            })
+            meta_df = pd.DataFrame({
+                'sample_id': ['S1', 'S2', 'S3', 'S4'],
+                'classification_label': ['H', 'H', 'D', 'D']
+            })
+
+            expected_score = 0.5
+            actual_score = self.evaluator.score_pair(['P1', 'P2'], quant_df, meta_df)
+            self.assertAlmostEqual(actual_score, expected_score)
+        except Exception as e:
+            self.fail(f"Unexpected exception thrown: {e}")
+    
+    def test_evaluate_pairs_output(self):
+        try:
+            quant_df = pd.DataFrame({
+                'P1': [1, 2, 3, 4],
+                'P2': [4, 3, 2, 1],
+                'P3': [2, 2, 2, 2]
+            })
+            meta_df = pd.DataFrame({
+                'sample_id': ['S1', 'S2', 'S3', 'S4'],
+                'classification_label': ['H', 'D', 'H', 'D']
+            })
+            pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
+            results = self.evaluator.evaluate_pairs(pairs, quant_df, meta_df)
+
+            self.assertEqual(len(results), len(pairs))
+            for pair, score in results:
+                self.assertIsInstance(pair, tuple)
+                self.assertEqual(len(pair), 2)
+                self.assertIsInstance(score, float)
+                self.assertGreaterEqual(score, 0.0)
+                self.assertLessEqual(score, 1.0)
+        except Exception as e:
+            self.fail(f"Unexpected exception thrown: {e}")
+
 
     def test_randomize_labels(self):
         try:
