@@ -92,6 +92,8 @@ class TestEvaluateRules(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
+    #TODO Add in more tests for different score values
+
     def test_randomize_labels(self):
         try:
             meta_df = pd.DataFrame({
