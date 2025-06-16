@@ -57,7 +57,7 @@ class EvaluateRules:
         '''Evaluates all pairs of proteins and returns a list of tuples with the pair and its score'''
         scored_pairs = []
         for pair in pairs:
-            score = EvaluateRules.score_pair(pair, quant_df, meta_df)
+            score = self.score_pair(pair, quant_df, meta_df)
             scored_pairs.append((pair, score))
         # Another var with permutation base probability.
         return scored_pairs
