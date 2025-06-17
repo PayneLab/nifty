@@ -15,19 +15,27 @@ class EvaluateRules:
         prot2_values = quant_df[prot2].values
 
         #Check for NA values in either prot1_values or prot2_values using numpy
-        for i in range(len(prot1_values)):
-            # Prot1 is NA and Prot2 is not NA
-            if np.isnan(prot1_values[i]) and not np.isnan(prot2_values[i]):
-                prot1_values[i] = 0
-                prot2_values[i] = 10
-            # Prot2 is NA and Prot1 is not NA
-            elif np.isnan(prot2_values[i]) and not np.isnan(prot1_values[i]):
-                prot2_values[i] = 0
-                prot1_values[i] = 10
-            # Both are NA, result in bool vector will be False
-            elif np.isnan(prot1_values[i]) and np.isnan(prot2_values[i]):
-                prot1_values[i] = 0
-                prot2_values[i] = 10
+        # Copy the values to avoid modifying the original DataFrame
+        prot1_values = prot1_values.copy()
+        prot2_values = prot2_values.copy()
+
+        # Create masks for NaN combinations
+        mask1_nan = np.isnan(prot1_values)
+        mask2_nan = np.isnan(prot2_values)
+
+        both_nan = mask1_nan & mask2_nan
+        only1_nan = mask1_nan & ~mask2_nan
+        only2_nan = mask2_nan & ~mask1_nan
+
+        # Apply replacement logic
+        prot1_values[only1_nan] = 0
+        prot2_values[only1_nan] = 10
+
+        prot2_values[only2_nan] = 0
+        prot1_values[only2_nan] = 10
+
+        prot1_values[both_nan] = 0
+        prot2_values[both_nan] = 10
 
         bool_vector = prot1_values > prot2_values
 
