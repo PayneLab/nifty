@@ -56,5 +56,9 @@ def test_pipeline():
     #print("Permutation test results:")
     #print(perm_results)
 
+    # TODO Add more regression tests for other dataframes 
+    # TODO Add for imbalanced data/strange data/data that needs filtering/huge data (created in code so I know what to expect)
+    # TODO Get creative with many tests
+
 if __name__ == "__main__":
     test_pipeline()
