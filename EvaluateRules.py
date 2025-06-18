@@ -63,10 +63,10 @@ class EvaluateRules:
     
     def evaluate_pairs(self, pairs: list, quant_df, meta_df) -> list:
         '''Evaluates all pairs of proteins and returns a list of tuples with the pair and its score'''
-        scored_pairs = []
+        scored_pairs = {}
         for pair in pairs:
             score = self.score_pair(pair, quant_df, meta_df)
-            scored_pairs.append((pair, score))
+            scored_pairs[tuple(pair)] = score
         # Another var with permutation base probability.
         return scored_pairs
 
@@ -75,3 +75,52 @@ class EvaluateRules:
         randomized_meta_df = meta_df.copy()
         randomized_meta_df['classification_label'] = np.random.permutation(meta_df['classification_label'].values)
         return randomized_meta_df
+
+    def permutation_test(self, pairs: list, quant_df, meta_df, n_permutations: int = 1000) -> pd.DataFrame:
+        
+        '''Performs a label swap permutation test for a list of protein pairs.'''
+
+        results = []
+
+        # Get orginal scores
+        observed_scores = self.evaluate_pairs(pairs, quant_df, meta_df)
+
+        # Get permutated scores
+        permuted_scores = {}
+        for pair in pairs:
+            permuted_scores[tuple(pair)] = []
+
+        for i in range(n_permutations):
+            permuted_meta_df = self.randomize_labels(meta_df)
+            permuted_result = self.evaluate_pairs(pairs, quant_df, permuted_meta_df)
+
+            for pair in pairs:
+                key = tuple(pair)
+                score = permuted_result[key]
+                permuted_scores[key].append(score)
+
+        # Calculate p-values and mean scores
+        for pair in pairs:
+            key = tuple(pair)
+            obs_score = observed_scores[key]
+            perm_scores = permuted_scores[key]
+
+            obs_score = observed_scores[key]
+            perm_scores = permuted_scores[key]
+
+            # p-value
+            count_extreme = np.sum([score >= obs_score for score in perm_scores])
+            p_val = (count_extreme + 1) / (n_permutations + 1)
+
+            # Mean permutated score
+            mean_perm_score = np.mean(perm_scores)
+
+            result = {
+                'pair': pair,
+                'observed_score': obs_score,
+                'mean_permuted_score': mean_perm_score,
+                'empirical_p_value': p_val
+            }
+            results.append(result)
+
+        return pd.DataFrame(results)
