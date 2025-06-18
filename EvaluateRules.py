@@ -61,42 +61,63 @@ class EvaluateRules:
 
         return score
     
-    def evaluate_pairs(self, pairs: list, quant_df, meta_df) -> list:
-        '''Evaluates all pairs of proteins and returns a list of tuples with the pair and its score'''
-        scored_pairs = []
-        #permutated_score_pairs = []
+    def evaluate_pairs(self, pairs: list, quant_df, meta_df) -> dict:
+        '''Evaluates all pairs of proteins and returns a dict of tuples with the pair and its score'''
+        scored_pairs = {}
         for pair in pairs:
             score = self.score_pair(pair, quant_df, meta_df)
-            scored_pairs.append((pair, score))
+            scored_pairs[tuple(pair)] = score
         # Another var with permutation base probability.
         return scored_pairs
 
     def randomize_labels(self, meta_df) -> pd.DataFrame:
         '''Randomizes the labels in the metadata and returns a new DataFrame.'''
-        # Pandas!!!!
         randomized_meta_df = meta_df.copy()
         randomized_meta_df['classification_label'] = np.random.permutation(meta_df['classification_label'].values)
         return randomized_meta_df
 
-    def permutate(self, pairs: list, quant_df, meta_df, n_permutations=100):
-        #-> pd.DataFrame:
+    def permutation_test(self, pairs: list, quant_df, meta_df, n_permutations: int = 1000) -> pd.DataFrame:
+        
+        '''Performs a label swap permutation test for a list of protein pairs.'''
+
+        results = []
+
+        # Get orginal scores
+        observed_scores = self.evaluate_pairs(pairs, quant_df, meta_df)
+
+        # Get permutated scores
         permuted_scores = {}
         for pair in pairs:
-            permuted_scores[pair] = []
+            permuted_scores[tuple(pair)] = []
+
         for i in range(n_permutations):
-            randomized_meta_df = self.randomize_labels(meta_df)
-            scores = self.evaluate_pairs(pairs, quant_df, randomized_meta_df)
-            for pair, score in scores:
-                permuted_scores[pair].append(score)
-                # pd.DataFrame.from_dict(permuted_scores, orient='index')
-                # Need to tanspose it. And get the averages.
+            permuted_meta_df = self.randomize_labels(meta_df)
+            permuted_result = self.evaluate_pairs(pairs, quant_df, permuted_meta_df)
 
-        # Save into a dataframe.
-        # Transform the dictionary yo a dataframe of rules of rules and fake scores.
-        # Across the row get sigma and mean.
-        # ...
-        # ...
-        # ...
-        # ...
+            for pair in pairs:
+                key = tuple(pair)
+                score = permuted_result[key]
+                permuted_scores[key].append(score)
 
-        return permuted_scores
+        # Calculate p-values and mean scores
+        for pair in pairs:
+            key = tuple(pair)
+            obs_score = observed_scores[key]
+            perm_scores = permuted_scores[key]
+
+            # p-value
+            count_extreme = np.sum([score >= obs_score for score in perm_scores])
+            p_val = (count_extreme + 1) / (n_permutations + 1)
+
+            # Mean permutated score
+            mean_perm_score = np.mean(perm_scores)
+
+            result = {
+                'pair': pair,
+                'observed_score': obs_score,
+                'mean_permuted_score': mean_perm_score,
+                'empirical_p_value': p_val
+            }
+            results.append(result)
+
+        return pd.DataFrame(results)
