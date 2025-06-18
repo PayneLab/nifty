@@ -105,9 +105,6 @@ class EvaluateRules:
             obs_score = observed_scores[key]
             perm_scores = permuted_scores[key]
 
-            obs_score = observed_scores[key]
-            perm_scores = permuted_scores[key]
-
             # p-value
             count_extreme = np.sum([score >= obs_score for score in perm_scores])
             p_val = (count_extreme + 1) / (n_permutations + 1)
