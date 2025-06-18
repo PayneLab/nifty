@@ -139,7 +139,8 @@ class TestEvaluateRules(unittest.TestCase):
             results = self.evaluator.evaluate_pairs(pairs, quant_df, meta_df)
 
             self.assertEqual(len(results), len(pairs))
-            for pair, score in results:
+            for pair in results:
+                score = results[pair]
                 self.assertIsInstance(pair, tuple)
                 self.assertEqual(len(pair), 2)
                 self.assertIsInstance(score, float)
@@ -147,7 +148,6 @@ class TestEvaluateRules(unittest.TestCase):
                 self.assertLessEqual(score, 1.0)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
-
 
     def test_randomize_labels(self):
         try:
