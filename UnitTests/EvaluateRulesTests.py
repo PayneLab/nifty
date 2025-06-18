@@ -156,14 +156,27 @@ class TestEvaluateRules(unittest.TestCase):
                 'classification_label': ['H', 'D', 'H', 'D']
             })
 
-            randomized = self.evaluator.randomize_labels(meta_df)
+            for i in range(100):
+                same = True
 
-            original_labeled_meta_df = meta_df['classification_label'].tolist()
-            new_labeled_meta_df = randomized['classification_label'].tolist()
+                randomized = self.evaluator.randomize_labels(meta_df)
+
+                original_labeled_meta_df = meta_df['classification_label'].tolist()
+                new_labeled_meta_df = randomized['classification_label'].tolist()
+
+                same = original_labeled_meta_df == new_labeled_meta_df
+
+                if same:
+                    continue
+                else:
+                    # If the labels are not the same, break the loop.
+                    break
             #print(new_labeled_meta_df)
             self.assertNotEqual(original_labeled_meta_df, new_labeled_meta_df)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
+
+    #TODO Make a test for permutation test. I don't know how to do this consistently due to the randomness of the task.
 
 
 if __name__ == '__main__':
