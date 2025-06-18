@@ -46,10 +46,15 @@ def test_pipeline():
     results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
 
     # Verify Against Expected
-    expected_results = [(('Protein 1', 'Protein 2'), 0.5), (('Protein 1', 'Protein 3'), 1.0), (('Protein 1', 'Protein 4'), 0.5), (('Protein 1', 'Protein 5'), 0.0), (('Protein 1', 'Protein 6'), 0.0), (('Protein 1', 'Protein 7'), 0.5), (('Protein 2', 'Protein 3'), 0.0), (('Protein 2', 'Protein 4'), 0.5), (('Protein 2', 'Protein 5'), 1.0), (('Protein 2', 'Protein 6'), 1.0), (('Protein 2', 'Protein 7'), 0.5), (('Protein 3', 'Protein 4'), 0.0), (('Protein 3', 'Protein 5'), 0.0), (('Protein 3', 'Protein 6'), 0.0), (('Protein 3', 'Protein 7'), 1.0), (('Protein 4', 'Protein 5'), 0.5), (('Protein 4', 'Protein 6'), 1.0), (('Protein 4', 'Protein 7'), 1.0), (('Protein 5', 'Protein 6'), 1.0), (('Protein 5', 'Protein 7'), 0.5), (('Protein 6', 'Protein 7'), 0.0)]
+    expected_results = {('Protein 1', 'Protein 2'): 0.5, ('Protein 1', 'Protein 3'): 1.0, ('Protein 1', 'Protein 4'): 0.5, ('Protein 1', 'Protein 5'): 0.0, ('Protein 1', 'Protein 6'): 0.0, ('Protein 1', 'Protein 7'): 0.5, ('Protein 2', 'Protein 3'): 0.0, ('Protein 2', 'Protein 4'): 0.5, ('Protein 2', 'Protein 5'): 1.0, ('Protein 2', 'Protein 6'): 1.0, ('Protein 2', 'Protein 7'): 0.5, ('Protein 3', 'Protein 4'): 0.0, ('Protein 3', 'Protein 5'): 0.0, ('Protein 3', 'Protein 6'): 0.0, ('Protein 3', 'Protein 7'): 1.0, ('Protein 4', 'Protein 5'): 0.5, ('Protein 4', 'Protein 6'): 1.0, ('Protein 4', 'Protein 7'): 1.0, ('Protein 5', 'Protein 6'): 1.0, ('Protein 5', 'Protein 7'): 0.5, ('Protein 6', 'Protein 7'): 0.0}
     assert results == expected_results 
 
     print("Regression test passed")
+
+    # Run Permutation Test
+    #perm_results = evaluator.permutation_test(pairs, quant_df, meta_df, n_permutations=1000)
+    #print("Permutation test results:")
+    #print(perm_results)
 
 if __name__ == "__main__":
     test_pipeline()
