@@ -63,15 +63,40 @@ class EvaluateRules:
     
     def evaluate_pairs(self, pairs: list, quant_df, meta_df) -> list:
         '''Evaluates all pairs of proteins and returns a list of tuples with the pair and its score'''
-        scored_pairs = {}
+        scored_pairs = []
+        #permutated_score_pairs = []
         for pair in pairs:
             score = self.score_pair(pair, quant_df, meta_df)
-            scored_pairs[tuple(pair)] = score
+            scored_pairs.append((pair, score))
         # Another var with permutation base probability.
         return scored_pairs
 
     def randomize_labels(self, meta_df) -> pd.DataFrame:
         '''Randomizes the labels in the metadata and returns a new DataFrame.'''
+        # Pandas!!!!
         randomized_meta_df = meta_df.copy()
         randomized_meta_df['classification_label'] = np.random.permutation(meta_df['classification_label'].values)
         return randomized_meta_df
+
+    def permutate(self, pairs: list, quant_df, meta_df, n_permutations=100):
+        #-> pd.DataFrame:
+        permuted_scores = {}
+        for pair in pairs:
+            permuted_scores[pair] = []
+        for i in range(n_permutations):
+            randomized_meta_df = self.randomize_labels(meta_df)
+            scores = self.evaluate_pairs(pairs, quant_df, randomized_meta_df)
+            for pair, score in scores:
+                permuted_scores[pair].append(score)
+                # pd.DataFrame.from_dict(permuted_scores, orient='index')
+                # Need to tanspose it. And get the averages.
+
+        # Save into a dataframe.
+        # Transform the dictionary yo a dataframe of rules of rules and fake scores.
+        # Across the row get sigma and mean.
+        # ...
+        # ...
+        # ...
+        # ...
+
+        return permuted_scores
