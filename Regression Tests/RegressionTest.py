@@ -111,7 +111,62 @@ def test_pipeline_NA_meta():
         'classification_label': [np.nan, np.nan, np.nan]
     })
     # Run Checks
-     # Run Checks
+    checker = DataTableChecker()
+    checker.check_meta_file(meta_df)
+    checker.check_samples(meta_df, quant_df)
+    checker.check_quant_data(quant_df)
+    checker.check_duplicate_proteins(quant_df)
+
+    # Generate Rules
+    rule_gen = GenerateRules()
+    pairs = rule_gen.generate_rule_pairs(quant_df)
+
+    # Score Rules
+    evaluator = EvaluateRules()
+    results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
+
+    print(results)
+
+def test_large_imbalanced():
+    # Large imbalanced data
+    num_samples = 500
+    num_proteins = 50
+
+    # Create sample_id list
+    sample_ids = [f'Sample {i+1}' for i in range(num_samples)]
+
+    # Start with sample_id column
+    quant_data = {
+        'sample_id': sample_ids
+    }
+
+    # Add each protein as a column
+    for i in range(1, num_proteins + 1):
+        # Random integers from 0 to 150, float type to support NaN
+        values = np.random.randint(0, 150, size=num_samples).astype(float)
+        # Add ~5% missing values
+        nan_indices = np.random.choice(num_samples, size=int(0.05 * num_samples), replace=False)
+        values[nan_indices] = np.nan
+        quant_data[f'Protein {i}'] = values
+
+    # Create DataFrame
+    quant_df = pd.DataFrame(quant_data)
+
+
+    sample_ids = [f'Sample {i+1}' for i in range(500)]
+
+    # Randomly assign 'H' or 'D' labels
+    labels_H = np.random.choice(['H'], size=470)
+    labels_D = np.random.choice(['D'], size=30)
+    labels = np.concatenate((labels_H, labels_D))
+    np.random.shuffle(labels)
+
+    # Create the meta_df
+    meta_df = pd.DataFrame({
+        'sample_id': sample_ids,
+        'classification_label': labels
+    })
+    # Run Checks
     checker = DataTableChecker()
     checker.check_meta_file(meta_df)
     checker.check_samples(meta_df, quant_df)
@@ -132,4 +187,6 @@ if __name__ == "__main__":
     test_pipeline()
     test_pipeline_NA_quant()
     test_pipeline_NA_meta()
+    test_large_imbalanced()
 
+#TODO Ensure output makes sense from the above tests
