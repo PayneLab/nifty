@@ -62,5 +62,74 @@ def test_pipeline():
     # TODO Add for imbalanced data/strange data/huge data (created in code so I know what to expect)
     # TODO Get creative with many tests
 
+
+def test_pipeline_NA_quant():
+    # All NA values
+    quant_df = pd.DataFrame({
+        'sample_id': ['Sample 1', 'Sample 2', 'Sample 3'],
+        'Protein 1': [np.nan, np.nan, np.nan],
+        'Protein 2': [np.nan, np.nan, np.nan],
+        'Protein 3': [np.nan, np.nan, np.nan]
+    })
+
+    meta_df = pd.DataFrame({
+            'sample_id': ['Sample 1', 'Sample 2', 'Sample 3'],
+            'classification_label': ['H', 'D', 'H']
+    })
+
+    # Run Checks
+    checker = DataTableChecker()
+    checker.check_meta_file(meta_df)
+    checker.check_samples(meta_df, quant_df)
+    checker.check_quant_data(quant_df)
+    checker.check_duplicate_proteins(quant_df)
+
+    # Generate Rules
+    rule_gen = GenerateRules()
+    pairs = rule_gen.generate_rule_pairs(quant_df)
+
+    # Score Rules
+    evaluator = EvaluateRules()
+    results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
+
+    print(results)
+
+def test_pipeline_NA_meta():
+    quant_df = pd.DataFrame({
+        'sample_id': ['Sample 1', 'Sample 2', 'Sample 3'],
+        'Protein 1': [10, np.nan, 23],
+        'Protein 2': [20, 23, 3],
+        'Protein 3': [np.nan, 5, 1],
+        'Protein 4': [2, 88, 42],
+        'Protein 5': [32, 7, 24],
+        'Protein 6': [45, 5, 123],
+        'Protein 7': [2, 4, 44]
+    })
+
+    meta_df = pd.DataFrame({
+        'sample_id': ['Sample 1', 'Sample 2', 'Sample 3'],
+        'classification_label': [np.nan, np.nan, np.nan]
+    })
+    # Run Checks
+     # Run Checks
+    checker = DataTableChecker()
+    checker.check_meta_file(meta_df)
+    checker.check_samples(meta_df, quant_df)
+    checker.check_quant_data(quant_df)
+    checker.check_duplicate_proteins(quant_df)
+
+    # Generate Rules
+    rule_gen = GenerateRules()
+    pairs = rule_gen.generate_rule_pairs(quant_df)
+
+    # Score Rules
+    evaluator = EvaluateRules()
+    results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
+
+    print(results)
+
 if __name__ == "__main__":
     test_pipeline()
+    test_pipeline_NA_quant()
+    test_pipeline_NA_meta()
+

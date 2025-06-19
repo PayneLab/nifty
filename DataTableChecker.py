@@ -17,7 +17,7 @@ class DataTableChecker:
     10 = All proteins were filtered out.
     11 = Not enough samples per class.
     12 = Not enough proteins in quantification data.
-
+    13 = Meta data file contains NA values.
     """
 
     def __init__(self):
@@ -37,6 +37,10 @@ class DataTableChecker:
         if header[1].strip() != "classification_label":
             print(f"Second column of meta data file must be named 'classification_label', but found '{header[1]}'.")
             return 3
+        # Ensure there are no NA values in meta file
+        if meta_df.isna().any().any():
+            print("Meta data file contains NA values.")
+            return 13
         return 0
 
     def check_samples(self, quant_df, meta_df):
