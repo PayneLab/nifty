@@ -178,6 +178,25 @@ class TestEvaluateRules(unittest.TestCase):
 
     #TODO Make a test for permutation test. I don't know how to do this consistently due to the randomness of the task.
 
+    def test_permutate_equal_lengths(self):
+        try:
+            quant_df = pd.DataFrame({
+                'P1': [1, 2, 3, 4, 5, 4, 10, 2, 3, 4, 5],
+                'P2': [4, 3, 2, 1, 6, 3, 4, 1, 2, 3, 4],
+                'P3': [2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3]
+            })
+            meta_df = pd.DataFrame({
+                'sample_id': ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9', 'S10', 'S11'],
+                'classification_label': ['H', 'D', 'H', 'D', 'D', 'H', 'H', 'D', 'D', 'H', 'D']
+            })
+            pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
+            results = self.evaluator.permutate(pairs, quant_df, meta_df)
+            print(results)
+            self.assertEqual(len(results.index), len(pairs))
+        except Exception as e:
+            self.fail(f"Unexpected exception thrown: {e}")
+
+    # def test_summarize_stats(self):
 
 if __name__ == '__main__':
     unittest.main()

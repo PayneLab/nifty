@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-
+from scipy.stats import norm
+import statsmodels.stats.multitest as ssm
 
 class EvaluateRules:
     def __init__(self):
@@ -77,7 +78,10 @@ class EvaluateRules:
         randomized_meta_df['classification_label'] = np.random.permutation(meta_df['classification_label'].values)
         return randomized_meta_df
 
-    def permutate(self, pairs: list, quant_df, meta_df, n_permutations=100) -> pd.DataFrame:
+    def permutate(self, pairs: list, quant_df, meta_df, n_permutations=100):
+        ''' Runs a permutation test on all pairs to see how significant their classification
+        score is under a null distribution '''
+        true_scores = dict(self.evaluate_pairs(pairs, quant_df, meta_df))
         permuted_scores = {}
         for pair in pairs:
             permuted_scores[pair] = []
@@ -86,22 +90,34 @@ class EvaluateRules:
             scores = self.evaluate_pairs(pairs, quant_df, randomized_meta_df)
             for pair, score in scores:
                 permuted_scores[pair].append(score)
-        permuted_scores_df = pd.DataFrame.from_dict(permuted_scores, orient='index')
-        # Transpose it.
-        permuted_scores_df = permuted_scores_df.T
-        # Save into a dataframe with all the values we need. Rules of rules and fake scores.
-        summary_df = pd.DataFrame(
-            {
-                'mean': permuted_scores_df.mean(),
-                'sigma': permuted_scores_df.std() / np.sqrt(n_permutations),
-                'std': permuted_scores_df.std()
-            }
-        ).reset_index().rename(columns={'index': 'pair'})
+        summary_df = self.summarize_stats(true_scores, permuted_scores)
         return summary_df
 
-        # ...
-        # ...
-        # ...
-        # ...
+    def summarize_stats(self, true_scores, permuted_scores) -> pd.DataFrame:
+        ''' Summarizes permutation test results for all evaluated feature pairs.'''
+        permuted_df = pd.DataFrame.from_dict(permuted_scores, orient='index')
+        # Transpose it.
+        permuted_df = permuted_df.T
+        pairs = list(permuted_df.columns)
+        means = permuted_df.mean(axis=0)
+        stds = permuted_df.std(axis=0)
+        summary_data = []
 
-        return permuted_scores
+        for pair in pairs:
+            true = true_scores[pair]
+            mean = means[pair]
+            std = stds[pair]
+            z_score = (true - mean) / std
+            p_value = norm.sf(abs(z_score)) * 2
+            # p_val = stats.norm.sf(abs(z_score)) * 2
+            summary_data.append((pair, true, mean, std, z_score, p_value))
+
+        summary_df = pd.DataFrame(summary_data, columns=['Gene_Pair', 'True_Score', 'Mean', 'Std', 'Z-Score', 'P_Value'])
+        significant_pairs_df = self.get_significant_pairs(summary_df)
+        return significant_pairs_df
+
+    def get_significant_pairs(self, summary_df) -> pd.DataFrame:
+        # Adjust p-values for multiple testing
+        summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
+        # summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]?
+        return summary_df
