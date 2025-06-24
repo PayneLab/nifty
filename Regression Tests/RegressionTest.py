@@ -54,7 +54,7 @@ def test_pipeline():
     print("Regression test passed")
 
     # Run Permutation Test
-    #perm_results = evaluator.permutation_test(pairs, quant_df, meta_df, n_permutations=1000)
+    #perm_results = evaluator.permutate(pairs, quant_df, meta_df, n_permutations=1000)
     #print("Permutation test results:")
     #print(perm_results)
 

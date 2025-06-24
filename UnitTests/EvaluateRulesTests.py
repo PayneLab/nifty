@@ -3,6 +3,9 @@ import pandas as pd
 import numpy as np
 import sys
 import os
+import cProfile
+import pstats
+import io
 
 current_dir = os.path.dirname(__file__)
 
@@ -88,7 +91,8 @@ class TestEvaluateRules(unittest.TestCase):
                 'classification_label': ['H', 'D', 'H', 'D']
             })
             expected_score = abs(1.0)
-            self.assertAlmostEqual(self.evaluator.score_pair(['P1', 'P2'], self.quant_df_evaluate_pairs, meta_df), expected_score)
+            self.assertAlmostEqual(self.evaluator.score_pair(['P1', 'P2'], self.quant_df_evaluate_pairs, meta_df),
+                                   expected_score)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
@@ -123,7 +127,7 @@ class TestEvaluateRules(unittest.TestCase):
             self.assertAlmostEqual(actual_score, expected_score)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
-    
+
     def test_evaluate_pairs_output(self):
         try:
             quant_df = pd.DataFrame({
@@ -148,31 +152,14 @@ class TestEvaluateRules(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
-
     def test_randomize_labels(self):
         try:
-            meta_df = pd.DataFrame({
-                'sample_id': ['S1', 'S2', 'S3', 'S4'],
-                'classification_label': ['H', 'D', 'H', 'D']
-            })
-
+            label_array = np.array(['H', 'D', 'H', 'D', 'H', 'D', 'H'])
+            seen = set()
             for i in range(100):
-                same = True
-
-                randomized = self.evaluator.randomize_labels(meta_df)
-
-                original_labeled_meta_df = meta_df['classification_label'].tolist()
-                new_labeled_meta_df = randomized['classification_label'].tolist()
-
-                same = original_labeled_meta_df == new_labeled_meta_df
-
-                if same:
-                    continue
-                else:
-                    # If the labels are not the same, break the loop.
-                    break
-            #print(new_labeled_meta_df)
-            self.assertNotEqual(original_labeled_meta_df, new_labeled_meta_df)
+                shuffled_labels = self.evaluator.randomize_labels(label_array)
+                seen.add(tuple(shuffled_labels))
+            self.assertGreater(len(seen), 30)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
@@ -190,13 +177,23 @@ class TestEvaluateRules(unittest.TestCase):
                 'classification_label': ['H', 'D', 'H', 'D', 'D', 'H', 'H', 'D', 'D', 'H', 'D']
             })
             pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
+
+            cProfile
+            pr = cProfile.Profile()
+            pr.enable()
+
             results = self.evaluator.permutate(pairs, quant_df, meta_df)
+
+            pr.disable()
+            s = io.StringIO()
+            pstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats()
+            print(s.getvalue())
+
             print(results)
             self.assertEqual(len(results.index), len(pairs))
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
-    # def test_summarize_stats(self):
 
 if __name__ == '__main__':
     unittest.main()

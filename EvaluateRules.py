@@ -72,11 +72,10 @@ class EvaluateRules:
         # Another var with permutation base probability.
         return scored_pairs
 
-    def randomize_labels(self, meta_df) -> pd.DataFrame:
+    def randomize_labels(self, labels: np.ndarray) -> np.ndarray:
         '''Randomizes the labels in the metadata and returns a new DataFrame.'''
-        randomized_meta_df = meta_df.copy()
-        randomized_meta_df['classification_label'] = np.random.permutation(meta_df['classification_label'].values)
-        return randomized_meta_df
+        #randomized_meta_df = meta_df.copy()
+        return np.random.permutation(labels)
 
     def permutate(self, pairs: list, quant_df, meta_df, n_permutations=100):
         ''' Runs a permutation test on all pairs to see how significant their classification
@@ -85,8 +84,13 @@ class EvaluateRules:
         permuted_scores = {}
         for pair in pairs:
             permuted_scores[pair] = []
+
+        labels = meta_df['classification_label'].to_numpy()
+
         for i in range(n_permutations):
-            randomized_meta_df = self.randomize_labels(meta_df)
+            shuffled_labels = self.randomize_labels(labels)
+            randomized_meta_df = meta_df.copy()
+            randomized_meta_df['classification_label'] = shuffled_labels
             scores = self.evaluate_pairs(pairs, quant_df, randomized_meta_df)
             for pair, score in scores:
                 permuted_scores[pair].append(score)
@@ -119,5 +123,5 @@ class EvaluateRules:
     def get_significant_pairs(self, summary_df) -> pd.DataFrame:
         # Adjust p-values for multiple testing
         summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
-        # summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]?
+        # summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
         return summary_df
