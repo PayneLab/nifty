@@ -125,14 +125,12 @@ def test_pipeline_NA_meta():
 
 
 def test_large_imbalanced():
-
+    #Make df
     num_samples = 500
     num_proteins = 50
 
-    # create sample IDs
     sample_ids = [f'Sample {i+1}' for i in range(num_samples)]
 
-    # Assign labels H and D
     labels_H = np.random.choice(['H'], size=470)
     labels_D = np.random.choice(['D'], size=30)
     labels = np.concatenate((labels_H, labels_D))
@@ -148,31 +146,55 @@ def test_large_imbalanced():
     }
 
     for i in range(1, num_proteins + 1):
-        if i in [20, 30]:
-            continue    #skip 20 and 30 since they will be made significant later
-        # random data otherwise
+        if i in [10, 20, 30, 40]:
+            continue
         values = np.random.randint(0, 150, size=num_samples).astype(float)
         nan_indices = np.random.choice(num_samples, size=int(0.05 * num_samples), replace=False)
         values[nan_indices] = np.nan
         quant_data[f'Protein {i}'] = values
 
-    # generate significant proteins 20 and 30
-    prot_20 = []
-    prot_30 = []
-
+    # perfect 20/30 pair for score of 1.0
+    prot_20, prot_30 = [], []
     for label in labels:
         base = np.random.randint(30, 120)
         delta = np.random.randint(5, 20)
         if label == 'H':
             prot_20.append(base)
             prot_30.append(base - delta)
-        else:   # D
+        else:
             prot_30.append(base)
             prot_20.append(base - delta)
-
-    # add data
     quant_data['Protein 20'] = prot_20
     quant_data['Protein 30'] = prot_30
+
+    # Meaningless 10/40 pair for score of 0
+    prot_10 = np.zeros(num_samples)
+    prot_40 = np.zeros(num_samples)
+
+    H_indices = np.where(labels == 'H')[0]
+    D_indices = np.where(labels == 'D')[0]
+
+    def assign_balanced_rule(indices):
+        n = len(indices)
+        half = n // 2
+        for i, idx in enumerate(indices):
+            base = np.random.randint(30, 120)
+            delta = np.random.randint(5, 20)
+            if i < half:
+                # 10 < 40
+                prot_10[idx] = base
+                prot_40[idx] = base + delta
+            else:
+                # 10 > 40
+                prot_10[idx] = base + delta
+                prot_40[idx] = base
+
+    assign_balanced_rule(H_indices)
+    assign_balanced_rule(D_indices)
+
+    quant_data['Protein 10'] = prot_10
+    quant_data['Protein 40'] = prot_40
+
 
     quant_df = pd.DataFrame(quant_data)
 
@@ -189,14 +211,28 @@ def test_large_imbalanced():
     evaluator = EvaluateRules()
     results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
 
-    if (('Protein 20', 'Protein 30'), 1.0) not in results:
-        raise AssertionError("Expected pair ('Protein 20', 'Protein 30') with score 1.0 not found in results.")
+    result_dict = dict(results)
+
+    # check score for perfect separation pair
+    score_20_30 = result_dict.get(('Protein 20', 'Protein 30'), None)
+    if score_20_30 != 1.0:
+        raise AssertionError(f"Expected score 1.0 for ('Protein 20', 'Protein 30'), got {score_20_30}")
     else:
-        print("Test passed: Pair ('Protein 20', 'Protein 30') with score 1.0 found in results.")
+        print("Test passed: ('Protein 20', 'Protein 30') has score 1.0.")
+
+    # check score for meaningless pair
+    score_10_40 = result_dict.get(('Protein 10', 'Protein 40'), None)
+    if score_10_40 is None:
+        raise AssertionError("Expected pair ('Protein 10', 'Protein 40') not found in results.")
+    if score_10_40 > 0.05:
+        raise AssertionError(f"Expected score ~0.0 for ('Protein 10', 'Protein 40'), got {score_10_40}")
+    else:
+        print("Test passed: ('Protein 10', 'Protein 40') has score near 0.0.")
+
 
 if __name__ == "__main__":
-    test_pipeline()
-    test_pipeline_NA_quant()
-    test_pipeline_NA_meta()
+    #test_pipeline()
+    #test_pipeline_NA_quant()
+    #test_pipeline_NA_meta()
     test_large_imbalanced()
 
