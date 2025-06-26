@@ -178,16 +178,7 @@ class TestEvaluateRules(unittest.TestCase):
             })
             pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
 
-            cProfile
-            pr = cProfile.Profile()
-            pr.enable()
-
             results = self.evaluator.permutate(pairs, quant_df, meta_df)
-
-            pr.disable()
-            s = io.StringIO()
-            pstats.Stats(pr, stream=s).sort_stats('cumulative').print_stats()
-            print(s.getvalue())
 
             print(results)
             self.assertEqual(len(results.index), len(pairs))
