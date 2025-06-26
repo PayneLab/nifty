@@ -163,8 +163,6 @@ class TestEvaluateRules(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
-    #TODO Make a test for permutation test. I don't know how to do this consistently due to the randomness of the task.
-
     def test_permutate_equal_lengths(self):
         try:
             quant_df = pd.DataFrame({
