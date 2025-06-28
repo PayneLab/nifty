@@ -45,9 +45,10 @@ class EvaluateRules:
     def score_pair(self, pair: list, quant_df, meta_df) -> float:
         '''Scores a pair of proteins based on how well they separate the classes in the meta data'''
         bool_vector = EvaluateRules.vectorize_pair(self, pair, quant_df)
-        class_labels = meta_df['classification_label'].values
 
-        class_labels = np.array([1 if label == class_labels[0] else 0 for label in class_labels])
+        class_labels = meta_df['classification_label'].to_numpy()
+        first_label = class_labels[0]
+        class_labels = (class_labels == first_label).astype(int)
 
         # Find TP and FP values
         TP = np.sum((bool_vector == 1) & (class_labels == 1))
@@ -111,8 +112,14 @@ class EvaluateRules:
             true = true_scores[pair]
             mean = means[pair]
             std = stds[pair]
-            z_score = (true - mean) / std
-            p_value = norm.sf(abs(z_score)) * 2
+            if std == 0 or np.isnan(std):
+                # Temporary solution to return something.
+                z_score = 0.0
+                # So not significant per default.
+                p_value = 1.0
+            else:
+                z_score = (true - mean) / std
+                p_value = norm.sf(abs(z_score)) * 2
             # p_val = stats.norm.sf(abs(z_score)) * 2
             summary_data.append((pair, true, mean, std, z_score, p_value))
 
