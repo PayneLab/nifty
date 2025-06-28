@@ -1,6 +1,7 @@
 # REgression test 2 - Large Dataset with NA values
 
 import pandas as pd
+import cProfile
 import numpy as np
 import sys
 import os
@@ -112,6 +113,9 @@ def test_large_imbalanced_NA():
     evaluator = EvaluateRules()
     results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
 
+    perm_results = evaluator.permutate(pairs, quant_df, meta_df, n_permutations=10)
+    print(perm_results)
+
     result_dict = dict(results)
 
     # assertions
@@ -133,4 +137,4 @@ def test_large_imbalanced_NA():
 
 
 if __name__ == "__main__":
-    test_large_imbalanced_NA()
+    cProfile.run("test_large_imbalanced_NA()", sort="cumtime")

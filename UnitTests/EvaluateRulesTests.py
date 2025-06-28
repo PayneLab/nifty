@@ -90,8 +90,13 @@ class TestEvaluateRules(unittest.TestCase):
                 'sample_id': ['S1', 'S2', 'S3', 'S4'],
                 'classification_label': ['H', 'D', 'H', 'D']
             })
+
+            class_labels = meta_df['classification_label'].to_numpy()
+            first_label = class_labels[0]
+            binarized_labels = (class_labels == first_label).astype(int)
+
             expected_score = abs(1.0)
-            self.assertAlmostEqual(self.evaluator.score_pair(['P1', 'P2'], self.quant_df_evaluate_pairs, meta_df),
+            self.assertAlmostEqual(self.evaluator.score_pair(['P1', 'P2'], self.quant_df_evaluate_pairs, binarized_labels),
                                    expected_score)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
@@ -106,8 +111,13 @@ class TestEvaluateRules(unittest.TestCase):
                 'sample_id': ['S1', 'S2', 'S3', 'S4'],
                 'classification_label': ['H', 'D', 'H', 'D']
             })
+
+            class_labels = meta_df['classification_label'].to_numpy()
+            first_label = class_labels[0]
+            binarized_labels = (class_labels == first_label).astype(int)
+
             expected_score = 0.0
-            self.assertAlmostEqual(self.evaluator.score_pair(['P1', 'P2'], quant_df, meta_df), expected_score)
+            self.assertAlmostEqual(self.evaluator.score_pair(['P1', 'P2'], quant_df, binarized_labels), expected_score)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
@@ -122,8 +132,13 @@ class TestEvaluateRules(unittest.TestCase):
                 'classification_label': ['H', 'H', 'D', 'D']
             })
 
+            # Because this test is just checking score_pair this part is needed here.
+            class_labels = meta_df['classification_label'].to_numpy()
+            first_label = class_labels[0]
+            binarized_labels = (class_labels == first_label).astype(int)
+
             expected_score = 0.5
-            actual_score = self.evaluator.score_pair(['P1', 'P2'], quant_df, meta_df)
+            actual_score = self.evaluator.score_pair(['P1', 'P2'], quant_df, binarized_labels)
             self.assertAlmostEqual(actual_score, expected_score)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")

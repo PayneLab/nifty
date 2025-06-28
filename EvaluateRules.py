@@ -42,33 +42,33 @@ class EvaluateRules:
 
         return bool_vector
     
-    def score_pair(self, pair: list, quant_df, meta_df) -> float:
+    def score_pair(self, pair: list, quant_df, binarized_labels) -> float:
         '''Scores a pair of proteins based on how well they separate the classes in the meta data'''
         bool_vector = EvaluateRules.vectorize_pair(self, pair, quant_df)
 
-        class_labels = meta_df['classification_label'].to_numpy()
-        first_label = class_labels[0]
-        class_labels = (class_labels == first_label).astype(int)
-
         # Find TP and FP values
-        TP = np.sum((bool_vector == 1) & (class_labels == 1))
-        FP = np.sum((bool_vector == 1) & (class_labels == 0))
+        TP = np.sum((bool_vector == 1) & (binarized_labels == 1))
+        FP = np.sum((bool_vector == 1) & (binarized_labels == 0))
 
         # Find proportion of TP and FP
-        TP_prop = TP / np.sum(class_labels == 1)
-        FP_prop = FP / np.sum(class_labels == 0)
+        TP_prop = TP / np.sum(binarized_labels == 1)
+        FP_prop = FP / np.sum(binarized_labels == 0)
 
         # Calculate Score
         score = abs(TP_prop - FP_prop)
-
         return score
     
     def evaluate_pairs(self, pairs: list, quant_df, meta_df) -> list:
         '''Evaluates all pairs of proteins and returns a list of tuples with the pair and its score'''
         scored_pairs = []
         #permutated_score_pairs = []
+
+        class_labels = meta_df['classification_label'].to_numpy()
+        first_label = class_labels[0]
+        binarized_labels = (class_labels == first_label).astype(int)
+
         for pair in pairs:
-            score = self.score_pair(pair, quant_df, meta_df)
+            score = self.score_pair(pair, quant_df, binarized_labels)
             scored_pairs.append((pair, score))
         # Another var with permutation base probability.
         return scored_pairs

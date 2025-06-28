@@ -92,6 +92,11 @@ def test_pipeline_NA_quant():
     evaluator = EvaluateRules()
     results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
 
+    # Run Permutation Test
+    perm_results = evaluator.permutate(pairs, quant_df, meta_df, n_permutations=1000)
+    print("Permutation test results:")
+    print(perm_results)
+
 def test_pipeline_NA_meta():
     quant_df = pd.DataFrame({
         'sample_id': ['Sample 1', 'Sample 2', 'Sample 3'],
@@ -123,6 +128,10 @@ def test_pipeline_NA_meta():
     evaluator = EvaluateRules()
     results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
 
+    # Run Permutation Test
+    perm_results = evaluator.permutate(pairs, quant_df, meta_df, n_permutations=1000)
+    print("Permutation test results:")
+    print(perm_results)
 
 def test_large_imbalanced():
     #Make df
@@ -229,10 +238,14 @@ def test_large_imbalanced():
     else:
         print("Test passed: ('Protein 10', 'Protein 40') has score near 0.0.")
 
+    # Run Permutation Test
+    perm_results = evaluator.permutate(pairs, quant_df, meta_df, n_permutations=1000)
+    print("Permutation test results:")
+    print(perm_results)
 
 if __name__ == "__main__":
-    #test_pipeline()
+    test_pipeline()
     #test_pipeline_NA_quant()
     #test_pipeline_NA_meta()
-    test_large_imbalanced()
+    #test_large_imbalanced()
 
