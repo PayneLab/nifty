@@ -9,16 +9,8 @@ class EvaluateRules:
 
     def vectorize_pair(self, pair: list, quant_df) -> np.ndarray:
         '''Gets all values for two proteins of a pair, compares them and returns a boolean vector'''
-        prot1 = pair[0]
-        prot2 = pair[1]
-
-        prot1_values = quant_df[prot1].values
-        prot2_values = quant_df[prot2].values
-
-        #Check for NA values in either prot1_values or prot2_values using numpy
-        # Copy the values to avoid modifying the original DataFrame
-        prot1_values = prot1_values.copy()
-        prot2_values = prot2_values.copy()
+        prot1_values = quant_df[pair[0]].to_numpy(copy=True)
+        prot2_values = quant_df[pair[1]].to_numpy(copy=True)
 
         # Create masks for NaN combinations
         mask1_nan = np.isnan(prot1_values)
