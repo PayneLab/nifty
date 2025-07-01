@@ -54,34 +54,19 @@ class EvaluateRules:
 
         return abs(TP_prop - FP_prop)
     
-    '''def evaluate_pairs(self, pairs: list, quant_df, meta_df) -> list:
-        #Evaluates all pairs of proteins and returns a list of tuples with the pair and its score
-        scored_pairs = []
-        #permutated_score_pairs = []
-
-        class_labels = meta_df['classification_label'].to_numpy()
-        first_label = class_labels[0]
-        binarized_labels = (class_labels == first_label).astype(int)
-
-        for pair in pairs:
-            score = self.score_pair(pair, quant_df, binarized_labels)
-            scored_pairs.append((pair, score))
-        # Another var with permutation base probability.
-        return scored_pairs'''
-    
     def evaluate_pairs(self, pairs: list, quant_df, meta_df) -> list:
         '''Evaluates all pairs of proteins and returns a list of tuples with the pair and its score'''
 
-        # Keep this as a DataFrame so vectorize_pair can work with column names and NaN handling
+        # binarize the labels
         class_labels = meta_df['classification_label'].to_numpy()
         first_label = class_labels[0]
         binarized_labels = (class_labels == first_label).astype(int)
 
-        # Precompute denominators
+        # precompute denominators for score calculation
         self._n_pos = np.sum(binarized_labels == 1)
         self._n_neg = np.sum(binarized_labels == 0)
 
-        # Loop is still fast since vectorize_pair is lean
+        # score pairs
         scored_pairs = [(pair, self.score_pair(pair, quant_df, binarized_labels)) for pair in pairs]
 
         return scored_pairs
