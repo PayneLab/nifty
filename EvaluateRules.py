@@ -34,36 +34,35 @@ class EvaluateRules:
 
         return bool_vector
     
-    def score_pair(self, pair: list, quant_df, binarized_labels) -> float:
-        '''Scores a pair of proteins based on how well they separate the classes in the meta data'''
-        bool_vector = EvaluateRules.vectorize_pair(self, pair, quant_df)
+    def score_pair(self, pair: list, quant_np: np.ndarray, binarized_labels: np.ndarray) -> float:
+        '''Scores a pair of proteins based on how well they separate the classes in the metadata'''
+        bool_vector = self.vectorize_pair(pair, quant_np)
 
-        # Find TP and FP values
         TP = np.sum((bool_vector == 1) & (binarized_labels == 1))
         FP = np.sum((bool_vector == 1) & (binarized_labels == 0))
 
-        # Find proportion of TP and FP
-        TP_prop = TP / np.sum(binarized_labels == 1)
-        FP_prop = FP / np.sum(binarized_labels == 0)
+        TP_prop = TP / self._n_pos if self._n_pos > 0 else 0
+        FP_prop = FP / self._n_neg if self._n_neg > 0 else 0
 
-        # Calculate Score
-        score = abs(TP_prop - FP_prop)
-        return score
+        return abs(TP_prop - FP_prop)
     
     def evaluate_pairs(self, pairs: list, quant_df, meta_df) -> list:
         '''Evaluates all pairs of proteins and returns a list of tuples with the pair and its score'''
-        scored_pairs = []
-        #permutated_score_pairs = []
 
+        # binarize the labels
         class_labels = meta_df['classification_label'].to_numpy()
         first_label = class_labels[0]
         binarized_labels = (class_labels == first_label).astype(int)
 
-        for pair in pairs:
-            score = self.score_pair(pair, quant_df, binarized_labels)
-            scored_pairs.append((pair, score))
-        # Another var with permutation base probability.
+        # precompute denominators for score calculation
+        self._n_pos = np.sum(binarized_labels == 1)
+        self._n_neg = np.sum(binarized_labels == 0)
+
+        # score pairs
+        scored_pairs = [(pair, self.score_pair(pair, quant_df, binarized_labels)) for pair in pairs]
+
         return scored_pairs
+
 
     def randomize_labels(self, labels: np.ndarray) -> np.ndarray:
         '''Randomizes the labels in the metadata and returns a new DataFrame.'''

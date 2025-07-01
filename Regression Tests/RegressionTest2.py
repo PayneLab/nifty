@@ -5,6 +5,7 @@ import cProfile
 import numpy as np
 import sys
 import os
+import pstats
 
 current_dir = os.path.dirname(__file__)
 
@@ -137,4 +138,11 @@ def test_large_imbalanced_NA():
 
 
 if __name__ == "__main__":
-    cProfile.run("test_large_imbalanced_NA()", sort="cumtime")
+    profiler = cProfile.Profile()
+    profiler.enable()
+    test_large_imbalanced_NA()
+    profiler.disable()
+
+    # print top 10 lines
+    stats = pstats.Stats(profiler).sort_stats("cumtime")
+    stats.print_stats(10)
