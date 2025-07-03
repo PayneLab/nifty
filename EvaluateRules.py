@@ -61,6 +61,7 @@ class EvaluateRules:
         # score pairs
         scored_pairs = [(pair, self.score_pair(pair, quant_df, binarized_labels)) for pair in pairs]
 
+
         return scored_pairs
 
 
