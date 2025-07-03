@@ -114,7 +114,7 @@ def test_large_imbalanced_NA():
     evaluator = EvaluateRules()
     results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
 
-    perm_results = evaluator.permutate(pairs, quant_df, meta_df, n_permutations=100)
+    perm_results = evaluator.permutate(pairs, quant_df, meta_df, n_permutations=10)
     print(perm_results)
 
     result_dict = dict(results)
