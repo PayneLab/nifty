@@ -199,5 +199,24 @@ class TestEvaluateRules(unittest.TestCase):
             self.fail(f"Unexpected exception thrown: {e}")
 
 
+    def test_get_bool_vectors_for_pairs_no_na(self):
+        # Pair without NA values.
+        try:
+            df = pd.DataFrame({
+                'P1': [1, 4, 6, 3, 1, 7, 1, 7],
+                'P2': [2, 3, 6, 2, 6, 1, 2, 9]
+            })
+
+            pairs = [('P1', 'P2')]
+            expected_vector = np.array([False, True, False, True, False, True, False, False])
+            bool_vectors = self.evaluator.get_bool_vectors_for_pairs(pairs, df)
+
+            for pair, vec in bool_vectors.items():
+                print(f"{pair}: {vec}")
+
+            np.testing.assert_array_equal(bool_vectors[('P1', 'P2')], expected_vector)
+        except Exception as e:
+            self.fail(f"Unexpected exception thrown: {e}")
+
 if __name__ == '__main__':
     unittest.main()

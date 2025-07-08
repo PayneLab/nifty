@@ -49,7 +49,7 @@ class EvaluateRules:
         bool_vector = prot1_values > prot2_values
 
         return bool_vector
-    
+
     def score_pair(self, pair: list, quant_np: np.ndarray, binarized_labels: np.ndarray) -> float:
         '''Scores a pair of proteins based on how well they separate the classes in the metadata'''
         bool_vector = self.vectorize_pair(pair, quant_np)
@@ -110,7 +110,6 @@ class EvaluateRules:
         scored_pairs = [(pair, self.score_pair(pair, quant_df, binarized_labels)) for pair in pairs]
 
         return scored_pairs
-
 
     def randomize_labels(self, labels: np.ndarray) -> np.ndarray:
         '''Randomizes the labels in the metadata and returns a new DataFrame.'''
@@ -226,4 +225,68 @@ class EvaluateRules:
         # Adjust p-values for multiple testing
         summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
         # summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
+        return summary_df
+
+    ################################################################################################################
+    #####################################################################TEST######################################
+    ################################################################################################################
+    def get_bool_vectors_for_pairs(self, pairs: list, quant_df):
+        '''Precomputes and returns boolean vectors for each protein pair.'''
+        bool_vector_dictionary = {}
+        for pair in pairs:
+            bool_vector_dictionary[pair] = self.vectorize_pair(pair, quant_df)
+        return bool_vector_dictionary
+
+    def score_pair_Ben(self, bool_vector: np.ndarray, binarized_labels: np.ndarray) -> float:
+        '''Scores a pair of proteins based on how well they separate the classes in the metadata'''
+        TP = np.sum((bool_vector == 1) & (binarized_labels == 1))
+        FP = np.sum((bool_vector == 1) & (binarized_labels == 0))
+
+        TP_prop = TP / self._n_pos if self._n_pos > 0 else 0
+        FP_prop = FP / self._n_neg if self._n_neg > 0 else 0
+
+        return abs(TP_prop - FP_prop)
+
+    def evaluate_pairs_Ben(self, bool_vectors: dict, meta_df) -> list:
+        '''Evaluates all pairs of proteins and returns a list of tuples with the pair and its score'''
+        # binarize the labels
+        class_labels = meta_df['classification_label'].to_numpy()
+        first_label = class_labels[0]
+        binarized_labels = (class_labels == first_label).astype(int)
+
+        # precompute denominators for score calculation
+        self._n_pos = np.sum(binarized_labels == 1)
+        self._n_neg = np.sum(binarized_labels == 0)
+
+        # score pairs
+        scored_pairs = [(pair, self.score_pair_Ben(bool_vector, binarized_labels)) for pair, bool_vector in bool_vectors.items()]
+        return scored_pairs
+
+    # This is returning a dictionary with the pair as the key and the bolean vector.
+    # Access the key and the value using .items().
+
+    def get_true_scores(self, bool_vectors: dict, meta_df) -> dict:
+        scored_pairs = self.evaluate_pairs_Ben(bool_vectors, meta_df)
+        return dict(scored_pairs)
+
+    def permutate_Ben(self, pairs: list, bool_vectors: dict, meta_df, true_scores: dict, n_permutations=100):
+        ''' Runs a permutation test on all pairs to see how significant their classification
+        score is under a null distribution '''
+        permuted_scores_dic = {}
+        for pair in pairs:
+            permuted_scores_dic[pair] = []
+        labels = meta_df['classification_label'].to_numpy()
+
+        for i in range(n_permutations):
+            shuffled_labels = self.randomize_labels(labels)
+            binarized_labels = (shuffled_labels == shuffled_labels[0]).astype(int)
+
+            self._n_pos = np.sum(binarized_labels == 1)
+            self._n_neg = np.sum(binarized_labels == 0)
+
+            for pair, bool_vector in bool_vectors.items():
+                score = self.score_pair_Ben(bool_vector, binarized_labels)
+                permuted_scores_dic[pair].append(score)
+
+        summary_df = self.summarize_stats(true_scores, permuted_scores_dic)
         return summary_df
