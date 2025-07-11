@@ -289,9 +289,6 @@ class EvaluateRules:
         scored_pairs = self.Ben_evaluate_pairs(pairs, bool_vectors, binarized_labels)
         return dict(scored_pairs), binarized_labels
 
-    # This is returning a dictionary with the pair as the key and the bolean vector.
-    # Access the key and the value using .items().
-
     def Ben_randomize_labels(self, labels: np.ndarray) -> np.ndarray:
         '''Randomizes the labels in the metadata and returns a new DataFrame.'''
         return np.random.permutation(labels)

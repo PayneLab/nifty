@@ -232,7 +232,12 @@ def test_large_imbalanced_NA_2():
 
     evaluator = EvaluateRules()
 
-    perm_results = evaluator.permutate_2_blake(pairs, quant_df, meta_df, n_permutations=10)
+    #perm_results = evaluator.permutate_2_blake(pairs, quant_df, meta_df, n_permutations=100)
+    #print(perm_results)
+
+    bool_vectors = evaluator.Ben_get_bool_vectors_for_pairs(pairs, quant_df)
+    true_scores, binarized_labels = evaluator.Ben_get_true_scores(pairs, bool_vectors, meta_df)
+    perm_results = evaluator.Ben_permutate(pairs, bool_vectors, binarized_labels, true_scores, n_permutations=100)
     print(perm_results)
 
     # assertions
@@ -253,7 +258,6 @@ def test_large_imbalanced_NA_2():
     else:
         print("Test passed: ('Protein 10', 'Protein 40') has score near 0.0.")
         print(f"Score for ('Protein 10', 'Protein 40'): {score_10_40}")
-
 
 
 if __name__ == "__main__":
