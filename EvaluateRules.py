@@ -260,67 +260,88 @@ class EvaluateRules:
     ################################################################################################################
     #####################################################################TEST######################################
     ################################################################################################################
-    def get_bool_vectors_for_pairs(self, pairs: list, quant_df):
+    def Ben_get_bool_vectors_for_pairs(self, pairs: list, quant_df):
         '''Precomputes and returns boolean vectors for each protein pair.'''
         bool_vector_dictionary = {}
         for pair in pairs:
-            bool_vector_dictionary[pair] = self.vectorize_pair(pair, quant_df)
+            bool_vector_dictionary[pair] = self.Ben_vectorize_pair(pair, quant_df)
         return bool_vector_dictionary
 
-    def score_pair_Ben(self, bool_vector: np.ndarray, binarized_labels: np.ndarray) -> float:
+    def Ben_vectorize_pair(self, pair: list, quant_df) -> np.ndarray:
+        '''Gets all values for two proteins of a pair, compares them and returns a boolean vector'''
+        prot1_values = quant_df[pair[0]].to_numpy(copy=True)
+        prot2_values = quant_df[pair[1]].to_numpy(copy=True)
+
+        mask1_nan = np.isnan(prot1_values)
+        mask2_nan = np.isnan(prot2_values)
+
+        both_nan = mask1_nan & mask2_nan
+        only1_nan = mask1_nan & ~mask2_nan
+        only2_nan = mask2_nan & ~mask1_nan
+
+        prot1_values[only1_nan] = 0
+        prot2_values[only1_nan] = 10
+
+        prot2_values[only2_nan] = 0
+        prot1_values[only2_nan] = 10
+
+        prot1_values[both_nan] = 0
+        prot2_values[both_nan] = 10
+
+        bool_vector = prot1_values > prot2_values
+
+        return bool_vector
+
+    def Ben_score_pair(self, bool_vector: np.ndarray, binarized_labels: np.ndarray, n_pos: int, n_neg: int) -> float:
         '''Scores a pair of proteins based on how well they separate the classes in the metadata'''
         TP = np.sum((bool_vector == 1) & (binarized_labels == 1))
         FP = np.sum((bool_vector == 1) & (binarized_labels == 0))
 
-        TP_prop = TP / self._n_pos if self._n_pos > 0 else 0
-        FP_prop = FP / self._n_neg if self._n_neg > 0 else 0
+        TP_prop = TP / n_pos if n_pos > 0 else 0
+        FP_prop = FP / n_neg if n_neg > 0 else 0
 
         return abs(TP_prop - FP_prop)
 
-    def evaluate_pairs_Ben(self, bool_vectors: dict, meta_df) -> list:
-        '''Evaluates all pairs of proteins and returns a list of tuples with the pair and its score'''
-        # binarize the labels
+    def Ben_binarize_labels(self, meta_df):
         class_labels = meta_df['classification_label'].to_numpy()
         first_label = class_labels[0]
         binarized_labels = (class_labels == first_label).astype(int)
+        return binarized_labels
 
-        # precompute denominators for score calculation
-        self._n_pos = np.sum(binarized_labels == 1)
-        self._n_neg = np.sum(binarized_labels == 0)
-
-        # score pairs
-        scored_pairs = [(pair, self.score_pair_Ben(bool_vector, binarized_labels)) for pair, bool_vector in bool_vectors.items()]
+    def Ben_evaluate_pairs(self, pairs: list, bool_dict, binarized_labels) -> list:
+        n_pos = np.sum(binarized_labels == 1)
+        n_neg = np.sum(binarized_labels == 0)
+        scored_pairs = [(pair, self.Ben_score_pair(bool_vector, binarized_labels, n_pos, n_neg)) for pair, bool_vector in bool_dict.items()]
         return scored_pairs
 
-    # This is returning a dictionary with the pair as the key and the bolean vector.
-    # Access the key and the value using .items().
+    def Ben_get_true_scores(self, pairs: list, bool_vectors: dict, meta_df):
+        binarized_labels = self.Ben_binarize_labels(meta_df)
+        scored_pairs = self.Ben_evaluate_pairs(pairs, bool_vectors, binarized_labels)
+        return dict(scored_pairs), binarized_labels
 
-    def get_true_scores(self, bool_vectors: dict, meta_df) -> dict:
-        scored_pairs = self.evaluate_pairs_Ben(bool_vectors, meta_df)
-        return dict(scored_pairs)
+    def Ben_randomize_labels(self, labels: np.ndarray) -> np.ndarray:
+        '''Randomizes the labels in the metadata and returns a new DataFrame.'''
+        return np.random.permutation(labels)
 
-    def permutate_Ben(self, pairs: list, bool_vectors: dict, meta_df, true_scores: dict, n_permutations=100):
+    def Ben_permutate(self, pairs: list, bool_vectors: dict, binarized_labels: np.ndarray, true_scores: dict, n_permutations=100):
         ''' Runs a permutation test on all pairs to see how significant their classification
         score is under a null distribution '''
         permuted_scores_dic = {}
         for pair in pairs:
             permuted_scores_dic[pair] = []
-        labels = meta_df['classification_label'].to_numpy()
+
+        n_pos = np.sum(binarized_labels == 1)
+        n_neg = np.sum(binarized_labels == 0)
 
         for i in range(n_permutations):
-            shuffled_labels = self.randomize_labels(labels)
-            binarized_labels = (shuffled_labels == shuffled_labels[0]).astype(int)
-
-            self._n_pos = np.sum(binarized_labels == 1)
-            self._n_neg = np.sum(binarized_labels == 0)
-
+            shuffled_labels = self.Ben_randomize_labels(binarized_labels)
             for pair, bool_vector in bool_vectors.items():
-                score = self.score_pair_Ben(bool_vector, binarized_labels)
+                score = self.Ben_score_pair(bool_vector, shuffled_labels, n_pos, n_neg)
                 permuted_scores_dic[pair].append(score)
-
-        summary_df = self.summarize_stats(true_scores, permuted_scores_dic)
+        summary_df = self.Ben_summarize_stats(true_scores, permuted_scores_dic)
         return summary_df
 
+<<<<<<< HEAD
     def evaluate_permutate_Ben(self, pairs: list, quant_df, meta_df, n_permutations=100):
         ''' A wrapper function that evaluates pairs and runs permutation test on them.'''
         # Get boolean vectors for pairs
@@ -333,3 +354,39 @@ class EvaluateRules:
         summary_df = self.permutate_Ben(pairs, bool_vectors, meta_df, true_scores, n_permutations)
         
         return true_scores, summary_df
+=======
+    def Ben_summarize_stats(self, true_scores, permuted_scores) -> pd.DataFrame:
+        ''' Summarizes permutation test results for all evaluated feature pairs.'''
+        permuted_df = pd.DataFrame.from_dict(permuted_scores, orient='index')
+        # Transpose it.
+        permuted_df = permuted_df.T
+        pairs = list(permuted_df.columns)
+        means = permuted_df.mean(axis=0)
+        stds = permuted_df.std(axis=0)
+        summary_data = []
+
+        for pair in pairs:
+            true = true_scores[pair]
+            mean = means[pair]
+            std = stds[pair]
+            if std == 0 or np.isnan(std):
+                # Temporary solution to return something.
+                z_score = 0.0
+                # So not significant per default.
+                p_value = 1.0
+            else:
+                z_score = (true - mean) / std
+                p_value = norm.sf(z_score)
+                #p_value = norm.sf(abs(z_score)) * 2
+            summary_data.append((pair, true, mean, std, z_score, p_value))
+
+        summary_df = pd.DataFrame(summary_data, columns=['Gene_Pair', 'True_Score', 'Mean', 'Std', 'Z-Score', 'P_Value'])
+        significant_pairs_df = self.Ben_get_significant_pairs(summary_df)
+        return significant_pairs_df
+
+    def Ben_get_significant_pairs(self, summary_df) -> pd.DataFrame:
+        summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
+        return summary_df
+
+
+>>>>>>> 898d662545754edb6d2e911c93559839e30008e6
