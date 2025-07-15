@@ -154,6 +154,36 @@ class EvaluateRules:
                 permuted_scores[pair].append(score)
         summary_df = self.summarize_stats_2_blake(true_scores, permuted_scores)
         return summary_df
+    
+    def permutate_2_blake_final(self, pairs: list, bool_dict, binarized_labels,n_permutations=100):
+        ''' Runs a permutation test on all pairs to see how significant their classification
+        score is under a null distribution '''
+
+        true_scores = dict(self.evaluate_pairs_2_blake(pairs, bool_dict, binarized_labels))
+        
+        permuted_scores = defaultdict(list)
+        
+        for i in range(n_permutations):
+            shuffled_labels = self.randomize_labels(binarized_labels)
+            scores = self.evaluate_pairs_2_blake(pairs, bool_dict, shuffled_labels)
+            for pair, score in scores:
+                permuted_scores[pair].append(score)
+        summary_df = self.summarize_stats_2_blake(true_scores, permuted_scores)
+        return summary_df
+    
+    def evaluate_permutate_blake(self, pairs: list, quant_df, meta_df, n_permutations=100):
+        ''' A wrapper function that evaluates pairs and runs permutation test on them.'''
+        # Evaluate pairs
+        bool_dict = self.vectorize_all_pairs_blake(pairs, quant_df)
+        binarized_labels = self.binarize_labels_blake(meta_df)
+
+        # Get true scores
+        true_scores = dict(self.evaluate_pairs_2_blake(pairs, bool_dict, binarized_labels))
+
+        # Run permutation test
+        summary_df = self.permutate_2_blake_final(pairs, bool_dict, binarized_labels, n_permutations)
+        
+        return true_scores, summary_df
 
     def summarize_stats(self, true_scores, permuted_scores) -> pd.DataFrame:
         ''' Summarizes permutation test results for all evaluated feature pairs.'''
@@ -290,3 +320,16 @@ class EvaluateRules:
 
         summary_df = self.summarize_stats(true_scores, permuted_scores_dic)
         return summary_df
+
+    def evaluate_permutate_Ben(self, pairs: list, quant_df, meta_df, n_permutations=100):
+        ''' A wrapper function that evaluates pairs and runs permutation test on them.'''
+        # Get boolean vectors for pairs
+        bool_vectors = self.get_bool_vectors_for_pairs(pairs, quant_df)
+
+        # Get true scores
+        true_scores = self.get_true_scores(bool_vectors, meta_df)
+
+        # Run permutation test
+        summary_df = self.permutate_Ben(pairs, bool_vectors, meta_df, true_scores, n_permutations)
+        
+        return true_scores, summary_df
