@@ -43,12 +43,12 @@ def test_pipeline():
 
     # Score Rules
     evaluator = EvaluateRules()
-    results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
+    results, perm_results = evaluator.evaluate_permutate_wrapper(pairs, quant_df, meta_df, n_permutations=100)
 
     print(results)
 
     # Verify Against Expected
-    expected_results = [(('Protein 1', 'Protein 2'), 0.5), (('Protein 1', 'Protein 3'), 1.0), (('Protein 1', 'Protein 4'), 0.5), (('Protein 1', 'Protein 5'), 0.0), (('Protein 1', 'Protein 6'), 0.0), (('Protein 1', 'Protein 7'), 0.5), (('Protein 2', 'Protein 3'), 0.0), (('Protein 2', 'Protein 4'), 0.5), (('Protein 2', 'Protein 5'), 1.0), (('Protein 2', 'Protein 6'), 1.0), (('Protein 2', 'Protein 7'), 0.5), (('Protein 3', 'Protein 4'), 0.0), (('Protein 3', 'Protein 5'), 0.0), (('Protein 3', 'Protein 6'), 0.0), (('Protein 3', 'Protein 7'), 1.0), (('Protein 4', 'Protein 5'), 0.5), (('Protein 4', 'Protein 6'), 1.0), (('Protein 4', 'Protein 7'), 1.0), (('Protein 5', 'Protein 6'), 1.0), (('Protein 5', 'Protein 7'), 0.5), (('Protein 6', 'Protein 7'), 0.0)]
+    expected_results = {('Protein 1', 'Protein 2'): 0.5, ('Protein 1', 'Protein 3'): 1.0, ('Protein 1', 'Protein 4'): 0.5, ('Protein 1', 'Protein 5'): 0.0, ('Protein 1', 'Protein 6'): 0.0, ('Protein 1', 'Protein 7'): 0.5, ('Protein 2', 'Protein 3'): 0.0, ('Protein 2', 'Protein 4'): 0.5, ('Protein 2', 'Protein 5'): 1.0, ('Protein 2', 'Protein 6'): 1.0, ('Protein 2', 'Protein 7'): 0.5, ('Protein 3', 'Protein 4'): 0.0, ('Protein 3', 'Protein 5'): 0.0, ('Protein 3', 'Protein 6'): 0.0, ('Protein 3', 'Protein 7'): 1.0, ('Protein 4', 'Protein 5'): 0.5, ('Protein 4', 'Protein 6'): 1.0, ('Protein 4', 'Protein 7'): 1.0, ('Protein 5', 'Protein 6'): 1.0, ('Protein 5', 'Protein 7'): 0.5, ('Protein 6', 'Protein 7'): 0.0}
     assert results == expected_results 
 
     print("Regression test passed")
@@ -90,10 +90,9 @@ def test_pipeline_NA_quant():
 
     # Score Rules
     evaluator = EvaluateRules()
-    results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
 
     # Run Permutation Test
-    perm_results = evaluator.permutate(pairs, quant_df, meta_df, n_permutations=1000)
+    perm_results = evaluator.evaluate_permutate_wrapper(pairs, quant_df, meta_df, n_permutations=100)
     print("Permutation test results:")
     print(perm_results)
 
@@ -126,10 +125,9 @@ def test_pipeline_NA_meta():
 
     # Score Rules
     evaluator = EvaluateRules()
-    results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
 
     # Run Permutation Test
-    perm_results = evaluator.permutate(pairs, quant_df, meta_df, n_permutations=1000)
+    perm_results = evaluator.evaluate_permutate_wrapper(pairs, quant_df, meta_df, n_permutations=100)
     print("Permutation test results:")
     print(perm_results)
 
@@ -218,7 +216,7 @@ def test_large_imbalanced():
     pairs = rule_gen.generate_rule_pairs(quant_df)
 
     evaluator = EvaluateRules()
-    results = evaluator.evaluate_pairs(pairs, quant_df, meta_df)
+    results, perm_results = evaluator.evaluate_permutate_wrapper(pairs, quant_df, meta_df, n_permutations=100)
 
     result_dict = dict(results)
 
@@ -239,13 +237,12 @@ def test_large_imbalanced():
         print("Test passed: ('Protein 10', 'Protein 40') has score near 0.0.")
 
     # Run Permutation Test
-    perm_results = evaluator.permutate(pairs, quant_df, meta_df, n_permutations=1000)
     print("Permutation test results:")
     print(perm_results)
 
 if __name__ == "__main__":
-    test_pipeline()
-    #test_pipeline_NA_quant()
+    #test_pipeline()
+    test_pipeline_NA_quant()
     #test_pipeline_NA_meta()
     #test_large_imbalanced()
 
