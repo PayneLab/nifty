@@ -341,7 +341,6 @@ class EvaluateRules:
         summary_df = self.Ben_summarize_stats(true_scores, permuted_scores_dic)
         return summary_df
 
-<<<<<<< HEAD
     def evaluate_permutate_Ben(self, pairs: list, quant_df, meta_df, n_permutations=100):
         ''' A wrapper function that evaluates pairs and runs permutation test on them.'''
         # Get boolean vectors for pairs
@@ -354,39 +353,3 @@ class EvaluateRules:
         summary_df = self.permutate_Ben(pairs, bool_vectors, meta_df, true_scores, n_permutations)
         
         return true_scores, summary_df
-=======
-    def Ben_summarize_stats(self, true_scores, permuted_scores) -> pd.DataFrame:
-        ''' Summarizes permutation test results for all evaluated feature pairs.'''
-        permuted_df = pd.DataFrame.from_dict(permuted_scores, orient='index')
-        # Transpose it.
-        permuted_df = permuted_df.T
-        pairs = list(permuted_df.columns)
-        means = permuted_df.mean(axis=0)
-        stds = permuted_df.std(axis=0)
-        summary_data = []
-
-        for pair in pairs:
-            true = true_scores[pair]
-            mean = means[pair]
-            std = stds[pair]
-            if std == 0 or np.isnan(std):
-                # Temporary solution to return something.
-                z_score = 0.0
-                # So not significant per default.
-                p_value = 1.0
-            else:
-                z_score = (true - mean) / std
-                p_value = norm.sf(z_score)
-                #p_value = norm.sf(abs(z_score)) * 2
-            summary_data.append((pair, true, mean, std, z_score, p_value))
-
-        summary_df = pd.DataFrame(summary_data, columns=['Gene_Pair', 'True_Score', 'Mean', 'Std', 'Z-Score', 'P_Value'])
-        significant_pairs_df = self.Ben_get_significant_pairs(summary_df)
-        return significant_pairs_df
-
-    def Ben_get_significant_pairs(self, summary_df) -> pd.DataFrame:
-        summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
-        return summary_df
-
-
->>>>>>> 898d662545754edb6d2e911c93559839e30008e6
