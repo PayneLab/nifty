@@ -227,7 +227,7 @@ def test_large_imbalanced_NA_2(num_samples=500, num_proteins=1000):
 
     evaluator = EvaluateRules()
 
-    true_scores, perm_results = evaluator.evaluate_permutate_wrapper(pairs, quant_df, meta_df, n_permutations=10)
+    true_scores, perm_results = evaluator.evaluate_permutate_wrapper(pairs, quant_df, meta_df, n_permutations=100)
     print(perm_results)
 
     # assertions
@@ -343,7 +343,7 @@ def test_large_imbalanced_NA_Ben(num_samples=500, num_proteins=1000):
 
     evaluator = EvaluateRules()
 
-    true_scores, perm_results = evaluator.evaluate_permutate_Ben(pairs, quant_df, meta_df, n_permutations=10)
+    true_scores, perm_results = evaluator.evaluate_permutate_Ben(pairs, quant_df, meta_df, n_permutations=100)
     print(perm_results)
 
     # assertions
