@@ -161,7 +161,24 @@ class EvaluateRules:
         n_false = len(bool_vector) - n_true
         return tuple([n_true, n_false])
 
+    def build_null_buckets_from_permutation(self, pairs, bool_dict, binarized_labels):
+        '''Creates buckets for permutation test results based on the proportion of true and false in each rule'''
+        rule_distribution = {}
+        for pair in pairs:
+            bool_vector = bool_dict[pair]
+            bucket = self.get_proportion_bucket(bool_vector)
+            rule_distribution[pair] = bucket
 
+        shuffled_labels = self.randomize_labels(binarized_labels)
+        scores = self.evaluate_pairs(pairs, bool_dict, shuffled_labels)
+
+        buckets = defaultdict(list)
+
+        for pair, score in scores:
+            bucket_key = rule_distribution[pair]
+            buckets[bucket_key].append(score)
+            #{(3, 2): [0.1, 0.2, 0.3], (2, 3): [0.4, 0.5],...}
+        return buckets
 
 
 
