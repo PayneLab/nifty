@@ -158,5 +158,21 @@ class TestEvaluateRules(unittest.TestCase):
         bool_vectors = self.evaluator.vectorize_all_pairs(pairs, df)
         np.testing.assert_array_equal(bool_vectors[('P1', 'P2')], expected_vector)
 
+    def test_get_proportion_bucket_true_false(self):
+        vector = np.array([True, False, True, False, True])
+        result = self.evaluator.get_proportion_bucket(vector)
+        self.assertEqual(result, (3, 2))
+
+    def test_get_proportion_bucket_all_false(self):
+        vector = np.array([False, False, False, False, False])
+        result = self.evaluator.get_proportion_bucket(vector)
+        self.assertEqual(result, (0, 5))
+
+    def test_get_proportion_bucket_empty(self):
+        vector = np.array([])
+        result = self.evaluator.get_proportion_bucket(vector)
+        self.assertEqual(result, (0, 5))
+
+
 if __name__ == '__main__':
     unittest.main()
