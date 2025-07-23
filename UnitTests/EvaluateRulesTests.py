@@ -172,7 +172,7 @@ class TestEvaluateRules(unittest.TestCase):
     def test_get_proportion_bucket_empty(self):
         vector = np.array([])
         result = self.evaluator.get_proportion_bucket(vector)
-        self.assertEqual(result, (0, 5))
+        self.assertEqual(result, (0, 0))
 
     def test_build_null_buckets_from_permutation(self):
         quant_df = pd.DataFrame({
@@ -188,20 +188,43 @@ class TestEvaluateRules(unittest.TestCase):
         })
         pairs = [('P1', 'P2'), ('P1', 'P3'), ('P1', 'P4'), ('P1', 'P5'), ('P1', 'P6'), ('P2', 'P3'), ('P2', 'P4'),
                  ('P2', 'P5'),
-                 ('P2', 'P6'), ('P3', 'P4'), ('P3', 'P5'), ('P3', 'P6'), ('P4', 'P5'), ('P4', 'P6'), ('P5', 'P6'), ]
+                 ('P2', 'P6'), ('P3', 'P4'), ('P3', 'P5'), ('P3', 'P6'), ('P4', 'P5'), ('P4', 'P6'), ('P5', 'P6'),]
         bool_vectors = self.evaluator.vectorize_all_pairs(pairs, quant_df)
         binarized_labels = self.evaluator.binarize_labels(meta_df)
 
-        buckets = self.evaluator.build_null_buckets_from_permutation(pairs, bool_vectors, binarized_labels)
+        buckets, rule_true_false_distribution = self.evaluator.assign_permuted_scores_to_buckets(pairs, bool_vectors, binarized_labels)
         # To check we are returning the right structure.
         self.assertIsInstance(buckets, dict)
         for key, value in buckets.items():
             # Having alwasy a (n_true, n_false) key.
             self.assertIsInstance(key, tuple)
             self.assertIsInstance(value, list)
-            print(f"Bucket {key}: {value}")
+            #print(f"Bucket {key}: {value}")
             for score in value:
                 self.assertIsInstance(score, float)
+
+    def test_summarize_bucket_stats(self):
+        quant_df = pd.DataFrame({
+            'P1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 3, 5, 6],
+            'P2': [6, 5, 4, 3, 2, 1, 2, 3, 4, 6, 7, 5],
+            'P3': [2, 2, 2, 2, 3, 3, 4, 4, 4, 3, 3, 3],
+            'P4': [7, 8, 6, 5, 7, 6, 5, 8, 9, 4, 3, 2],
+            'P5': [3, 3, 3, 3, 3, 2, 2, 2, 1, 1, 2, 3],
+            'P6': [1, 2, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]
+        })
+        meta_df = pd.DataFrame({
+            'classification_label': ['H', 'D', 'H', 'D', 'H', 'D', 'H', 'D', 'H', 'D', 'H', 'D']
+        })
+        pairs = [('P1', 'P2'), ('P1', 'P3'), ('P1', 'P4'), ('P1', 'P5'), ('P1', 'P6'), ('P2', 'P3'), ('P2', 'P4'),
+                 ('P2', 'P5'),
+                 ('P2', 'P6'), ('P3', 'P4'), ('P3', 'P5'), ('P3', 'P6'), ('P4', 'P5'), ('P4', 'P6'), ('P5', 'P6'),]
+
+        bool_vectors = self.evaluator.vectorize_all_pairs(pairs, quant_df)
+        binarized_labels = self.evaluator.binarize_labels(meta_df)
+        true_scores = dict(self.evaluator.evaluate_pairs(pairs, bool_vectors, binarized_labels))
+        buckets, rule_true_false_distribution = self.evaluator.assign_permuted_scores_to_buckets(pairs, bool_vectors, binarized_labels)
+        summary_df = self.evaluator.summarize_bucket_stats(true_scores, rule_true_false_distribution, buckets)
+        print(summary_df)
 
 if __name__ == '__main__':
     unittest.main()

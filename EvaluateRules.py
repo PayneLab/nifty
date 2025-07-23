@@ -95,7 +95,7 @@ class EvaluateRules:
             scores = self.evaluate_pairs(pairs, bool_dict, shuffled_labels)
             for pair, score in scores:
                 permuted_scores[pair].append(score)
-        summary_df = self.summarize_stats(true_scores, permuted_scores)
+        summary_df = self.summarize_permutation_stats(true_scores, permuted_scores)
         return summary_df
 
     def evaluate_permutate_wrapper(self, pairs: list, quant_df, meta_df, n_permutations=100):
@@ -112,7 +112,7 @@ class EvaluateRules:
 
         return true_scores, summary_df
 
-    def summarize_stats(self, true_scores, permuted_scores) -> pd.DataFrame:
+    def summarize_permutation_stats(self, true_scores, permuted_scores) -> pd.DataFrame:
         '''Uses vectorization to summarize permutation test results for all evaluated feature pairs.'''
         # Create a DataFrame of permuted scores (samples x pairs)
         permuted_df = pd.DataFrame.from_dict(permuted_scores, orient='index').T
@@ -161,24 +161,64 @@ class EvaluateRules:
         n_false = len(bool_vector) - n_true
         return tuple([n_true, n_false])
 
-    def build_null_buckets_from_permutation(self, pairs, bool_dict, binarized_labels):
+    def assign_permuted_scores_to_buckets(self, pairs, bool_dict, binarized_labels):
         '''Creates buckets for permutation test results based on the proportion of true and false in each rule'''
-        rule_distribution = {}
+        rule_true_false_distribution = {}
+        # ('P1', 'P2'): (7, 5)
         for pair in pairs:
             bool_vector = bool_dict[pair]
             bucket = self.get_proportion_bucket(bool_vector)
-            rule_distribution[pair] = bucket
+            rule_true_false_distribution[pair] = bucket
 
         shuffled_labels = self.randomize_labels(binarized_labels)
         scores = self.evaluate_pairs(pairs, bool_dict, shuffled_labels)
-
+        #print(scores)
         buckets = defaultdict(list)
 
         for pair, score in scores:
-            bucket_key = rule_distribution[pair]
+            bucket_key = rule_true_false_distribution[pair]
             buckets[bucket_key].append(score)
             #{(3, 2): [0.1, 0.2, 0.3], (2, 3): [0.4, 0.5],...}
-        return buckets
+        return buckets, rule_true_false_distribution
+
+    def summarize_bucket_stats(self, true_scores: dict, rule_true_false_distribution: dict, buckets: dict) -> pd.DataFrame:
+        '''Get the p-values for each rule comparing its true score with the null distribution corresponding to its
+        bucket (n_sum, n_false)'''
+        data = []
+        for rule, true_score in true_scores.items():
+            bucket_key = rule_true_false_distribution[rule]
+            null_distribution = buckets.get(bucket_key, [])
+
+            if not null_distribution:
+                p_value = np.nan
+            else:
+                count = np.sum(np.array(null_distribution) >= true_score)
+                p_value = count / len(null_distribution)
+
+        data.append({
+            "Gene_Pair": rule,
+            "True_Score": true_score,
+            "Bucket": bucket_key,
+            "P_Value": p_value
+        })
+
+        summary_df = pd.DataFrame(data)
+        return summary_df
+
+    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df):
+        ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
+        based on bucket distribution.'''
+        # Evaluate pairs
+        bool_dict = self.vectorize_all_pairs(pairs, quant_df)
+        binarized_labels = self.binarize_labels(meta_df)
+        true_scores = dict(self.evaluate_pairs(pairs, bool_dict, binarized_labels))
+
+        # Generate buckets and assign distributions after one permutation.
+        buckets, rule_true_false_distribution = self.assign_permuted_scores_to_buckets(pairs, bool_dict, binarized_labels)
+
+        # Get p-values using the buckets.
+        summary_df = self.summarize_bucket_stats(true_scores, rule_true_false_distribution, buckets)
+        return true_scores, summary_df
 
 
 
