@@ -163,12 +163,12 @@ class EvaluateRules:
 
     def assign_permuted_scores_to_buckets(self, pairs, bool_dict, binarized_labels):
         '''Creates buckets for permutation test results based on the proportion of true and false in each rule'''
-        rule_true_false_distribution = {}
+        rule_to_buckets = {}
         # ('P1', 'P2'): (7, 5)
         for pair in pairs:
             bool_vector = bool_dict[pair]
             bucket = self.get_proportion_bucket(bool_vector)
-            rule_true_false_distribution[pair] = bucket
+            rule_to_buckets[pair] = bucket
 
         shuffled_labels = self.randomize_labels(binarized_labels)
         scores = self.evaluate_pairs(pairs, bool_dict, shuffled_labels)
@@ -176,10 +176,10 @@ class EvaluateRules:
         buckets = defaultdict(list)
 
         for pair, score in scores:
-            bucket_key = rule_true_false_distribution[pair]
+            bucket_key = rule_to_buckets[pair]
             buckets[bucket_key].append(score)
             #{(3, 2): [0.1, 0.2, 0.3], (2, 3): [0.4, 0.5],...}
-        return buckets, rule_true_false_distribution
+        return buckets, rule_to_buckets
 
     def summarize_bucket_stats(self, true_scores: dict, rule_true_false_distribution: dict, buckets: dict) -> pd.DataFrame:
         '''Get the p-values for each rule comparing its true score with the null distribution corresponding to its

@@ -1,4 +1,5 @@
 import unittest
+from collections import defaultdict
 import pandas as pd
 import numpy as np
 import sys
@@ -173,6 +174,51 @@ class TestEvaluateRules(unittest.TestCase):
         vector = np.array([])
         result = self.evaluator.get_proportion_bucket(vector)
         self.assertEqual(result, (0, 0))
+
+    def test_get_proportion_bucket_all_true(self):
+        vector = np.array([True, True, True, True])
+        result = self.evaluator.get_proportion_bucket(vector)
+        self.assertEqual(result, (4, 0))
+
+    def test_get_proportion_bucket_one_false(self):
+        vector = np.array([False])
+        result = self.evaluator.get_proportion_bucket(vector)
+        self.assertEqual(result, (0, 1))
+
+    def test_get_proportion_bucket_places_scores_in_correct_buckets(self):
+        quant_df = pd.DataFrame({
+            'P1': [1, 2, 3, 4],
+            'P2': [4, 3, 2, 1],
+            'P3': [1, 1, 1, 1],
+        })
+
+        meta_df_1 = pd.DataFrame({'classification_label': ['H', 'D', 'H', 'D'],})
+        meta_df_2 = pd.DataFrame({'classification_label': ['H', 'H', 'D', 'D'],})
+
+        pairs = [('P1', 'P2'), ('P1', 'P3')]
+        bool_vectors = self.evaluator.vectorize_all_pairs(pairs, quant_df)
+        binarized_labels_1 = self.evaluator.binarize_labels(meta_df_1)
+        binarized_labels_2 = self.evaluator.binarize_labels(meta_df_2)
+
+        scores_1 = dict(self.evaluator.evaluate_pairs(pairs, bool_vectors, binarized_labels_1))
+        scores_2 = dict(self.evaluator.evaluate_pairs(pairs, bool_vectors, binarized_labels_2))
+
+        rule_to_buckets = {}
+        for pair in pairs:
+            bool_vector = bool_vectors[pair]
+            bucket = self.evaluator.get_proportion_bucket(bool_vector)
+            rule_to_buckets[pair] = bucket
+
+        buckets = defaultdict(list)
+        for pair in pairs:
+            bucket = rule_to_buckets[pair]
+            buckets[bucket].append(scores_1[pair])
+            buckets[bucket].append(scores_2[pair])
+
+        for pair in pairs:
+            bucket = rule_to_buckets[pair]
+            self.assertIn(scores_1[pair], buckets[bucket])
+            self.assertIn(scores_2[pair], buckets[bucket])
 
     def test_build_null_buckets_from_permutation(self):
         quant_df = pd.DataFrame({
