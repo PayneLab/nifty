@@ -152,7 +152,6 @@ class EvaluateRules:
     def get_significant_pairs(self, summary_df) -> pd.DataFrame:
         # Adjust p-values for multiple testing
         summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
-        # summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
         return summary_df
 
     def get_proportion_bucket(self, bool_vector: np.ndarray) -> tuple:
@@ -195,15 +194,15 @@ class EvaluateRules:
                 count = np.sum(np.array(null_distribution) >= true_score)
                 p_value = count / len(null_distribution)
 
-        data.append({
-            "Gene_Pair": rule,
-            "True_Score": true_score,
-            "Bucket": bucket_key,
-            "P_Value": p_value
-        })
+            data.append({
+                "Gene_Pair": rule,
+                "True_Score": true_score,
+                "Bucket": bucket_key,
+                "P_Value": p_value
+            })
 
         summary_df = pd.DataFrame(data)
-        return summary_df
+        return self.get_significant_pairs(summary_df)
 
     def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values

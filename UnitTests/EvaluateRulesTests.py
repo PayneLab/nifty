@@ -192,8 +192,8 @@ class TestEvaluateRules(unittest.TestCase):
             'P3': [1, 1, 1, 1],
         })
 
-        meta_df_1 = pd.DataFrame({'classification_label': ['H', 'D', 'H', 'D'],})
-        meta_df_2 = pd.DataFrame({'classification_label': ['H', 'H', 'D', 'D'],})
+        meta_df_1 = pd.DataFrame({'classification_label': ['H', 'D', 'H', 'D']})
+        meta_df_2 = pd.DataFrame({'classification_label': ['H', 'H', 'D', 'D']})
 
         pairs = [('P1', 'P2'), ('P1', 'P3')]
         bool_vectors = self.evaluator.vectorize_all_pairs(pairs, quant_df)
