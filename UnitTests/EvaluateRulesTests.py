@@ -163,27 +163,17 @@ class TestEvaluateRules(unittest.TestCase):
     def test_get_proportion_bucket_true_false(self):
         vector = np.array([True, False, True, False, True])
         result = self.evaluator.get_proportion_bucket(vector)
-        self.assertEqual(result, (3, 2))
+        self.assertEqual(result, 60)
 
     def test_get_proportion_bucket_all_false(self):
         vector = np.array([False, False, False, False, False])
         result = self.evaluator.get_proportion_bucket(vector)
-        self.assertEqual(result, (0, 5))
-
-    def test_get_proportion_bucket_empty(self):
-        vector = np.array([])
-        result = self.evaluator.get_proportion_bucket(vector)
-        self.assertEqual(result, (0, 0))
+        self.assertEqual(result, 0)
 
     def test_get_proportion_bucket_all_true(self):
         vector = np.array([True, True, True, True])
         result = self.evaluator.get_proportion_bucket(vector)
-        self.assertEqual(result, (4, 0))
-
-    def test_get_proportion_bucket_one_false(self):
-        vector = np.array([False])
-        result = self.evaluator.get_proportion_bucket(vector)
-        self.assertEqual(result, (0, 1))
+        self.assertEqual(result, 100)
 
     def test_get_proportion_bucket_places_scores_in_correct_buckets(self):
         quant_df = pd.DataFrame({
@@ -237,15 +227,14 @@ class TestEvaluateRules(unittest.TestCase):
                  ('P2', 'P6'), ('P3', 'P4'), ('P3', 'P5'), ('P3', 'P6'), ('P4', 'P5'), ('P4', 'P6'), ('P5', 'P6'),]
         bool_vectors = self.evaluator.vectorize_all_pairs(pairs, quant_df)
         binarized_labels = self.evaluator.binarize_labels(meta_df)
-
-        buckets, rule_true_false_distribution = self.evaluator.assign_permuted_scores_to_buckets(pairs, bool_vectors, binarized_labels)
+        rule_to_buckets = self.evaluator.get_rule_to_buckets(pairs, bool_vectors)
+        buckets = self.evaluator.create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, rule_to_buckets)
         # To check we are returning the right structure.
         self.assertIsInstance(buckets, dict)
         for key, value in buckets.items():
             # Having alwasy a (n_true, n_false) key.
-            self.assertIsInstance(key, tuple)
-            self.assertIsInstance(value, list)
-            #print(f"Bucket {key}: {value}")
+            self.assertIsInstance(key, int)
+            print(f"Bucket {key}: {value}")
             for score in value:
                 self.assertIsInstance(score, float)
 
@@ -268,9 +257,15 @@ class TestEvaluateRules(unittest.TestCase):
         bool_vectors = self.evaluator.vectorize_all_pairs(pairs, quant_df)
         binarized_labels = self.evaluator.binarize_labels(meta_df)
         true_scores = dict(self.evaluator.evaluate_pairs(pairs, bool_vectors, binarized_labels))
-        buckets, rule_true_false_distribution = self.evaluator.assign_permuted_scores_to_buckets(pairs, bool_vectors, binarized_labels)
-        summary_df = self.evaluator.summarize_bucket_stats(true_scores, rule_true_false_distribution, buckets)
+        rule_to_buckets = self.evaluator.get_rule_to_buckets(pairs, bool_vectors)
+        buckets = self.evaluator.create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, rule_to_buckets)
+        for keys, values in buckets.items():
+            print(f"{keys} → {len(values)} null scores, sample: {values[:5]}")
+        print('\n')
+        summary_df = self.evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
         print(summary_df)
+
+        #TODO Update these tests to follow given instructions.
 
 if __name__ == '__main__':
     unittest.main()

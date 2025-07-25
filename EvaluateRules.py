@@ -4,6 +4,7 @@ from scipy.stats import norm
 import statsmodels.stats.multitest as ssm
 from collections import defaultdict
 
+
 class EvaluateRules:
     def __init__(self):
         pass
@@ -16,7 +17,6 @@ class EvaluateRules:
             bool_vector = self.vectorize_pair(pair, quant_df)
             bool_dict[pair] = bool_vector
         return bool_dict
-
 
     def vectorize_pair(self, pair: list, quant_df) -> np.ndarray:
         '''Gets all values for two proteins of a pair, compares them and returns a boolean vector'''
@@ -82,7 +82,7 @@ class EvaluateRules:
         #randomized_meta_df = meta_df.copy()
         return np.random.permutation(labels)
 
-    def permutate(self, pairs: list, bool_dict, binarized_labels,n_permutations=100):
+    def permutate(self, pairs: list, bool_dict, binarized_labels, n_permutations=100):
         ''' Runs a permutation test on all pairs to see how significant their classification
         score is under a null distribution '''
 
@@ -145,7 +145,6 @@ class EvaluateRules:
         }, index=z_scores.index)
         summary_df.index.name = 'Gene_Pair'
 
-
         # Filter significant pairs
         return self.get_significant_pairs(summary_df)
 
@@ -154,44 +153,58 @@ class EvaluateRules:
         summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
         return summary_df
 
-    def get_proportion_bucket(self, bool_vector: np.ndarray) -> tuple:
+    def get_proportion_bucket(self, bool_vector: np.ndarray) -> int:
+        # Percentages!
+        # Round to the nearaest one.Pick to 100 always on the percentage.
+        # Do the percentage true. Bucekt nearest to 0 decimal place of the nearest one hundred. No decimal.
+        # Percent true.
+        # Exclusive and inclusive. 0 up to 100 including 100.
         '''Returns the proportions of true and false of each bucket for the vector of the rules'''
         n_true = int(np.sum(bool_vector))
         n_false = len(bool_vector) - n_true
-        return tuple([n_true, n_false])
+        #return tuple([n_true, n_false])
+        return round((n_true / (n_true + n_false)) * 100)
 
-    def assign_permuted_scores_to_buckets(self, pairs, bool_dict, binarized_labels):
-        '''Creates buckets for permutation test results based on the proportion of true and false in each rule'''
+    def get_rule_to_buckets(self, pairs, bool_dict) -> dict:
         rule_to_buckets = {}
         # ('P1', 'P2'): (7, 5)
         for pair in pairs:
             bool_vector = bool_dict[pair]
             bucket = self.get_proportion_bucket(bool_vector)
             rule_to_buckets[pair] = bucket
+        return rule_to_buckets
 
+    def create_null_distributions_for_p_values_testing(self, pairs, bool_dict, binarized_labels, rule_to_buckets):
+        '''Creates buckets for permutation test results based on the proportion of true and false in each rule'''
         shuffled_labels = self.randomize_labels(binarized_labels)
         scores = self.evaluate_pairs(pairs, bool_dict, shuffled_labels)
         #print(scores)
-        buckets = defaultdict(list)
+        bucket_lists = defaultdict(list)
 
         for pair, score in scores:
             bucket_key = rule_to_buckets[pair]
-            buckets[bucket_key].append(score)
+            bucket_lists[bucket_key].append(score)
             #{(3, 2): [0.1, 0.2, 0.3], (2, 3): [0.4, 0.5],...}
-        return buckets, rule_to_buckets
 
-    def summarize_bucket_stats(self, true_scores: dict, rule_true_false_distribution: dict, buckets: dict) -> pd.DataFrame:
+        # Convert all buckets into numpy array here.
+        buckets = {}
+        for key, val in bucket_lists.items():
+            buckets[key] = np.array(val)
+        return buckets
+
+    def summarize_bucket_stats(self, true_scores: dict, rule_to_buckets: dict, buckets) -> pd.DataFrame:
         '''Get the p-values for each rule comparing its true score with the null distribution corresponding to its
         bucket (n_sum, n_false)'''
         data = []
         for rule, true_score in true_scores.items():
-            bucket_key = rule_true_false_distribution[rule]
-            null_distribution = buckets.get(bucket_key, [])
+            bucket_key = rule_to_buckets[rule]
+            null_distribution = buckets.get(bucket_key)  # empty should never happen
 
-            if not null_distribution:
+            if null_distribution is None:
+                # should never get into here
                 p_value = np.nan
             else:
-                count = np.sum(np.array(null_distribution) >= true_score)
+                count = np.sum(null_distribution >= true_score)
                 p_value = count / len(null_distribution)
 
             data.append({
@@ -213,12 +226,9 @@ class EvaluateRules:
         true_scores = dict(self.evaluate_pairs(pairs, bool_dict, binarized_labels))
 
         # Generate buckets and assign distributions after one permutation.
-        buckets, rule_true_false_distribution = self.assign_permuted_scores_to_buckets(pairs, bool_dict, binarized_labels)
+        rule_to_buckets = self.get_rule_to_buckets(pairs, bool_dict)
+        buckets = self.create_null_distributions_for_p_values_testing(pairs, bool_dict, binarized_labels, rule_to_buckets)
 
         # Get p-values using the buckets.
-        summary_df = self.summarize_bucket_stats(true_scores, rule_true_false_distribution, buckets)
+        summary_df = self.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
         return true_scores, summary_df
-
-
-
-
