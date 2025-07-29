@@ -193,5 +193,35 @@ class TestEvaluateRules(unittest.TestCase):
             bucket = self.evaluator.get_proportion_bucket(vector)
             self.assertEqual(bucket, proportion)
 
+    def test_get_proportion_bucket_large_vector(self):
+        bool_vector = np.array([True] * 5000 + [False] * 5000)
+        result = self.evaluator.get_proportion_bucket(bool_vector)
+        self.assertEqual(result, 50)
+
+    def test_get_proportion_bucket_close_rounding(self):
+        bool_vector_1 = np.array([True, True, True, False])
+        self.assertEqual(self.evaluator.get_proportion_bucket(bool_vector_1), 75)
+        bool_vector_2 = np.array([True, True, False])
+        self.assertEqual(self.evaluator.get_proportion_bucket(bool_vector_2), 67)
+        bool_vector_3 = np.array([True, False])
+        self.assertEqual(self.evaluator.get_proportion_bucket(bool_vector_3), 50)
+
+    def test_get_rule_to_buckets_with_pairs(self):
+        pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
+        bool_dict = {
+            ('P1', 'P2'): np.array([True, True, False, False]),
+            ('P1', 'P3'): np.array([True, True, True, False]),
+            ('P2', 'P3'): np.array([True, False, False, False])
+        }
+
+        expected_rule_to_buckets = {
+            ('P1', 'P2'): 50,
+            ('P1', 'P3'): 75,
+            ('P2', 'P3'): 25
+        }
+
+        results = self.evaluator.get_rule_to_buckets(pairs, bool_dict)
+        self.assertEqual(results, expected_rule_to_buckets)
+
 if __name__ == '__main__':
     unittest.main()
