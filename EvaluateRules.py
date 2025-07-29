@@ -149,17 +149,13 @@ class EvaluateRules:
         return self.get_significant_pairs(summary_df)
 
     def get_significant_pairs(self, summary_df) -> pd.DataFrame:
-        # Adjust p-values for multiple testing
+        '''Adjust p-values for multiple testing'''
         summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
         return summary_df
 
     def get_proportion_bucket(self, bool_vector: np.ndarray) -> int:
-        # Percentages!
-        # Round to the nearaest one.Pick to 100 always on the percentage.
-        # Do the percentage true. Bucekt nearest to 0 decimal place of the nearest one hundred. No decimal.
-        # Percent true.
-        # Exclusive and inclusive. 0 up to 100 including 100.
         '''Returns the proportions of true and false of each bucket for the vector of the rules'''
+        # print(bool_vector)
         n_true = int(np.sum(bool_vector))
         n_false = len(bool_vector) - n_true
         #return tuple([n_true, n_false])

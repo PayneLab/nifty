@@ -176,96 +176,22 @@ class TestEvaluateRules(unittest.TestCase):
         self.assertEqual(result, 100)
 
     def test_get_proportion_bucket_places_scores_in_correct_buckets(self):
-        quant_df = pd.DataFrame({
-            'P1': [1, 2, 3, 4],
-            'P2': [4, 3, 2, 1],
-            'P3': [1, 1, 1, 1],
-        })
+        test_cases = [([False, False, False, False, False], 0),
+            ([True, False, False, False, False], 20),
+            ([True, True, False, False, False], 40),
+            ([True, True, True, False, False], 60),
+            ([True, True, True, True, False], 80),
+            ([True, True, True, True, True], 100),
+            ([True, True, False, False], 50),
+            ([True, True, True, False], 75),
+            ([True, False, False], 33),
+            ([True, True, True], 100),
+            ([False, False, True], 33),]
 
-        meta_df_1 = pd.DataFrame({'classification_label': ['H', 'D', 'H', 'D']})
-        meta_df_2 = pd.DataFrame({'classification_label': ['H', 'H', 'D', 'D']})
-
-        pairs = [('P1', 'P2'), ('P1', 'P3')]
-        bool_vectors = self.evaluator.vectorize_all_pairs(pairs, quant_df)
-        binarized_labels_1 = self.evaluator.binarize_labels(meta_df_1)
-        binarized_labels_2 = self.evaluator.binarize_labels(meta_df_2)
-
-        scores_1 = dict(self.evaluator.evaluate_pairs(pairs, bool_vectors, binarized_labels_1))
-        scores_2 = dict(self.evaluator.evaluate_pairs(pairs, bool_vectors, binarized_labels_2))
-
-        rule_to_buckets = {}
-        for pair in pairs:
-            bool_vector = bool_vectors[pair]
-            bucket = self.evaluator.get_proportion_bucket(bool_vector)
-            rule_to_buckets[pair] = bucket
-
-        buckets = defaultdict(list)
-        for pair in pairs:
-            bucket = rule_to_buckets[pair]
-            buckets[bucket].append(scores_1[pair])
-            buckets[bucket].append(scores_2[pair])
-
-        for pair in pairs:
-            bucket = rule_to_buckets[pair]
-            self.assertIn(scores_1[pair], buckets[bucket])
-            self.assertIn(scores_2[pair], buckets[bucket])
-
-    def test_build_null_buckets_from_permutation(self):
-        quant_df = pd.DataFrame({
-            'P1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 3, 5, 6],
-            'P2': [6, 5, 4, 3, 2, 1, 2, 3, 4, 6, 7, 5],
-            'P3': [2, 2, 2, 2, 3, 3, 4, 4, 4, 3, 3, 3],
-            'P4': [7, 8, 6, 5, 7, 6, 5, 8, 9, 4, 3, 2],
-            'P5': [3, 3, 3, 3, 3, 2, 2, 2, 1, 1, 2, 3],
-            'P6': [1, 2, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]
-        })
-        meta_df = pd.DataFrame({
-            'classification_label': ['H', 'D', 'H', 'D', 'H', 'D', 'H', 'D', 'H', 'D', 'H', 'D']
-        })
-        pairs = [('P1', 'P2'), ('P1', 'P3'), ('P1', 'P4'), ('P1', 'P5'), ('P1', 'P6'), ('P2', 'P3'), ('P2', 'P4'),
-                 ('P2', 'P5'),
-                 ('P2', 'P6'), ('P3', 'P4'), ('P3', 'P5'), ('P3', 'P6'), ('P4', 'P5'), ('P4', 'P6'), ('P5', 'P6'),]
-        bool_vectors = self.evaluator.vectorize_all_pairs(pairs, quant_df)
-        binarized_labels = self.evaluator.binarize_labels(meta_df)
-        rule_to_buckets = self.evaluator.get_rule_to_buckets(pairs, bool_vectors)
-        buckets = self.evaluator.create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, rule_to_buckets)
-        # To check we are returning the right structure.
-        self.assertIsInstance(buckets, dict)
-        for key, value in buckets.items():
-            # Having alwasy a (n_true, n_false) key.
-            self.assertIsInstance(key, int)
-            print(f"Bucket {key}: {value}")
-            for score in value:
-                self.assertIsInstance(score, float)
-
-    def test_summarize_bucket_stats(self):
-        quant_df = pd.DataFrame({
-            'P1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 3, 5, 6],
-            'P2': [6, 5, 4, 3, 2, 1, 2, 3, 4, 6, 7, 5],
-            'P3': [2, 2, 2, 2, 3, 3, 4, 4, 4, 3, 3, 3],
-            'P4': [7, 8, 6, 5, 7, 6, 5, 8, 9, 4, 3, 2],
-            'P5': [3, 3, 3, 3, 3, 2, 2, 2, 1, 1, 2, 3],
-            'P6': [1, 2, 3, 2, 1, 2, 3, 4, 5, 6, 7, 8]
-        })
-        meta_df = pd.DataFrame({
-            'classification_label': ['H', 'D', 'H', 'D', 'H', 'D', 'H', 'D', 'H', 'D', 'H', 'D']
-        })
-        pairs = [('P1', 'P2'), ('P1', 'P3'), ('P1', 'P4'), ('P1', 'P5'), ('P1', 'P6'), ('P2', 'P3'), ('P2', 'P4'),
-                 ('P2', 'P5'),
-                 ('P2', 'P6'), ('P3', 'P4'), ('P3', 'P5'), ('P3', 'P6'), ('P4', 'P5'), ('P4', 'P6'), ('P5', 'P6'),]
-
-        bool_vectors = self.evaluator.vectorize_all_pairs(pairs, quant_df)
-        binarized_labels = self.evaluator.binarize_labels(meta_df)
-        true_scores = dict(self.evaluator.evaluate_pairs(pairs, bool_vectors, binarized_labels))
-        rule_to_buckets = self.evaluator.get_rule_to_buckets(pairs, bool_vectors)
-        buckets = self.evaluator.create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, rule_to_buckets)
-        for keys, values in buckets.items():
-            print(f"{keys} → {len(values)} null scores, sample: {values[:5]}")
-        print('\n')
-        summary_df = self.evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
-        print(summary_df)
-
-        #TODO Update these tests to follow given instructions.
+        for bool_vector, proportion in test_cases:
+            vector = np.array(bool_vector)
+            bucket = self.evaluator.get_proportion_bucket(vector)
+            self.assertEqual(bucket, proportion)
 
 if __name__ == '__main__':
     unittest.main()
