@@ -88,7 +88,7 @@ class DataTableChecker:
 
         #check each value in df
         data = quant_df_values.iloc[:,1:]
-        invalid_mask = ~data.applymap(is_valid)
+        invalid_mask = ~data.map(is_valid)
 
         if invalid_mask.any().any():
             invalid_value = quant_df_values[invalid_mask].stack().iloc[0]

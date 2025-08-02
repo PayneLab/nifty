@@ -1,11 +1,11 @@
 # REgression test 2 - Large Dataset with NA values
-
 import pandas as pd
 import cProfile
 import numpy as np
 import sys
 import os
 import pstats
+import time
 
 current_dir = os.path.dirname(__file__)
 
@@ -444,13 +444,17 @@ def test_new_method(num_samples=500, num_proteins=1000):
     binarized_labels = evaluator.binarize_labels(meta_df)
     true_scores = dict(evaluator.evaluate_pairs(pairs, bool_vectors, binarized_labels))
     rule_to_buckets = evaluator.get_rule_to_buckets(pairs, bool_vectors)
-    buckets = evaluator.create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, rule_to_buckets)
+    #buckets = evaluator.create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, rule_to_buckets)
+
+    buckets_to_rule = evaluator.NEW_get_bucket_to_rules(pairs, bool_vectors)
+    buckets = evaluator.NEW_create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, buckets_to_rule)
 
     for keys, values in buckets.items():
         print(f"{keys} → {len(values)} null scores, sample: {values[:5]}")
     print()
 
-    summary_df = evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
+    #summary_df = evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
+    summary_df = evaluator.NEW_summarize_bucket_stats(true_scores, buckets_to_rule, buckets)
     print(summary_df)
 
     '''
@@ -476,11 +480,15 @@ def test_new_method(num_samples=500, num_proteins=1000):
 
 if __name__ == "__main__":
     print(f"Running test with 500 samples...")
+    start_time = time.time()
     profiler = cProfile.Profile()
     profiler.enable()
-    test_new_method(num_samples=500, num_proteins=1000)
+    test_new_method(num_samples=500, num_proteins=10000)
     profiler.disable()
+    end_time = time.time()
+    total = end_time - start_time
 
     # print top 10 lines
     stats = pstats.Stats(profiler).sort_stats("cumtime")
     stats.print_stats(25)
+    print(f"Time: {total:.2f} seconds")

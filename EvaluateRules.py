@@ -174,7 +174,6 @@ class EvaluateRules:
         '''Creates buckets for permutation test results based on the proportion of true and false in each rule'''
         shuffled_labels = self.randomize_labels(binarized_labels)
         scores = self.evaluate_pairs(pairs, bool_dict, shuffled_labels)
-        #print(scores)
         bucket_lists = defaultdict(list)
 
         for pair, score in scores:
@@ -228,3 +227,51 @@ class EvaluateRules:
         # Get p-values using the buckets.
         summary_df = self.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
         return true_scores, summary_df
+
+    def NEW_get_bucket_to_rules(self, pairs, bool_dict) -> dict:
+        '''Group pairs into buckets'''
+        bucket_to_rules = {}
+        for pair in pairs:
+            bool_vector = bool_dict[pair]
+            bucket = self.get_proportion_bucket(bool_vector)
+            if bucket not in bucket_to_rules:
+                bucket_to_rules[bucket] = []
+            bucket_to_rules[bucket].append(pair)
+        return bucket_to_rules
+
+    def NEW_create_null_distributions_for_p_values_testing(self, pairs, bool_dict, binarized_labels, bucket_to_rules):
+        '''Creates buckets for permutation test results based on the proportion of true and false in each rule'''
+        shuffled_labels = self.randomize_labels(binarized_labels)
+        buckets = {}
+
+        for bucket in bucket_to_rules:
+            rules = bucket_to_rules[bucket]
+            scores_with_rules = self.evaluate_pairs(rules, bool_dict, shuffled_labels)
+            scores = []
+            for pair, score in scores_with_rules:
+                scores.append(score)
+            buckets[bucket] = np.array(scores)
+        return buckets
+
+    def NEW_summarize_bucket_stats(self, true_scores: dict, bucket_to_rules: dict, buckets) -> pd.DataFrame:
+        data = []
+        for bucket, rules in bucket_to_rules.items():
+            null_distribution = buckets[bucket]
+
+            null_distribution_sorted = np.sort(null_distribution)
+            null_distribution_len = len(null_distribution)
+
+            for rule in rules:
+                true_score = true_scores[rule]
+                index = np.searchsorted(null_distribution_sorted, true_score, side='left')
+                count = null_distribution_len - index
+                p_value = count / null_distribution_len
+
+                data.append({
+                    "Gene_Pair": rule,
+                    "True_Score": true_score,
+                    "Bucket": bucket,
+                    "P_Value": p_value
+                })
+        summary_df = pd.DataFrame(data)
+        return self.get_significant_pairs(summary_df)
