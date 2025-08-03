@@ -479,11 +479,13 @@ def test_new_method(num_samples=500, num_proteins=1000):
     '''
 
 if __name__ == "__main__":
-    print(f"Running test with 500 samples...")
+    num_samples = 10000
+    num_proteins = 1000
+    print(f"Running test with {num_samples} samples and {num_proteins} proteins...")
     start_time = time.time()
     profiler = cProfile.Profile()
     profiler.enable()
-    test_new_method(num_samples=500, num_proteins=10000)
+    test_new_method(num_samples=num_samples, num_proteins=num_proteins)
     profiler.disable()
     end_time = time.time()
     total = end_time - start_time

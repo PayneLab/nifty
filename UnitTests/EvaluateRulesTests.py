@@ -206,6 +206,7 @@ class TestEvaluateRules(unittest.TestCase):
         bool_vector_3 = np.array([True, False])
         self.assertEqual(self.evaluator.get_proportion_bucket(bool_vector_3), 50)
 
+    # To delete.
     def test_get_rule_to_buckets_with_pairs(self):
         pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
         bool_dict = {
@@ -221,6 +222,38 @@ class TestEvaluateRules(unittest.TestCase):
         }
 
         results = self.evaluator.get_rule_to_buckets(pairs, bool_dict)
+        self.assertEqual(results, expected_rule_to_buckets)
+
+    def test_get_bucket_to_rules_multiple_buckets(self):
+        pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
+        bool_dict = {
+            ('P1', 'P2'): np.array([True, True, False, False]),
+            ('P1', 'P3'): np.array([True, True, True, False]),
+            ('P2', 'P3'): np.array([True, False, False, False])
+        }
+
+        expected_rule_to_buckets = {
+            50: [('P1', 'P2')],
+            75: [('P1', 'P3')],
+            25: [('P2', 'P3')]
+        }
+
+        results = self.evaluator.NEW_get_bucket_to_rules(pairs, bool_dict)
+        self.assertEqual(results, expected_rule_to_buckets)
+
+    def test_get_bucket_to_rules_multiple_rules_same_buckets(self):
+        pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
+        bool_dict = {
+            ('P1', 'P2'): np.array([True, False, False, False, True, True, True]),
+            ('P1', 'P3'): np.array([True, True, True, True, False, False, False]),
+            ('P2', 'P3'): np.array([True, True, True, True, False, False, False]),
+        }
+
+        expected_rule_to_buckets = {
+            57: [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')],
+        }
+
+        results = self.evaluator.NEW_get_bucket_to_rules(pairs, bool_dict)
         self.assertEqual(results, expected_rule_to_buckets)
 
 if __name__ == '__main__':
