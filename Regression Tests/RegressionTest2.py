@@ -553,8 +553,7 @@ def test_newest_method(num_samples=500, num_proteins=1000):
 
     bool_vectors = evaluator.NEW_Bm_vectorize_all_pairs(pairs, quant_df)
     binarized_labels = evaluator.binarize_labels(meta_df)
-    #true_scores = dict(evaluator.NEW_Bm_evaluate_pairs(pairs, bool_vectors, binarized_labels))
-    true_scores = dict(evaluator.batch_score_all_pairs_Bm(pairs, bool_vectors, binarized_labels))
+    true_scores = dict(evaluator.NEW_Bm_evaluate_pairs(pairs, bool_vectors, binarized_labels))
     rule_to_buckets = evaluator.get_rule_to_buckets(pairs, bool_vectors)
     #buckets = evaluator.create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, rule_to_buckets)
 
