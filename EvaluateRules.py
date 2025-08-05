@@ -325,7 +325,6 @@ class EvaluateRules:
 
         return buckets
 
-
     def NEW_summarize_bucket_stats(self, true_scores: dict, bucket_to_rules: dict, buckets) -> pd.DataFrame:
         data = []
         for bucket, rules in bucket_to_rules.items():

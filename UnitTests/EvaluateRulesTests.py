@@ -63,7 +63,7 @@ class TestEvaluateRules(unittest.TestCase):
         result = self.evaluator.vectorize_pair(['P1', 'P1'], df)
         np.testing.assert_array_equal(result, expected)
 
-    def test_score_pair_perfect_separation(self):
+    def test_score_pair_full_separation_negative_selected(self):
         quant_df = pd.DataFrame({
             'P1': [1, 6, 3, 8],
             'P2': [4, 5, 6, 1]
@@ -106,6 +106,21 @@ class TestEvaluateRules(unittest.TestCase):
         self.evaluator._n_neg = np.sum(bin_labels == 0)
         score = self.evaluator.score_pair(pair, bool_dict, bin_labels)
         self.assertAlmostEqual(score, 0.5)
+
+    def test_score_pair_full_separation_negative_selected(self):
+        quant_df = pd.DataFrame({
+            'P1': [1, 2, 3, 4],
+            'P2': [4, 3, 2, 1]
+        })
+        pair = ('P1', 'P2')
+        meta_df = pd.DataFrame({'classification_label': ['D', 'D', 'H', 'H']})
+        bin_labels = self.evaluator.binarize_labels(meta_df)
+        bool_dict = {pair: self.evaluator.vectorize_pair(pair, quant_df)}
+        self.evaluator._n_pos = np.sum(bin_labels == 1)
+        self.evaluator._n_neg = np.sum(bin_labels == 0)
+        score = self.evaluator.score_pair(pair, bool_dict, bin_labels)
+        self.assertAlmostEqual(score, 1.0)
+
 
     def test_evaluate_pairs_output(self):
         quant_df = pd.DataFrame({
@@ -255,6 +270,22 @@ class TestEvaluateRules(unittest.TestCase):
 
         results = self.evaluator.NEW_get_bucket_to_rules(pairs, bool_dict)
         self.assertEqual(results, expected_rule_to_buckets)
+
+    def test_summarize_bucket_stats_score_above_all_nulls(self):
+        true_scores = {('P1', 'P2') : 0.9}
+        bucket_to_rules = {60 : [('P1', 'P2')]}
+        buckets = {60 : np.array([0.1, 0.2, 0.3])}
+
+        df = self.evaluator.NEW_summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
+        self.assertEqual(df.iloc[0]['P_Value'], 0.0)
+
+    def test_summarize_bucket_stats_score_below_all_nulls(self):
+        true_scores = {('P3', 'P4') : 0.05}
+        bucket_to_rules = {80 : [('P3', 'P4')]}
+        buckets = {80 : np.array([0.2, 0.3, 0.4])}
+
+        df = self.evaluator.NEW_summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
+        self.assertEqual(df.iloc[0]['P_Value'], 1.0)
 
 if __name__ == '__main__':
     unittest.main()
