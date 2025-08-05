@@ -9,6 +9,30 @@ class EvaluateRules:
     def __init__(self):
         pass
 
+    def NEW_Bm_vectorize_all_pairs(self, pairs: list, quant_df) -> dict:
+        # Preload columns as arrays
+        protein_arrays = {col: quant_df[col].to_numpy(copy=True) for col in quant_df.columns if col != "sample_id"}
+
+        bool_dict = {}
+        for prot1, prot2 in pairs:
+            arr1 = protein_arrays[prot1].copy()
+            arr2 = protein_arrays[prot2].copy()
+
+            # NaN logic
+            mask1_nan = np.isnan(arr1)
+            mask2_nan = np.isnan(arr2)
+            both_nan = mask1_nan & mask2_nan
+            only1_nan = mask1_nan & ~mask2_nan
+            only2_nan = mask2_nan & ~mask1_nan
+
+            arr1[only1_nan] = 0; arr2[only1_nan] = 10
+            arr2[only2_nan] = 0; arr1[only2_nan] = 10
+            arr1[both_nan] = 0; arr2[both_nan] = 10
+
+            bool_dict[(prot1, prot2)] = arr1 > arr2
+
+        return bool_dict
+
     def vectorize_all_pairs(self, pairs: list, quant_df) -> dict:
         '''Vectorizes all pairs of proteins and returns a dictionary of boolean vectors.
         Rows are indexed by the string representation of each pair.'''
@@ -56,6 +80,17 @@ class EvaluateRules:
         FP_prop = FP / self._n_neg if self._n_neg > 0 else 0
 
         return abs(TP_prop - FP_prop)
+    
+    def NEW_Bm_score_pair(self, pair: tuple, bool_dict: dict, binarized_labels: np.ndarray) -> float:
+        bool_vector = bool_dict[pair]
+        # These are all boolean arrays, so bitwise logic and dot product works fast
+        TP = np.dot(bool_vector, binarized_labels)
+        FP = np.dot(bool_vector, 1 - binarized_labels)
+
+        TP_prop = TP / self._n_pos if self._n_pos else 0
+        FP_prop = FP / self._n_neg if self._n_neg else 0
+
+        return abs(TP_prop - FP_prop)
 
     def binarize_labels(self, meta_df) -> np.ndarray:
         '''Binarizes the labels in the metadata and computes denominators. Returns binarized labels'''
@@ -76,6 +111,32 @@ class EvaluateRules:
         scored_pairs = [(pair, self.score_pair(pair, bool_dict, binarized_labels)) for pair in pairs]
 
         return scored_pairs
+    
+    def NEW_Bm_evaluate_pairs(self, pairs: list, bool_dict: dict, binarized_labels: np.ndarray) -> list:
+        scored = []
+        for pair in pairs:
+            score = self.NEW_Bm_score_pair(pair, bool_dict, binarized_labels)
+            scored.append((pair, score))
+        return scored
+
+    def batch_score_all_pairs_Bm(self, pairs: list, bool_dict: dict, binarized_labels: np.ndarray) -> list:
+        """Vectorized version of evaluate_pairs."""
+        # Step 1: Create bool matrix
+        bool_matrix = np.vstack([bool_dict[pair] for pair in pairs])  # shape (n_pairs, n_samples)
+
+        # Step 2: Compute TP and FP via dot products
+        TP = bool_matrix @ binarized_labels  # vector of TP for each pair
+        FP = bool_matrix @ (1 - binarized_labels)
+
+        # Step 3: Convert to proportions
+        TP_prop = TP / self._n_pos if self._n_pos > 0 else np.zeros_like(TP)
+        FP_prop = FP / self._n_neg if self._n_neg > 0 else np.zeros_like(FP)
+
+        scores = np.abs(TP_prop - FP_prop)
+
+        # Step 4: Package back into list of (pair, score)
+        return list(zip(pairs, scores))
+
 
     def randomize_labels(self, labels: np.ndarray) -> np.ndarray:
         '''Randomizes the labels in the metadata and returns a new DataFrame.'''
@@ -252,6 +313,18 @@ class EvaluateRules:
                 scores.append(score)
             buckets[bucket] = np.array(scores)
         return buckets
+    
+    def NEW_Bm_create_null_distributions_for_p_values_testing(self, pairs, bool_dict, binarized_labels, bucket_to_rules):
+        shuffled_labels = self.randomize_labels(binarized_labels)
+        buckets = {}
+
+        # Reuse score_pair logic efficiently
+        for bucket, rules in bucket_to_rules.items():
+            scores = [self.score_pair(pair, bool_dict, shuffled_labels) for pair in rules]
+            buckets[bucket] = np.array(scores)
+
+        return buckets
+
 
     def NEW_summarize_bucket_stats(self, true_scores: dict, bucket_to_rules: dict, buckets) -> pd.DataFrame:
         data = []

@@ -241,8 +241,8 @@ def test_large_imbalanced():
     print(perm_results)
 
 if __name__ == "__main__":
-    #test_pipeline()
-    test_pipeline_NA_quant()
+    test_pipeline()
+    #test_pipeline_NA_quant()
     #test_pipeline_NA_meta()
     #test_large_imbalanced()
 
