@@ -346,4 +346,15 @@ class EvaluateRules:
                     "P_Value": p_value
                 })
         summary_df = pd.DataFrame(data)
-        return self.get_significant_pairs(summary_df)
+        summary_df = self.get_significant_pairs(summary_df)
+        return summary_df
+
+    def NEW_filter_and_save_pairs(self, summary_df: pd.DataFrame, filter_type, filter_cutoff, output_file_path):
+        if filter_type == 'K':
+            filtered = summary_df.sort_values(by=['P_Value']).head(filter_cutoff)
+        elif filter_type == 'P_VAL':
+            filtered = summary_df[summary_df['P_Value'] <= filter_cutoff]
+        else:
+            raise ValueError('filter_type must be "K" or "P_VAL"')
+        filtered.to_csv(output_file_path, index=False)
+        return filtered

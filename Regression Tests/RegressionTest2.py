@@ -554,7 +554,7 @@ def test_newest_method(num_samples=500, num_proteins=1000):
     bool_vectors = evaluator.NEW_Bm_vectorize_all_pairs(pairs, quant_df)
     binarized_labels = evaluator.binarize_labels(meta_df)
     true_scores = dict(evaluator.NEW_Bm_evaluate_pairs(pairs, bool_vectors, binarized_labels))
-    rule_to_buckets = evaluator.get_rule_to_buckets(pairs, bool_vectors)
+    #rule_to_buckets = evaluator.get_rule_to_buckets(pairs, bool_vectors)
     #buckets = evaluator.create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, rule_to_buckets)
 
     buckets_to_rule = evaluator.NEW_get_bucket_to_rules(pairs, bool_vectors)
@@ -567,6 +567,9 @@ def test_newest_method(num_samples=500, num_proteins=1000):
     #summary_df = evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
     summary_df = evaluator.NEW_summarize_bucket_stats(true_scores, buckets_to_rule, buckets)
     print(summary_df)
+
+    #filtered_df = evaluator.NEW_filter_and_save_pairs(summary_df, 'K', 10, 'top_10_pairs.csv')
+    filtered_df = evaluator.NEW_filter_and_save_pairs(summary_df, 'P_VAL', 0.01, 'significant_pairs_0.01.csv')
 
     '''
     # assertions
@@ -590,8 +593,8 @@ def test_newest_method(num_samples=500, num_proteins=1000):
     '''
 
 if __name__ == "__main__":
-    num_samples = 1000
-    num_proteins = 2500
+    num_samples = 500
+    num_proteins = 1000
     print(f"Running test with {num_samples} samples and {num_proteins} proteins...")
     start_time = time.time()
     profiler = cProfile.Profile()
