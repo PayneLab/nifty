@@ -25,9 +25,12 @@ class EvaluateRules:
             only1_nan = mask1_nan & ~mask2_nan
             only2_nan = mask2_nan & ~mask1_nan
 
-            arr1[only1_nan] = 0; arr2[only1_nan] = 10
-            arr2[only2_nan] = 0; arr1[only2_nan] = 10
-            arr1[both_nan] = 0; arr2[both_nan] = 10
+            arr1[only1_nan] = 0;
+            arr2[only1_nan] = 10
+            arr2[only2_nan] = 0;
+            arr1[only2_nan] = 10
+            arr1[both_nan] = 0;
+            arr2[both_nan] = 10
 
             bool_dict[(prot1, prot2)] = arr1 > arr2
 
@@ -80,7 +83,7 @@ class EvaluateRules:
         FP_prop = FP / self._n_neg if self._n_neg > 0 else 0
 
         return abs(TP_prop - FP_prop)
-    
+
     def NEW_Bm_score_pair(self, pair: tuple, bool_dict: dict, binarized_labels: np.ndarray) -> float:
         bool_vector = bool_dict[pair]
         # These are all boolean arrays, so bitwise logic and dot product works fast
@@ -111,7 +114,7 @@ class EvaluateRules:
         scored_pairs = [(pair, self.score_pair(pair, bool_dict, binarized_labels)) for pair in pairs]
 
         return scored_pairs
-    
+
     def NEW_Bm_evaluate_pairs(self, pairs: list, bool_dict: dict, binarized_labels: np.ndarray) -> list:
         scored = []
         for pair in pairs:
@@ -136,7 +139,6 @@ class EvaluateRules:
 
         # Step 4: Package back into list of (pair, score)
         return list(zip(pairs, scores))
-
 
     def randomize_labels(self, labels: np.ndarray) -> np.ndarray:
         '''Randomizes the labels in the metadata and returns a new DataFrame.'''
@@ -283,7 +285,8 @@ class EvaluateRules:
 
         # Generate buckets and assign distributions after one permutation.
         rule_to_buckets = self.get_rule_to_buckets(pairs, bool_dict)
-        buckets = self.create_null_distributions_for_p_values_testing(pairs, bool_dict, binarized_labels, rule_to_buckets)
+        buckets = self.create_null_distributions_for_p_values_testing(pairs, bool_dict, binarized_labels,
+                                                                      rule_to_buckets)
 
         # Get p-values using the buckets.
         summary_df = self.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
@@ -313,8 +316,9 @@ class EvaluateRules:
                 scores.append(score)
             buckets[bucket] = np.array(scores)
         return buckets
-    
-    def NEW_Bm_create_null_distributions_for_p_values_testing(self, pairs, bool_dict, binarized_labels, bucket_to_rules):
+
+    def NEW_Bm_create_null_distributions_for_p_values_testing(self, pairs, bool_dict, binarized_labels,
+                                                              bucket_to_rules):
         shuffled_labels = self.randomize_labels(binarized_labels)
         buckets = {}
 
@@ -349,12 +353,24 @@ class EvaluateRules:
         summary_df = self.get_significant_pairs(summary_df)
         return summary_df
 
-    def NEW_filter_and_save_pairs(self, summary_df: pd.DataFrame, filter_type, filter_cutoff, output_file_path):
-        if filter_type == 'K':
-            filtered = summary_df.sort_values(by=['P_Value']).head(filter_cutoff)
-        elif filter_type == 'P_VAL':
-            filtered = summary_df[summary_df['P_Value'] <= filter_cutoff]
-        else:
-            raise ValueError('filter_type must be "K" or "P_VAL"')
-        filtered.to_csv(output_file_path, index=False)
+    def NEW_filter_and_save_pairs(self, summary_df: pd.DataFrame, filter_type='K', filter_cutoff=50, disjoint=False,
+                                  output_file_path='output.tsv'):
+        df = summary_df.sort_values(by=['FDR'])
+        used = set()
+        filtered = []
+
+        for i, row in df.iterrows():
+            p1, p2 = row['Gene_Pair']
+            if disjoint and (p1 in used or p2 in used):
+                continue
+            if filter_type == 'P_VAL' and row['FDR'] > filter_cutoff:
+                break
+            filtered.append(row)
+            if disjoint:
+                used.update([p1, p2])
+            if filter_type == 'K' and len(filtered) >= filter_cutoff:
+                break
+
+        filtered = pd.DataFrame(filtered).reset_index(drop=True)
+        filtered.to_csv(output_file_path, index=False, sep='\t')
         return filtered

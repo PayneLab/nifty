@@ -569,7 +569,7 @@ def test_newest_method(num_samples=500, num_proteins=1000):
     print(summary_df)
 
     #filtered_df = evaluator.NEW_filter_and_save_pairs(summary_df, 'K', 10, 'top_10_pairs.csv')
-    filtered_df = evaluator.NEW_filter_and_save_pairs(summary_df, 'P_VAL', 0.01, 'significant_pairs_0.01.csv')
+    filtered_df = evaluator.NEW_filter_and_save_pairs(summary_df, 'P_VAL', 0.01, 'significant_pairs_0.01.tsv')
 
     '''
     # assertions

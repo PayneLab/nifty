@@ -1,3 +1,4 @@
+import tempfile
 import unittest
 from collections import defaultdict
 import pandas as pd
@@ -121,7 +122,6 @@ class TestEvaluateRules(unittest.TestCase):
         score = self.evaluator.score_pair(pair, bool_dict, bin_labels)
         self.assertAlmostEqual(score, 1.0)
 
-
     def test_evaluate_pairs_output(self):
         quant_df = pd.DataFrame({
             'P1': [1, 2, 3, 4],
@@ -192,16 +192,16 @@ class TestEvaluateRules(unittest.TestCase):
 
     def test_get_proportion_bucket_places_scores_in_correct_buckets(self):
         test_cases = [([False, False, False, False, False], 0),
-            ([True, False, False, False, False], 20),
-            ([True, True, False, False, False], 40),
-            ([True, True, True, False, False], 60),
-            ([True, True, True, True, False], 80),
-            ([True, True, True, True, True], 100),
-            ([True, True, False, False], 50),
-            ([True, True, True, False], 75),
-            ([True, False, False], 33),
-            ([True, True, True], 100),
-            ([False, False, True], 33),]
+                      ([True, False, False, False, False], 20),
+                      ([True, True, False, False, False], 40),
+                      ([True, True, True, False, False], 60),
+                      ([True, True, True, True, False], 80),
+                      ([True, True, True, True, True], 100),
+                      ([True, True, False, False], 50),
+                      ([True, True, True, False], 75),
+                      ([True, False, False], 33),
+                      ([True, True, True], 100),
+                      ([False, False, True], 33), ]
 
         for bool_vector, proportion in test_cases:
             vector = np.array(bool_vector)
@@ -272,20 +272,150 @@ class TestEvaluateRules(unittest.TestCase):
         self.assertEqual(results, expected_rule_to_buckets)
 
     def test_summarize_bucket_stats_score_above_all_nulls(self):
-        true_scores = {('P1', 'P2') : 0.9}
-        bucket_to_rules = {60 : [('P1', 'P2')]}
-        buckets = {60 : np.array([0.1, 0.2, 0.3])}
+        true_scores = {('P1', 'P2'): 0.9}
+        bucket_to_rules = {60: [('P1', 'P2')]}
+        buckets = {60: np.array([0.1, 0.2, 0.3])}
 
         df = self.evaluator.NEW_summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
         self.assertEqual(df.iloc[0]['P_Value'], 0.0)
 
     def test_summarize_bucket_stats_score_below_all_nulls(self):
-        true_scores = {('P3', 'P4') : 0.05}
-        bucket_to_rules = {80 : [('P3', 'P4')]}
-        buckets = {80 : np.array([0.2, 0.3, 0.4])}
+        true_scores = {('P3', 'P4'): 0.05}
+        bucket_to_rules = {80: [('P3', 'P4')]}
+        buckets = {80: np.array([0.2, 0.3, 0.4])}
 
         df = self.evaluator.NEW_summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
         self.assertEqual(df.iloc[0]['P_Value'], 1.0)
+
+    def test_filter_and_save_pairs_returns_top_k_non_disjoint_pairs(self):
+        summary_df = pd.DataFrame({
+            "Gene_Pair": [
+                ('P1', 'P2'),
+                ('P1', 'P3'),
+                ('P1', 'P4'),
+                ('P1', 'P5'),
+                ('P2', 'P3'),
+                ('P2', 'P4'),
+                ('P2', 'P5'),
+                ('P3', 'P4'),
+                ('P3', 'P5'),
+                ('P4', 'P5')
+            ],
+            "True_Score": [0.91, 0.88, 0.85, 0.82, 0.80, 0.78, 0.76, 0.74, 0.72, 0.70],
+            "Bucket": [60, 60, 80, 80, 60, 60, 80, 80, 60, 80],
+            "P_Value": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055],
+            "FDR": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055]
+        })
+
+        with tempfile.NamedTemporaryFile(delete=True) as temp:
+            summary = self.evaluator.NEW_filter_and_save_pairs(summary_df, 'K', 5, False,
+                                                               output_file_path=temp.name)
+
+        expected_pairs = [
+            ('P1', 'P2'),
+            ('P1', 'P3'),
+            ('P1', 'P4'),
+            ('P1', 'P5'),
+            ('P2', 'P3'),
+        ]
+
+        assert list(summary['Gene_Pair']) == expected_pairs
+
+    def test_filter_and_save_pairs_returns_top_k_disjoint_pairs(self):
+        summary_df = pd.DataFrame({
+            "Gene_Pair": [
+                ('P1', 'P2'),
+                ('P1', 'P3'),
+                ('P1', 'P4'),
+                ('P1', 'P5'),
+                ('P2', 'P3'),
+                ('P2', 'P4'),
+                ('P2', 'P5'),
+                ('P3', 'P4'),
+                ('P3', 'P5'),
+                ('P4', 'P5')
+            ],
+            "True_Score": [0.91, 0.88, 0.85, 0.82, 0.80, 0.78, 0.76, 0.74, 0.72, 0.70],
+            "Bucket": [60, 60, 80, 80, 60, 60, 80, 80, 60, 80],
+            "P_Value": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055],
+            "FDR": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055]
+        })
+
+        with tempfile.NamedTemporaryFile(delete=True) as temp:
+            summary = self.evaluator.NEW_filter_and_save_pairs(summary_df, 'K', 10, True,
+                                                               output_file_path=temp.name)
+
+        expected_pairs = [
+            ('P1', 'P2'),
+            ('P3', 'P4')
+        ]
+
+        assert list(summary['Gene_Pair']) == expected_pairs
+
+    def test_filter_and_save_pairs_returns_p_val_no_disjoint_pairs(self):
+        summary_df = pd.DataFrame({
+            "Gene_Pair": [
+                ('P1', 'P2'),
+                ('P1', 'P3'),
+                ('P1', 'P4'),
+                ('P1', 'P5'),
+                ('P2', 'P3'),
+                ('P2', 'P4'),
+                ('P2', 'P5'),
+                ('P3', 'P4'),
+                ('P3', 'P5'),
+                ('P4', 'P5')
+            ],
+            "True_Score": [0.91, 0.88, 0.85, 0.82, 0.80, 0.78, 0.76, 0.74, 0.72, 0.70],
+            "Bucket": [60, 60, 80, 80, 60, 60, 80, 80, 60, 80],
+            "P_Value": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055],
+            "FDR": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055]
+        })
+
+        with tempfile.NamedTemporaryFile(delete=True) as temp:
+            summary = self.evaluator.NEW_filter_and_save_pairs(summary_df, 'P_VAL', 0.03, False,
+                                                               output_file_path=temp.name)
+
+        expected_pairs = [
+            ('P1', 'P2'),
+            ('P1', 'P3'),
+            ('P1', 'P4'),
+            ('P1', 'P5'),
+            ('P2', 'P3'),
+        ]
+
+        assert list(summary['Gene_Pair']) == expected_pairs
+
+    def test_filter_and_save_pairs_returns_p_val_disjoint_pairs(self):
+        summary_df = pd.DataFrame({
+            "Gene_Pair": [
+                ('P1', 'P2'),
+                ('P1', 'P3'),
+                ('P1', 'P4'),
+                ('P1', 'P5'),
+                ('P2', 'P3'),
+                ('P2', 'P4'),
+                ('P2', 'P5'),
+                ('P3', 'P4'),
+                ('P3', 'P5'),
+                ('P4', 'P5')
+            ],
+            "True_Score": [0.91, 0.88, 0.85, 0.82, 0.80, 0.78, 0.76, 0.74, 0.72, 0.70],
+            "Bucket": [60, 60, 80, 80, 60, 60, 80, 80, 60, 80],
+            "P_Value": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055],
+            "FDR": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055]
+        })
+
+        with tempfile.NamedTemporaryFile(delete=True) as temp:
+            summary = self.evaluator.NEW_filter_and_save_pairs(summary_df, 'P_VAL', 0.05, True,
+                                                               output_file_path=temp.name)
+
+        expected_pairs = [
+            ('P1', 'P2'),
+            ('P3', 'P4')
+        ]
+
+        assert list(summary['Gene_Pair']) == expected_pairs
 
 if __name__ == '__main__':
     unittest.main()
