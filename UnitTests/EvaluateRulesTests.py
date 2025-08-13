@@ -1,6 +1,5 @@
 import tempfile
 import unittest
-from collections import defaultdict
 import pandas as pd
 import numpy as np
 import sys
@@ -288,6 +287,10 @@ class TestEvaluateRules(unittest.TestCase):
         self.assertEqual(df.iloc[0]['P_Value'], 1.0)
 
     def test_filter_and_save_pairs_returns_top_k_non_disjoint_pairs(self):
+        self.evaluator = EvaluateRules.__new__(EvaluateRules)
+        self.evaluator.k = 5
+        self.evaluator.disjoint = False
+
         summary_df = pd.DataFrame({
             "Gene_Pair": [
                 ('P1', 'P2'),
@@ -308,8 +311,7 @@ class TestEvaluateRules(unittest.TestCase):
         })
 
         with tempfile.NamedTemporaryFile(delete=True) as temp:
-            summary = self.evaluator.NEW_filter_and_save_pairs(summary_df, 'K', 5, False,
-                                                               output_file_path=temp.name)
+            summary = self.evaluator.NEW_filter_and_save_rules(summary_df, output_file_path=temp.name)
 
         expected_pairs = [
             ('P1', 'P2'),
@@ -322,6 +324,10 @@ class TestEvaluateRules(unittest.TestCase):
         assert list(summary['Gene_Pair']) == expected_pairs
 
     def test_filter_and_save_pairs_returns_top_k_disjoint_pairs(self):
+        self.evaluator = EvaluateRules.__new__(EvaluateRules)
+        self.evaluator.k = 2
+        self.evaluator.disjoint = True
+
         summary_df = pd.DataFrame({
             "Gene_Pair": [
                 ('P1', 'P2'),
@@ -342,73 +348,7 @@ class TestEvaluateRules(unittest.TestCase):
         })
 
         with tempfile.NamedTemporaryFile(delete=True) as temp:
-            summary = self.evaluator.NEW_filter_and_save_pairs(summary_df, 'K', 10, True,
-                                                               output_file_path=temp.name)
-
-        expected_pairs = [
-            ('P1', 'P2'),
-            ('P3', 'P4')
-        ]
-
-        assert list(summary['Gene_Pair']) == expected_pairs
-
-    def test_filter_and_save_pairs_returns_p_val_no_disjoint_pairs(self):
-        summary_df = pd.DataFrame({
-            "Gene_Pair": [
-                ('P1', 'P2'),
-                ('P1', 'P3'),
-                ('P1', 'P4'),
-                ('P1', 'P5'),
-                ('P2', 'P3'),
-                ('P2', 'P4'),
-                ('P2', 'P5'),
-                ('P3', 'P4'),
-                ('P3', 'P5'),
-                ('P4', 'P5')
-            ],
-            "True_Score": [0.91, 0.88, 0.85, 0.82, 0.80, 0.78, 0.76, 0.74, 0.72, 0.70],
-            "Bucket": [60, 60, 80, 80, 60, 60, 80, 80, 60, 80],
-            "P_Value": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055],
-            "FDR": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055]
-        })
-
-        with tempfile.NamedTemporaryFile(delete=True) as temp:
-            summary = self.evaluator.NEW_filter_and_save_pairs(summary_df, 'P_VAL', 0.03, False,
-                                                               output_file_path=temp.name)
-
-        expected_pairs = [
-            ('P1', 'P2'),
-            ('P1', 'P3'),
-            ('P1', 'P4'),
-            ('P1', 'P5'),
-            ('P2', 'P3'),
-        ]
-
-        assert list(summary['Gene_Pair']) == expected_pairs
-
-    def test_filter_and_save_pairs_returns_p_val_disjoint_pairs(self):
-        summary_df = pd.DataFrame({
-            "Gene_Pair": [
-                ('P1', 'P2'),
-                ('P1', 'P3'),
-                ('P1', 'P4'),
-                ('P1', 'P5'),
-                ('P2', 'P3'),
-                ('P2', 'P4'),
-                ('P2', 'P5'),
-                ('P3', 'P4'),
-                ('P3', 'P5'),
-                ('P4', 'P5')
-            ],
-            "True_Score": [0.91, 0.88, 0.85, 0.82, 0.80, 0.78, 0.76, 0.74, 0.72, 0.70],
-            "Bucket": [60, 60, 80, 80, 60, 60, 80, 80, 60, 80],
-            "P_Value": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055],
-            "FDR": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055]
-        })
-
-        with tempfile.NamedTemporaryFile(delete=True) as temp:
-            summary = self.evaluator.NEW_filter_and_save_pairs(summary_df, 'P_VAL', 0.05, True,
-                                                               output_file_path=temp.name)
+            summary = self.evaluator.NEW_filter_and_save_rules(summary_df, output_file_path=temp.name)
 
         expected_pairs = [
             ('P1', 'P2'),

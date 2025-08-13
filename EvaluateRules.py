@@ -347,30 +347,30 @@ class EvaluateRules:
                     "Gene_Pair": rule,
                     "True_Score": true_score,
                     "Bucket": bucket,
-                    "P_Value": p_value
+                    #"P_Value": p_value
                 })
         summary_df = pd.DataFrame(data)
-        summary_df = self.get_significant_pairs(summary_df)
+        #summary_df = self.get_significant_pairs(summary_df)
         return summary_df
 
-    def NEW_filter_and_save_pairs(self, summary_df: pd.DataFrame, filter_type='K', filter_cutoff=50, disjoint=False,
-                                  output_file_path='output.tsv'):
+    def NEW_filter_and_save_rules(self, summary_df: pd.DataFrame, output_file_path='output.tsv'):
         df = summary_df.sort_values(by=['FDR'])
         used = set()
         filtered = []
 
         for i, row in df.iterrows():
             p1, p2 = row['Gene_Pair']
-            if disjoint and (p1 in used or p2 in used):
+            if self.disjoint and (p1 in used or p2 in used):
                 continue
-            if filter_type == 'P_VAL' and row['FDR'] > filter_cutoff:
-                break
             filtered.append(row)
-            if disjoint:
+            if self.disjoint:
                 used.update([p1, p2])
-            if filter_type == 'K' and len(filtered) >= filter_cutoff:
+            if len(filtered) >= self.k:
                 break
 
-        filtered = pd.DataFrame(filtered).reset_index(drop=True)
-        filtered.to_csv(output_file_path, index=False, sep='\t')
-        return filtered
+        filtered_df = pd.DataFrame(filtered).reset_index(drop=True)
+        if 'P_Value' in filtered_df.columns:
+            filtered_df = filtered_df.drop(columns=['P_Value'])
+
+        filtered_df.to_csv(output_file_path, index=False, sep='\t')
+        return filtered_df
