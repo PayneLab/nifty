@@ -353,24 +353,26 @@ class EvaluateRules:
         #summary_df = self.get_significant_pairs(summary_df)
         return summary_df
 
-    def NEW_filter_and_save_rules(self, summary_df: pd.DataFrame, output_file_path='output.tsv'):
-        df = summary_df.sort_values(by=['FDR'])
+    def NEW_filter_and_save_rules(self, summary_df: pd.DataFrame, k, disjoint=True, output_file_path='output.tsv'):
+        df = summary_df.sort_values(by=['P_Value'])
         used = set()
         filtered = []
 
         for i, row in df.iterrows():
             p1, p2 = row['Gene_Pair']
-            if self.disjoint and (p1 in used or p2 in used):
+            if disjoint and (p1 in used or p2 in used):
                 continue
             filtered.append(row)
-            if self.disjoint:
+            if disjoint:
                 used.update([p1, p2])
-            if len(filtered) >= self.k:
+            if len(filtered) >= k:
                 break
 
         filtered_df = pd.DataFrame(filtered).reset_index(drop=True)
-        if 'P_Value' in filtered_df.columns:
-            filtered_df = filtered_df.drop(columns=['P_Value'])
+        filtered_df = filtered_df.drop(columns=['P_Value'])
+
+        if disjoint and len(filtered_df) < k:
+            print(f"Only {len(filtered_df)} disjoint pairs available (requested {k}.", flush=True)
 
         filtered_df.to_csv(output_file_path, index=False, sep='\t')
         return filtered_df
