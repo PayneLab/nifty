@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 class DataTableChecker:
     """
     Error Codes:
@@ -52,7 +53,8 @@ class DataTableChecker:
             return 2
         # Quant df and meta df do not have the same number of rows.
         if len(quant_df) != len(meta_df):
-            print(f"Number of rows in quant data file {len(quant_df)} does not match number of meta data file {len(meta_df)}")
+            print(
+                f"Number of rows in quant data file {len(quant_df)} does not match number of meta data file {len(meta_df)}")
             return 4
 
         meta_ids = sorted(list(set(meta_df["sample_id"].astype(str).str.strip())))
@@ -67,7 +69,7 @@ class DataTableChecker:
 
     def sort_data(self, quant_df, meta_df):
         quant_df = quant_df.sort_values(by="sample_id").reset_index(drop=True)
-        meta_df =  meta_df.sort_values(by="sample_id").reset_index(drop=True)
+        meta_df = meta_df.sort_values(by="sample_id").reset_index(drop=True)
         #Add and error?
         return quant_df, meta_df
 
@@ -81,13 +83,13 @@ class DataTableChecker:
         if quant_df_values.isna().all().all():
             print("Quant data file is empty or contains only NaN values.")
             return 6
-        
+
         #check for non-numeric values and NaN values
         def is_valid(x):
             return pd.isna(x) or isinstance(x, (int, float, np.integer, np.floating))
 
         #check each value in df
-        data = quant_df_values.iloc[:,1:]
+        data = quant_df_values.iloc[:, 1:]
         invalid_mask = ~data.map(is_valid)
 
         if invalid_mask.any().any():
@@ -113,7 +115,7 @@ class DataTableChecker:
             return 9
         return 0
 
-    def filter_proteins(self, quant_df, fraction_na=0.5):
+    def filter_proteins(self, quant_df, fraction_na):
         ''' Filter out proteins that have more than fraction_na of their values as NaN'''
         sample_col = quant_df.iloc[:, 0]
         protein_data = quant_df.iloc[:, 1:]
@@ -126,30 +128,28 @@ class DataTableChecker:
         # Construct df to return
         filtered_df = pd.concat([sample_col, filtered_proteins], axis=1)
 
-        #check if filtered_df is empty
+        # Check if filtered_df is empty
         if filtered_df.shape[1] <= 1:  # only sample_id column left
             print("No proteins left after filtering. Please adjust the fraction_na parameter.")
             return 10
         return filtered_df
 
-    def check_enough_samples(self, meta_df, min_samples = 15):
+    def check_enough_samples(self, meta_df, min_samples):
         ''' Ensures there are enough samples per class '''
-
-        #Create series with counts of each label
+        # Create series with counts of each label
         label_counts = meta_df['classification_label'].value_counts()
 
         for label, count in label_counts.items():
             if count < min_samples:
                 print(f"Not enough samples for label '{label}': {count} samples found, minimum required is {min_samples}.")
                 return 11
-            
+
         return 0
-    
+
     def check_protein_amount(self, quant_df, min_proteins=2):
         ''' Ensures there are enough proteins in the quantification data '''
         protein_count = quant_df.shape[1] - 1
         if protein_count < min_proteins:
             print(f"Not enough proteins in quant data file: {protein_count} proteins found, minimum required is {min_proteins}.")
             return 12
-        
         return 0
