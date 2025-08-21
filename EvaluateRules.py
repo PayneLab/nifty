@@ -347,13 +347,13 @@ class EvaluateRules:
                     "Gene_Pair": rule,
                     "True_Score": true_score,
                     "Bucket": bucket,
-                    #"P_Value": p_value
+                    "P_Value": p_value
                 })
         summary_df = pd.DataFrame(data)
         #summary_df = self.get_significant_pairs(summary_df)
         return summary_df
 
-    def NEW_filter_and_save_rules(self, summary_df: pd.DataFrame, k, disjoint=True, output_file_path='output.tsv'):
+    def NEW_filter_and_save_rules(self, summary_df: pd.DataFrame, k: int, disjoint=True, output_file_path='output.tsv'):
         df = summary_df.sort_values(by=['P_Value'])
         used = set()
         filtered = []
@@ -374,5 +374,33 @@ class EvaluateRules:
         if disjoint and len(filtered_df) < k:
             print(f"Only {len(filtered_df)} disjoint pairs available (requested {k}.", flush=True)
 
+        filtered_df.to_csv(output_file_path, index=False, sep='\t')
+        return filtered_df
+
+    def NEW_filter_and_save_rules_BM(self, summary_df: pd.DataFrame, k: int,
+                              disjoint=True, output_file_path='output.tsv'):
+        # Sort by p-value ASC, then True_Score DESC
+        df = summary_df.sort_values(['P_Value', 'True_Score'],
+                                    ascending=[True, False])
+        used = set()
+        filtered = []
+
+        if disjoint:
+            for _, row in df.iterrows():
+                p1, p2 = row['Gene_Pair']
+                if p1 in used or p2 in used:
+                    continue
+                filtered.append(row)
+                used.update([p1, p2])
+                if len(filtered) >= k:
+                    break
+        else:
+            filtered = df.head(k).to_dict('records')
+
+        filtered_df = pd.DataFrame(filtered).reset_index(drop=True)
+        if 'P_Value' in filtered_df.columns:
+            filtered_df = filtered_df.drop(columns=['P_Value'])
+        if disjoint and len(filtered_df) < k:
+            print(f"Only {len(filtered_df)} disjoint pairs available (requested {k}).", flush=True)
         filtered_df.to_csv(output_file_path, index=False, sep='\t')
         return filtered_df
