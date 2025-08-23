@@ -25,25 +25,58 @@ def add_pair_tsp(quant_data, labels, p_i, p_j,
       H_gt: H -> p_i>p_j, D -> p_i<p_j  (D_gt flips)
     violation_rate = fraction of samples that violate intended ordering.
     missing = (m_i, m_j) NaN rates per protein.
+    Anchor-safe: if p_i already exists, it is reused and not overwritten.
     """
     n = len(labels)
-    a = np.empty(n, dtype=float)
+
+    # If anchor already exists, reuse it; otherwise generate it.
+    if p_i in quant_data:
+        a = np.asarray(quant_data[p_i], dtype=float).copy()
+        # Do NOT apply missingness[0] again — we preserve the existing anchor.
+        reuse_anchor = True
+    else:
+        reuse_anchor = False
+        a = np.empty(n, dtype=float)
+
     b = np.empty(n, dtype=float)
 
+    rng = np.random
+
     for idx, lab in enumerate(labels):
-        base  = np.random.randint(base_low, base_high)
-        delta = effect + (np.random.randint(0, jitter+1) if jitter > 0 else 0)
-        want_i_gt = (direction == 'H_gt' and lab == 'H') or (direction == 'D_gt' and lab == 'D')
-        ai, bi = (base + delta, base) if want_i_gt else (base, base + delta)
-        if np.random.rand() < violation_rate:
-            ai, bi = bi, ai
-        a[idx], b[idx] = ai, bi
+        want_i_gt = ((direction == 'H_gt' and lab == 'H') or
+                     (direction == 'D_gt' and lab == 'D'))
 
-    if missing[0] > 0:
-        miss = np.random.choice(n, int(missing[0]*n), replace=False); a[miss] = np.nan
+        delta = effect + (rng.randint(0, jitter+1) if jitter > 0 else 0)
+
+        if reuse_anchor:
+            # Keep a[idx] fixed; place b relative to existing a[idx]
+            ai = a[idx]
+            # Intended order: ai > bi if want_i_gt else ai < bi
+            bi = ai - delta if want_i_gt else ai + delta
+
+            # Inject violations by flipping which side b goes on
+            if rng.rand() < violation_rate:
+                bi = ai + delta if want_i_gt else ai - delta
+
+        else:
+            # Generate both from scratch
+            base  = rng.randint(base_low, base_high)
+            ai, bi = (base + delta, base) if want_i_gt else (base, base + delta)
+
+            if rng.rand() < violation_rate:
+                ai, bi = bi, ai
+
+            a[idx] = ai
+
+        b[idx] = bi
+
+    # Apply missingness:
+    if not reuse_anchor and missing[0] > 0:
+        miss = rng.choice(n, int(missing[0]*n), replace=False); a[miss] = np.nan
     if missing[1] > 0:
-        miss = np.random.choice(n, int(missing[1]*n), replace=False); b[miss] = np.nan
+        miss = rng.choice(n, int(missing[1]*n), replace=False); b[miss] = np.nan
 
+    # Write back
     quant_data[p_i] = a
     quant_data[p_j] = b
 
@@ -622,10 +655,10 @@ def test_newest_method(num_samples=500, num_proteins=1000):
 
     #summary_df = evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
     summary_df = evaluator.NEW_summarize_bucket_stats(true_scores, buckets_to_rule, buckets)
-    print(summary_df.tail(10).to_string(index=False))
+    #print(summary_df.tail(10).to_string(index=False))
     
     filtered_df = evaluator.NEW_filter_and_save_rules_BM(summary_df, k = 5000)
-    print(filtered_df.sort_values(by="True_Score", ascending=False))
+    #print(filtered_df.sort_values(by="True_Score", ascending=False))
 
     # assertions
     filtered_df = filtered_df.set_index('Gene_Pair')
