@@ -1,4 +1,6 @@
 # REgression test 2 - Large Dataset with NA values
+import copy
+
 import pandas as pd
 import cProfile
 import numpy as np
@@ -510,15 +512,29 @@ def test_new_method(num_samples=500, num_proteins=1000):
     #buckets = evaluator.create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, rule_to_buckets)
 
     buckets_to_rule = evaluator.NEW_get_bucket_to_rules(pairs, bool_vectors)
-    buckets = evaluator.NEW_create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, buckets_to_rule)
+    buckets = evaluator.NEW_Bm_create_null_distributions_for_p_values_testing(bool_vectors, binarized_labels,
+                                                                              buckets_to_rule)
+    # So we can compare them.
+    buckets_copy = copy.deepcopy(buckets)
+    filtered_buckets = evaluator.NEWEST_expand_small_null_distributions(buckets_copy, bool_vectors, binarized_labels,
+                                                                        buckets_to_rule)
+    print('Before filtering:')
+    for bucket_key, values in buckets.items():
+        print(f"{bucket_key} → {len(values)} null scores, sample: {values[:5]}")
 
-    for keys, values in buckets.items():
-        print(f"{keys} → {len(values)} null scores, sample: {values[:5]}")
+    print()
+    print('After filtering:')
+    for bucket_key, values in filtered_buckets.items():
+        print(f"{bucket_key} → {len(values)} null scores, sample: {values[:5]}")
+        if len(values) < 100:
+            print(f'{bucket_key} has less than 100 null scores, skipping.')
     print()
 
     #summary_df = evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
     summary_df = evaluator.NEW_summarize_bucket_stats(true_scores, buckets_to_rule, buckets)
-    print(summary_df)
+
+    filtered_df = evaluator.NEW_filter_and_save_rules_BM(summary_df, k=5000)
+    print(filtered_df)
 
 def test_newest_method(num_samples=500, num_proteins=1000):
 
@@ -653,12 +669,26 @@ def test_newest_method(num_samples=500, num_proteins=1000):
     buckets_to_rule = evaluator.NEW_get_bucket_to_rules(pairs, bool_vectors)
     buckets = evaluator.NEW_create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, buckets_to_rule)
 
+    buckets = evaluator.NEWEST_expand_small_null_distributions(buckets, bool_vectors, binarized_labels,
+                                                                        buckets_to_rule)
+
     #summary_df = evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
     summary_df = evaluator.NEW_summarize_bucket_stats(true_scores, buckets_to_rule, buckets)
     #print(summary_df.tail(10).to_string(index=False))
     
     filtered_df = evaluator.NEW_filter_and_save_rules_BM(summary_df, k = 5000)
     #print(filtered_df.sort_values(by="True_Score", ascending=False))
+
+    print('Before filtering:')
+    for bucket_key, values in buckets.items():
+        print(f"{bucket_key} → {len(values)} null scores, sample: {values[:5]}")
+
+    print()
+
+    print(summary_df)
+
+    print(type(summary_df['Gene_Pair'].iloc[0]))
+    print(summary_df['P_Value'].dtype)
 
     # assertions
     filtered_df = filtered_df.set_index('Gene_Pair')

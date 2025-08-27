@@ -317,8 +317,7 @@ class EvaluateRules:
             buckets[bucket] = np.array(scores)
         return buckets
 
-    def NEW_Bm_create_null_distributions_for_p_values_testing(self, pairs, bool_dict, binarized_labels,
-                                                              bucket_to_rules):
+    def NEW_Bm_create_null_distributions_for_p_values_testing(self, bool_dict, binarized_labels,                                                     bucket_to_rules):
         shuffled_labels = self.randomize_labels(binarized_labels)
         buckets = {}
 
@@ -326,7 +325,20 @@ class EvaluateRules:
         for bucket, rules in bucket_to_rules.items():
             scores = [self.score_pair(pair, bool_dict, shuffled_labels) for pair in rules]
             buckets[bucket] = np.array(scores)
+        return buckets
 
+    def NEWEST_expand_small_null_distributions(self, buckets, bool_dict, binarized_labels, bucket_to_rules):
+        for bucket, scores in buckets.items():
+            n = len(scores)
+            if n < 100:
+                needed_permutations = int(np.ceil(100 / n))
+                scores_all = list(scores)
+
+                for i in range(needed_permutations - 1):
+                    shuffled_labels = self.randomize_labels(binarized_labels)
+                    additional_scores = [self.score_pair(pair, bool_dict, shuffled_labels) for pair in bucket_to_rules[bucket]]
+                    scores_all.extend(additional_scores)
+                buckets[bucket] = np.array(scores_all)
         return buckets
 
     def NEW_summarize_bucket_stats(self, true_scores: dict, bucket_to_rules: dict, buckets) -> pd.DataFrame:
@@ -390,7 +402,7 @@ class EvaluateRules:
                 p1, p2 = row['Gene_Pair']
                 if p1 in used or p2 in used:
                     continue
-                filtered.append(row)
+                filtered.append(row.to_dict())
                 used.update([p1, p2])
                 if len(filtered) >= k:
                     break

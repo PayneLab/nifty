@@ -270,6 +270,17 @@ class TestEvaluateRules(unittest.TestCase):
         results = self.evaluator.NEW_get_bucket_to_rules(pairs, bool_dict)
         self.assertEqual(results, expected_rule_to_buckets)
 
+    """
+    def test_expand_small_null_distributions(self):
+        buckets = {57: np.array([0.1, 0.2])}
+        bucket_to_rules = {57: [('P1','P2')]}
+        binarized_labels = np.array([1, 0, 1, 0])
+        bool_dict = {}
+
+        results = self.evaluator.NEWEST_expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
+        self.assertGreaterEqual(len(results[57]), 100)
+    """
+
     def test_summarize_bucket_stats_score_above_all_nulls(self):
         true_scores = {('P1', 'P2'): 0.9}
         bucket_to_rules = {60: [('P1', 'P2')]}
