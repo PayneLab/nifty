@@ -297,6 +297,30 @@ class TestEvaluateRules(unittest.TestCase):
         df = self.evaluator.NEW_summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
         self.assertEqual(df.iloc[0]['P_Value'], 1.0)
 
+    def test_summarize_bucket_stats_score_all_equal_null(self):
+        true_scores = {('P1', 'P2'): 0.5}
+        bucket_to_rules = {60: [('P1', 'P2')]}
+        buckets = {60: np.array([0.3, 0.5, 0.7])}
+
+        df = self.evaluator.NEW_summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
+        p_val = df.loc[df['Gene_Pair'] == ('P1', 'P2'), 'P_Value'].iloc[0]
+        self.assertAlmostEqual(p_val, 2 / 3, places=3)
+
+    def test_summarize_bucket_stats_multiple_buckets(self):
+        true_scores = {('P1', 'P2'): 0.8, ('P3', 'P4'): 0.1}
+        bucket_to_rules = {50: [('P1', 'P2')], 25: [('P3', 'P4')]}
+        buckets = {
+            50: np.array([0.5, 0.9]),
+            25: np.array([0.1, 0.2])
+        }
+
+        df = self.evaluator.NEW_summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
+
+        self.assertAlmostEqual(df.loc[df['Gene_Pair'] == ('P1', 'P2'), 'P_Value'].iloc[0], 0.5)
+        self.assertAlmostEqual(df.loc[df['Gene_Pair'] == ('P3', 'P4'), 'P_Value'].iloc[0], 1.0)
+
+        self.assertCountEqual(df['Bucket'].values, [50, 25])
+
     def test_filter_and_save_pairs_returns_top_k_non_disjoint_pairs(self):
         self.evaluator = EvaluateRules.__new__(EvaluateRules)
         self.evaluator.disjoint = False
