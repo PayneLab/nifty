@@ -118,7 +118,7 @@ class EvaluateRules:
     def NEW_Bm_evaluate_pairs(self, pairs: list, bool_dict: dict, binarized_labels: np.ndarray) -> list:
         scored = []
         for pair in pairs:
-            score = self.NEW_Bm_score_pair(pair, bool_dict, binarized_labels)
+            score = self.score_pair(pair, bool_dict, binarized_labels)
             scored.append((pair, score))
         return scored
 
@@ -365,6 +365,7 @@ class EvaluateRules:
         #summary_df = self.get_significant_pairs(summary_df)
         return summary_df
 
+    # Not being used.
     def NEW_filter_and_save_rules(self, summary_df: pd.DataFrame, k: int, disjoint=True, output_file_path='output.tsv'):
         df = summary_df.sort_values(by=['P_Value'])
         used = set()

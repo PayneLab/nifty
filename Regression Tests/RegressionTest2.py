@@ -84,7 +84,6 @@ def add_pair_tsp(quant_data, labels, p_i, p_j,
 
 def test_large_imbalanced_NA(num_samples=500, num_proteins=1000):
 
-
     sample_ids = [f'Sample {i+1}' for i in range(num_samples)]
 
     # assign labels

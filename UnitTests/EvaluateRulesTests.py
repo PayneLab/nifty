@@ -299,7 +299,6 @@ class TestEvaluateRules(unittest.TestCase):
 
     def test_filter_and_save_pairs_returns_top_k_non_disjoint_pairs(self):
         self.evaluator = EvaluateRules.__new__(EvaluateRules)
-        self.evaluator.k = 5
         self.evaluator.disjoint = False
 
         summary_df = pd.DataFrame({
@@ -322,7 +321,7 @@ class TestEvaluateRules(unittest.TestCase):
         })
 
         with tempfile.NamedTemporaryFile(delete=True) as temp:
-            summary = self.evaluator.NEW_filter_and_save_rules(summary_df, output_file_path=temp.name)
+            summary = self.evaluator.NEW_filter_and_save_rules_BM(summary_df, output_file_path=temp.name, k =5, disjoint=False)
 
         expected_pairs = [
             ('P1', 'P2'),
@@ -332,7 +331,9 @@ class TestEvaluateRules(unittest.TestCase):
             ('P2', 'P3'),
         ]
 
-        assert list(summary['Gene_Pair']) == expected_pairs
+        actual_pairs = [tuple(x) if not isinstance(x, tuple) else x for x in summary['Gene_Pair']]
+
+        assert actual_pairs== expected_pairs
 
     def test_filter_and_save_pairs_returns_top_k_disjoint_pairs(self):
         self.evaluator = EvaluateRules.__new__(EvaluateRules)
@@ -359,14 +360,16 @@ class TestEvaluateRules(unittest.TestCase):
         })
 
         with tempfile.NamedTemporaryFile(delete=True) as temp:
-            summary = self.evaluator.NEW_filter_and_save_rules(summary_df, output_file_path=temp.name)
+            summary = self.evaluator.NEW_filter_and_save_rules_BM(summary_df, output_file_path=temp.name, k=10)
 
         expected_pairs = [
             ('P1', 'P2'),
             ('P3', 'P4')
         ]
 
-        assert list(summary['Gene_Pair']) == expected_pairs
+        actual_pairs = [tuple(x) if not isinstance(x, tuple) else x for x in summary['Gene_Pair']]
+
+        assert actual_pairs == expected_pairs
 
 if __name__ == '__main__':
     unittest.main()
