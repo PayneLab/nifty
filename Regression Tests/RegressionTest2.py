@@ -666,9 +666,8 @@ def test_newest_method(num_samples=500, num_proteins=1000):
     binarized_labels = evaluator.binarize_labels(meta_df)
     true_scores = dict(evaluator.evaluate_pairs(pairs, bool_vectors, binarized_labels))
     buckets_to_rule = evaluator.NEW_get_bucket_to_rules(pairs, bool_vectors)
-    buckets = evaluator.NEW_create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, buckets_to_rule)
-
-    buckets = evaluator.NEWEST_expand_small_null_distributions(buckets, bool_vectors, binarized_labels,
+    buckets = evaluator.NEW_Bm_create_null_distributions_for_p_values_testing(bool_vectors, binarized_labels, buckets_to_rule)
+    filtered_buckets = evaluator.NEWEST_expand_small_null_distributions(buckets, bool_vectors, binarized_labels,
                                                                         buckets_to_rule)
 
     #summary_df = evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
@@ -679,12 +678,12 @@ def test_newest_method(num_samples=500, num_proteins=1000):
     #print(filtered_df.sort_values(by="True_Score", ascending=False))
 
     print('Before filtering:')
-    for bucket_key, values in buckets.items():
+    for bucket_key, values in filtered_buckets.items():
         print(f"{bucket_key} → {len(values)} null scores, sample: {values[:5]}")
 
     print()
 
-    print(summary_df)
+    print(filtered_df)
 
     print(type(summary_df['Gene_Pair'].iloc[0]))
     print(summary_df['P_Value'].dtype)
