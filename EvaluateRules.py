@@ -3,6 +3,7 @@ import pandas as pd
 from scipy.stats import norm
 import statsmodels.stats.multitest as ssm
 from collections import defaultdict
+from sklearn.metrics import mutual_info_score
 
 
 class EvaluateRules:
@@ -417,3 +418,16 @@ class EvaluateRules:
             print(f"Only {len(filtered_df)} disjoint pairs available (requested {k}).", flush=True)
         filtered_df.to_csv(output_file_path, index=False, sep='\t')
         return filtered_df
+
+    def add_mutual_information(self, filtered_df, bool_vectors, binarized_labels):
+        final_df = filtered_df.copy()
+        mi_values = []
+        for rule in filtered_df['Gene_Pair']:
+            rule_vector = np.asarray(bool_vectors[rule]).ravel()
+            mi = mutual_info_score(rule_vector, binarized_labels)
+            mi_values.append(mi)
+        final_df['MI'] = mi_values
+        return final_df
+
+    def find_cluster_information(self):
+        pass

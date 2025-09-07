@@ -677,6 +677,8 @@ def test_newest_method(num_samples=500, num_proteins=1000):
     filtered_df = evaluator.NEW_filter_and_save_rules_BM(summary_df, k = 5000)
     #print(filtered_df.sort_values(by="True_Score", ascending=False))
 
+    final_df = evaluator.add_mutual_information(filtered_df, bool_vectors, binarized_labels)
+
     print('Before filtering:')
     for bucket_key, values in filtered_buckets.items():
         print(f"{bucket_key} → {len(values)} null scores, sample: {values[:5]}")
@@ -684,6 +686,7 @@ def test_newest_method(num_samples=500, num_proteins=1000):
     print()
 
     print(filtered_df)
+    print(final_df)
 
     print(type(summary_df['Gene_Pair'].iloc[0]))
     print(summary_df['P_Value'].dtype)
