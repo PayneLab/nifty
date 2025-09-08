@@ -252,7 +252,7 @@ class TestEvaluateRules(unittest.TestCase):
             25: [('P2', 'P3')]
         }
 
-        results = self.evaluator.NEW_get_bucket_to_rules(pairs, bool_dict)
+        results = self.evaluator.get_bucket_to_rules(pairs, bool_dict)
         self.assertEqual(results, expected_rule_to_buckets)
 
     def test_get_bucket_to_rules_multiple_rules_same_buckets(self):
@@ -267,7 +267,7 @@ class TestEvaluateRules(unittest.TestCase):
             57: [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')],
         }
 
-        results = self.evaluator.NEW_get_bucket_to_rules(pairs, bool_dict)
+        results = self.evaluator.get_bucket_to_rules(pairs, bool_dict)
         self.assertEqual(results, expected_rule_to_buckets)
 
     """
@@ -286,7 +286,7 @@ class TestEvaluateRules(unittest.TestCase):
         bucket_to_rules = {60: [('P1', 'P2')]}
         buckets = {60: np.array([0.1, 0.2, 0.3])}
 
-        df = self.evaluator.NEW_summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
+        df = self.evaluator.summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
         self.assertEqual(df.iloc[0]['P_Value'], 0.0)
 
     def test_summarize_bucket_stats_score_below_all_nulls(self):
@@ -294,7 +294,7 @@ class TestEvaluateRules(unittest.TestCase):
         bucket_to_rules = {80: [('P3', 'P4')]}
         buckets = {80: np.array([0.2, 0.3, 0.4])}
 
-        df = self.evaluator.NEW_summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
+        df = self.evaluator.summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
         self.assertEqual(df.iloc[0]['P_Value'], 1.0)
 
     def test_summarize_bucket_stats_score_all_equal_null(self):
@@ -302,7 +302,7 @@ class TestEvaluateRules(unittest.TestCase):
         bucket_to_rules = {60: [('P1', 'P2')]}
         buckets = {60: np.array([0.3, 0.5, 0.7])}
 
-        df = self.evaluator.NEW_summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
+        df = self.evaluator.summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
         p_val = df.loc[df['Gene_Pair'] == ('P1', 'P2'), 'P_Value'].iloc[0]
         self.assertAlmostEqual(p_val, 2 / 3, places=3)
 
@@ -314,7 +314,7 @@ class TestEvaluateRules(unittest.TestCase):
             25: np.array([0.1, 0.2])
         }
 
-        df = self.evaluator.NEW_summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
+        df = self.evaluator.summarize_bucket_stats(true_scores, bucket_to_rules, buckets)
 
         self.assertAlmostEqual(df.loc[df['Gene_Pair'] == ('P1', 'P2'), 'P_Value'].iloc[0], 0.5)
         self.assertAlmostEqual(df.loc[df['Gene_Pair'] == ('P3', 'P4'), 'P_Value'].iloc[0], 1.0)
@@ -345,7 +345,7 @@ class TestEvaluateRules(unittest.TestCase):
         })
 
         with tempfile.NamedTemporaryFile(delete=True) as temp:
-            summary = self.evaluator.NEW_filter_and_save_rules_BM(summary_df, output_file_path=temp.name, k =5, disjoint=False)
+            summary = self.evaluator.filter_and_save_rules(summary_df, output_file_path=temp.name, k =5, disjoint=False)
 
         expected_pairs = [
             ('P1', 'P2'),
@@ -384,7 +384,7 @@ class TestEvaluateRules(unittest.TestCase):
         })
 
         with tempfile.NamedTemporaryFile(delete=True) as temp:
-            summary = self.evaluator.NEW_filter_and_save_rules_BM(summary_df, output_file_path=temp.name, k=10)
+            summary = self.evaluator.filter_and_save_rules(summary_df, output_file_path=temp.name, k=10)
 
         expected_pairs = [
             ('P1', 'P2'),
