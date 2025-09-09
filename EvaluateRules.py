@@ -1,9 +1,8 @@
 import numpy as np
 import pandas as pd
-from scipy.stats import norm
 import statsmodels.stats.multitest as ssm
-from collections import defaultdict
-from sklearn.metrics import mutual_info_score
+
+from sklearn.feature_selection import mutual_info_classif
 
 
 class EvaluateRules:
@@ -197,17 +196,21 @@ class EvaluateRules:
 
     def add_mutual_information(self, filtered_df, bool_vectors, binarized_labels):
         final_df = filtered_df.copy()
+        y = np.asarray(binarized_labels).ravel()
         mi_values = []
         for rule in filtered_df['Gene_Pair']:
-            rule_vector = np.asarray(bool_vectors[rule]).ravel()
-            mi = mutual_info_score(rule_vector, binarized_labels)
+            X = np.asarray(bool_vectors[rule]).ravel().reshape(-1, 1)
+            mi = mutual_info_classif(X, y, discrete_features=True)[0]
             mi_values.append(mi)
 
         final_df['MI'] = mi_values
         return final_df
 
     def find_cluster_information(self):
+
         pass
+
+    #Wrappers:
 
     def evaluate_permutate_wrapper(self, pairs: list, quant_df, meta_df, n_permutations=100):
         ''' A wrapper function that evaluates pairs and runs permutation test on them.'''

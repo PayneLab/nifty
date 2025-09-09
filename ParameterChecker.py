@@ -19,6 +19,13 @@ class ParameterChecker:
         parser.add_argument("-k", "--k", type=int, default=50, help="Number of top-scoring pairs to return. Default: "
                                                                     "50.")
         # parser.add_argument("-optimize-k", action="store_true", help="Optimize K internally. Default is False.")
+        parser.add_argument("-nmi", "--no-mutual-information", dest="mutual_information", action="store_false",
+                            default=True, help="Disable "
+                                               "mutual "
+                                               "information. "
+                                               "Default: "
+                                               "Enabled.")
+
         parser.add_argument("-nd", "--no-disjoint", action="store_false", default=True, help="Disable disjoint "
                                                                                              "filtering. Default: "
                                                                                              "Enabled.")
