@@ -1,8 +1,9 @@
 import numpy as np
 import pandas as pd
 import statsmodels.stats.multitest as ssm
+import networkx as nx
 
-from sklearn.feature_selection import mutual_info_classif
+from sklearn.metrics import mutual_info_score, normalized_mutual_info_score
 
 
 class EvaluateRules:
@@ -166,6 +167,51 @@ class EvaluateRules:
         return summary_df
 
 
+    def add_mutual_information(self, summary_df, bool_vectors, min_threshold = 0.9):
+        rules = list(summary_df['Gene_Pair'])
+        edges = []
+
+        for i in range(len(rules)):
+            for j in range(i+1, len(rules)):
+                rule_i = rules[i]
+                rule_j = rules[j]
+
+                vector_i = np.asarray([bool_vectors[rule_i]]).ravel()
+                vector_j = np.asarray([bool_vectors[rule_j]]).ravel()
+
+                mi_score = float(normalized_mutual_info_score(vector_i, vector_j))
+
+                if mi_score >= min_threshold:
+                    edges.append({
+                        "Source_Rule": rule_i,
+                        "Target_Rule": rule_j,
+                        "MI_Score": mi_score,
+                        "Source_P_Value": summary_df.loc[summary_df['Gene_Pair'] == rule_i, "P_Value"].values[0],
+                        "Target_P_Value": summary_df.loc[summary_df['Gene_Pair'] == rule_j, "P_Value"].values[0]
+                    })
+        edges_df = pd.DataFrame(edges)
+        return edges_df
+
+    def cluster_by_mi_and_filter(self, summary_df, edges_df):
+        G = nx.Graph()
+
+        for _, row in summary_df.iterrows():
+            rule = row['Gene_Pair']
+            G.add_node(rule, p_value=row['P_Value'])
+
+        for _, row in edges_df.iterrows():
+            source = row['Source_Rule']
+            target = row['Target_Rule']
+            G.add_edge(source, target, weight=row['MI_Score'])
+
+        print('Nodes with p-values')
+        print(G.nodes(data=True))
+
+        print('Edges with p-values')
+        print(G.edges(data=True))
+
+        return G
+
     def filter_and_save_rules(self, summary_df: pd.DataFrame, k: int,
                               disjoint=True, output_file_path='output.tsv'):
         # Sort by p-value ASC, then True_Score DESC
@@ -193,22 +239,6 @@ class EvaluateRules:
             print(f"Only {len(filtered_df)} disjoint pairs available (requested {k}).", flush=True)
         filtered_df.to_csv(output_file_path, index=False, sep='\t')
         return filtered_df
-
-    def add_mutual_information(self, filtered_df, bool_vectors, binarized_labels):
-        final_df = filtered_df.copy()
-        y = np.asarray(binarized_labels).ravel()
-        mi_values = []
-        for rule in filtered_df['Gene_Pair']:
-            X = np.asarray(bool_vectors[rule]).ravel().reshape(-1, 1)
-            mi = mutual_info_classif(X, y, discrete_features=True)[0]
-            mi_values.append(mi)
-
-        final_df['MI'] = mi_values
-        return final_df
-
-    def find_cluster_information(self):
-
-        pass
 
     #Wrappers:
 

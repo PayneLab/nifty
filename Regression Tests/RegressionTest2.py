@@ -9,6 +9,9 @@ import os
 import pstats
 import time
 
+pd.set_option("display.max_columns", None)
+pd.set_option("display.width", None)
+
 current_dir = os.path.dirname(__file__)
 
 parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
@@ -17,6 +20,7 @@ sys.path.append(parent_dir)
 from GenerateRules import GenerateRules
 from EvaluateRules import EvaluateRules
 from DataTableChecker import DataTableChecker
+
 
 def add_pair_tsp(quant_data, labels, p_i, p_j,
                  effect=12, jitter=5, violation_rate=0.0,
@@ -48,7 +52,7 @@ def add_pair_tsp(quant_data, labels, p_i, p_j,
         want_i_gt = ((direction == 'H_gt' and lab == 'H') or
                      (direction == 'D_gt' and lab == 'D'))
 
-        delta = effect + (rng.randint(0, jitter+1) if jitter > 0 else 0)
+        delta = effect + (rng.randint(0, jitter + 1) if jitter > 0 else 0)
 
         if reuse_anchor:
             # Keep a[idx] fixed; place b relative to existing a[idx]
@@ -62,7 +66,7 @@ def add_pair_tsp(quant_data, labels, p_i, p_j,
 
         else:
             # Generate both from scratch
-            base  = rng.randint(base_low, base_high)
+            base = rng.randint(base_low, base_high)
             ai, bi = (base + delta, base) if want_i_gt else (base, base + delta)
 
             if rng.rand() < violation_rate:
@@ -74,17 +78,19 @@ def add_pair_tsp(quant_data, labels, p_i, p_j,
 
     # Apply missingness:
     if not reuse_anchor and missing[0] > 0:
-        miss = rng.choice(n, int(missing[0]*n), replace=False); a[miss] = np.nan
+        miss = rng.choice(n, int(missing[0] * n), replace=False);
+        a[miss] = np.nan
     if missing[1] > 0:
-        miss = rng.choice(n, int(missing[1]*n), replace=False); b[miss] = np.nan
+        miss = rng.choice(n, int(missing[1] * n), replace=False);
+        b[miss] = np.nan
 
     # Write back
     quant_data[p_i] = a
     quant_data[p_j] = b
 
-def test_large_imbalanced_NA(num_samples=500, num_proteins=1000):
 
-    sample_ids = [f'Sample {i+1}' for i in range(num_samples)]
+def test_large_imbalanced_NA(num_samples=500, num_proteins=1000):
+    sample_ids = [f'Sample {i + 1}' for i in range(num_samples)]
 
     # assign labels
     labels_H = np.random.choice(['H'], size=470)
@@ -197,15 +203,15 @@ def test_large_imbalanced_NA(num_samples=500, num_proteins=1000):
         print("Test passed: ('Protein 10', 'Protein 40') has score near 0.0.")
         print(f"Score for ('Protein 10', 'Protein 40'): {score_10_40}")
 
-def test_large_imbalanced_NA_2(num_samples=500, num_proteins=1000):
 
-    sample_ids = [f'Sample {i+1}' for i in range(num_samples)]
+def test_large_imbalanced_NA_2(num_samples=500, num_proteins=1000):
+    sample_ids = [f'Sample {i + 1}' for i in range(num_samples)]
 
     # assign labels
     n_H = int(0.94 * num_samples)
     n_D = int(0.06 * num_samples)
-    labels_H = np.random.choice(['H'], size= n_H)
-    labels_D = np.random.choice(['D'], size= n_D)
+    labels_H = np.random.choice(['H'], size=n_H)
+    labels_D = np.random.choice(['D'], size=n_D)
     labels = np.concatenate((labels_H, labels_D))
     np.random.shuffle(labels)
 
@@ -313,15 +319,15 @@ def test_large_imbalanced_NA_2(num_samples=500, num_proteins=1000):
         print("Test passed: ('Protein 10', 'Protein 40') has score near 0.0.")
         print(f"Score for ('Protein 10', 'Protein 40'): {score_10_40}")
 
-def test_large_imbalanced_NA_Ben(num_samples=500, num_proteins=1000):
 
-    sample_ids = [f'Sample {i+1}' for i in range(num_samples)]
+def test_large_imbalanced_NA_Ben(num_samples=500, num_proteins=1000):
+    sample_ids = [f'Sample {i + 1}' for i in range(num_samples)]
 
     # assign labels
     n_H = int(0.94 * num_samples)
     n_D = int(0.06 * num_samples)
-    labels_H = np.random.choice(['H'], size= n_H)
-    labels_D = np.random.choice(['D'], size= n_D)
+    labels_H = np.random.choice(['H'], size=n_H)
+    labels_D = np.random.choice(['D'], size=n_D)
     labels = np.concatenate((labels_H, labels_D))
     np.random.shuffle(labels)
 
@@ -410,15 +416,15 @@ def test_large_imbalanced_NA_Ben(num_samples=500, num_proteins=1000):
     true_scores, perm_results = evaluator.evaluate_permutate_Ben(pairs, quant_df, meta_df, n_permutations=100)
     print(perm_results)
 
-def test_new_method(num_samples=500, num_proteins=1000):
 
-    sample_ids = [f'Sample {i+1}' for i in range(num_samples)]
+def test_new_method(num_samples=500, num_proteins=1000):
+    sample_ids = [f'Sample {i + 1}' for i in range(num_samples)]
 
     # assign labels
     n_H = int(0.94 * num_samples)
     n_D = int(0.06 * num_samples)
-    labels_H = np.random.choice(['H'], size= n_H)
-    labels_D = np.random.choice(['D'], size= n_D)
+    labels_H = np.random.choice(['H'], size=n_H)
+    labels_D = np.random.choice(['D'], size=n_D)
     labels = np.concatenate((labels_H, labels_D))
     np.random.shuffle(labels)
 
@@ -517,6 +523,7 @@ def test_new_method(num_samples=500, num_proteins=1000):
     buckets_copy = copy.deepcopy(buckets)
     filtered_buckets = evaluator.expand_small_null_distributions(buckets_copy, bool_vectors, binarized_labels,
                                                                  buckets_to_rule)
+    """
     print('Before filtering:')
     for bucket_key, values in buckets.items():
         print(f"{bucket_key} → {len(values)} null scores, sample: {values[:5]}")
@@ -528,22 +535,28 @@ def test_new_method(num_samples=500, num_proteins=1000):
         if len(values) < 100:
             print(f'{bucket_key} has less than 100 null scores, skipping.')
     print()
+    """
 
     #summary_df = evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
     summary_df = evaluator.summarize_bucket_stats(true_scores, buckets_to_rule, buckets)
 
+    edges = evaluator.add_mutual_information(summary_df, bool_vectors, 0.2)
+    print(edges)
+    print()
+    graph = evaluator.cluster_by_mi_and_filter(summary_df, edges)
+
     filtered_df = evaluator.filter_and_save_rules(summary_df, k=5000)
-    print(filtered_df)
+    #print(filtered_df)
+
 
 def test_newest_method(num_samples=500, num_proteins=1000):
-
-    sample_ids = [f'Sample {i+1}' for i in range(num_samples)]
+    sample_ids = [f'Sample {i + 1}' for i in range(num_samples)]
 
     # assign labels
     n_H = int(0.94 * num_samples)
     n_D = int(0.06 * num_samples)
-    labels_H = np.random.choice(['H'], size= n_H)
-    labels_D = np.random.choice(['D'], size= n_D)
+    labels_H = np.random.choice(['H'], size=n_H)
+    labels_D = np.random.choice(['D'], size=n_D)
     labels = np.concatenate((labels_H, labels_D))
     np.random.shuffle(labels)
 
@@ -615,17 +628,20 @@ def test_newest_method(num_samples=500, num_proteins=1000):
 
     # Start new IDs beyond your random range to avoid collisions
     cursor = num_proteins + 1
+
     def nid():
         nonlocal cursor
-        s = f'Protein {cursor}'; cursor += 1; return s
+        s = f'Protein {cursor}';
+        cursor += 1;
+        return s
 
     # Good (not perfect) disjoint rules (~85–90% correct)
-    for _ in range(3): #(N+1,N+2), (N+3,N+4), (N+5,N+6)  → e.g., (1001,1002), (1003,1004), (1005,1006)
+    for _ in range(3):  #(N+1,N+2), (N+3,N+4), (N+5,N+6)  → e.g., (1001,1002), (1003,1004), (1005,1006)
         p_i, p_j = nid(), nid()
         add_pair_tsp(quant_data, labels, p_i, p_j, effect=12, jitter=5, violation_rate=0.12, direction='H_gt')
 
     # Meh rules (~60–70% correct)
-    for _ in range(2): # IDs minted (N+7,N+8), (N+9,N+10)  → e.g., (1007,1008), (1009,1010)
+    for _ in range(2):  # IDs minted (N+7,N+8), (N+9,N+10)  → e.g., (1007,1008), (1009,1010)
         p_i, p_j = nid(), nid()
         add_pair_tsp(quant_data, labels, p_i, p_j, effect=10, jitter=8, violation_rate=0.35, direction='H_gt')
     #Assert both pairs are present, but 1007/1008 and 1009/1010 are below (1001,1002), (1003,1004), (1005,1006)
@@ -644,7 +660,6 @@ def test_newest_method(num_samples=500, num_proteins=1000):
     add_pair_tsp(quant_data, labels, p_i, p_j, effect=14, violation_rate=0.10, missing=(0.45, 0.10))
     p_i, p_j = nid(), nid()
     add_pair_tsp(quant_data, labels, p_i, p_j, effect=10, violation_rate=0.20, missing=(0.60, 0.05))
-
 
     # build df
     quant_df = pd.DataFrame(quant_data)
@@ -671,29 +686,24 @@ def test_newest_method(num_samples=500, num_proteins=1000):
                                                                  buckets_to_rule)
 
     #summary_df = evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
-    summary_df = evaluator.summarize_bucket_stats(true_scores, buckets_to_rule, buckets)
     #print(summary_df.tail(10).to_string(index=False))
-    
-    filtered_df = evaluator.filter_and_save_rules(summary_df, k = 5000)
-    #print(filtered_df.sort_values(by="True_Score", ascending=False))
 
-    final_df = evaluator.add_mutual_information(filtered_df, bool_vectors, binarized_labels)
+    summary_df = evaluator.summarize_bucket_stats(true_scores, buckets_to_rule, buckets)
+    filtered_df = evaluator.filter_and_save_rules(summary_df, k=5000)
+    print(filtered_df.sort_values(by="True_Score", ascending=False))
 
     print('Before filtering:')
     for bucket_key, values in filtered_buckets.items():
         print(f"{bucket_key} → {len(values)} null scores, sample: {values[:5]}")
 
-    print()
-
     print(filtered_df)
-    print(final_df)
 
     print(type(summary_df['Gene_Pair'].iloc[0]))
     print(summary_df['P_Value'].dtype)
 
     # assertions
     filtered_df = filtered_df.set_index('Gene_Pair')
-    score_20_30 = filtered_df.at[('Protein 20','Protein 30'), 'True_Score']
+    score_20_30 = filtered_df.at[('Protein 20', 'Protein 30'), 'True_Score']
 
     if score_20_30 is None:
         raise AssertionError("Expected pair ('Protein 20', 'Protein 30') not found in results.")
@@ -704,8 +714,8 @@ def test_newest_method(num_samples=500, num_proteins=1000):
         print(f"Score for ('Protein 20', 'Protein 30'): {score_20_30}")
 
     score_10_40 = summary_df.loc[
-    summary_df['Gene_Pair'].isin([('Protein 10','Protein 40'), ('Protein 40','Protein 10')]),
-    'True_Score'].iloc[0]
+        summary_df['Gene_Pair'].isin([('Protein 10', 'Protein 40'), ('Protein 40', 'Protein 10')]),
+        'True_Score'].iloc[0]
     if score_10_40 is None:
         raise AssertionError("Expected pair ('Protein 10', 'Protein 40') not found in results.")
     if score_10_40 > 0.0:
@@ -759,16 +769,15 @@ def test_newest_method(num_samples=500, num_proteins=1000):
             return df['Gene_Pair'].isin([pair, rev]).any()
         return (pair in df.index) or (rev in df.index)
 
-
     N = num_proteins  # e.g., 1000
     good_pairs = [
-        (f'Protein {N+1}', f'Protein {N+2}'),
-        (f'Protein {N+3}', f'Protein {N+4}'),
-        (f'Protein {N+5}', f'Protein {N+6}'),
+        (f'Protein {N + 1}', f'Protein {N + 2}'),
+        (f'Protein {N + 3}', f'Protein {N + 4}'),
+        (f'Protein {N + 5}', f'Protein {N + 6}'),
     ]
     meh_pairs = [
-        (f'Protein {N+7}',  f'Protein {N+8}'),
-        (f'Protein {N+9}',  f'Protein {N+10}'),
+        (f'Protein {N + 7}', f'Protein {N + 8}'),
+        (f'Protein {N + 9}', f'Protein {N + 10}'),
     ]
 
     # presence + score retrieval (raises if any missing)
@@ -794,13 +803,13 @@ def test_newest_method(num_samples=500, num_proteins=1000):
             )
         else:
             print(f"Test passed: meh ({a}, {b}) [{s:.6f}] < min good [{min_good:.6f}]")
-    
+
     # --- Assertions: dependent pairs present in summary_df, but only the strong one in filtered_df ---
 
     # Compute the expected IDs from num_proteins (N)
     N = num_proteins
-    strong_pair = (f'Protein {N+11}', f'Protein {N+12}')  # e.g., (1011, 1012)
-    weak_pair   = (f'Protein {N+11}', f'Protein {N+13}')  # e.g., (1011, 1013)
+    strong_pair = (f'Protein {N + 11}', f'Protein {N + 12}')  # e.g., (1011, 1012)
+    weak_pair = (f'Protein {N + 11}', f'Protein {N + 13}')  # e.g., (1011, 1013)
 
     # 1) Both dependent pairs must exist in the full summary_df
     if not summary_df['Gene_Pair'].isin([strong_pair, strong_pair[::-1]]).any():
@@ -812,21 +821,23 @@ def test_newest_method(num_samples=500, num_proteins=1000):
 
     # 2) In filtered_df: ONLY the strong pair should be present (disjoint selection should exclude the weak pair)
     if not _in_df_pair(filtered_df, strong_pair):
-        raise AssertionError(f"Expected {strong_pair} to appear in filtered_df (stronger dependent pair), but it did not.")
+        raise AssertionError(
+            f"Expected {strong_pair} to appear in filtered_df (stronger dependent pair), but it did not.")
     if _in_df_pair(filtered_df, weak_pair):
-        raise AssertionError(f"Expected {weak_pair} to be excluded from filtered_df due to disjoint constraint, but it was included.")
+        raise AssertionError(
+            f"Expected {weak_pair} to be excluded from filtered_df due to disjoint constraint, but it was included.")
     else:
         print(f"Test passed: {strong_pair} present and {weak_pair} excluded in filtered_df.")
 
 
 if __name__ == "__main__":
-    num_samples = 500
-    num_proteins = 1000
+    num_samples = 50
+    num_proteins = 10
     print(f"Running test with {num_samples} samples and {num_proteins} proteins...")
     start_time = time.time()
     profiler = cProfile.Profile()
     profiler.enable()
-    test_newest_method(num_samples=num_samples, num_proteins=num_proteins)
+    test_new_method(num_samples=num_samples, num_proteins=num_proteins)
     profiler.disable()
     end_time = time.time()
     total = end_time - start_time
