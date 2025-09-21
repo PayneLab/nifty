@@ -3,13 +3,12 @@ import pandas as pd
 import sys
 import os
 
+from GenerateRules import GenerateRules
+
 current_dir = os.path.dirname(__file__)
 
 parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(parent_dir)
-
-from GenerateRules import GenerateRules
-
 
 class TestGenerateRules(unittest.TestCase):
     def setUp(self):

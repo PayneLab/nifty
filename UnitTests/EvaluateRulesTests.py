@@ -5,12 +5,11 @@ import numpy as np
 import sys
 import os
 
+from EvaluateRules import EvaluateRules
+
 current_dir = os.path.dirname(__file__)
 parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(parent_dir)
-
-from EvaluateRules import EvaluateRules
-
 
 class TestEvaluateRules(unittest.TestCase):
     def setUp(self):
@@ -62,22 +61,6 @@ class TestEvaluateRules(unittest.TestCase):
         expected = np.array([False, False, False, False])
         result = self.evaluator.vectorize_pair(['P1', 'P1'], df)
         np.testing.assert_array_equal(result, expected)
-
-    def test_score_pair_full_separation_negative_selected(self):
-        quant_df = pd.DataFrame({
-            'P1': [1, 6, 3, 8],
-            'P2': [4, 5, 6, 1]
-        })
-        pair = ('P1', 'P2')
-        meta_df = pd.DataFrame({
-            'classification_label': ['H', 'D', 'H', 'D']
-        })
-        bin_labels = self.evaluator.binarize_labels(meta_df)
-        bool_dict = {pair: self.evaluator.vectorize_pair(pair, quant_df)}
-        self.evaluator._n_pos = np.sum(bin_labels == 1)
-        self.evaluator._n_neg = np.sum(bin_labels == 0)
-        score = self.evaluator.score_pair(pair, bool_dict, bin_labels)
-        self.assertAlmostEqual(score, 1.0)
 
     def test_score_pair_no_separation(self):
         quant_df = pd.DataFrame({

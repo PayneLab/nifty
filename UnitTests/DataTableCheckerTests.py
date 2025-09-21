@@ -4,14 +4,12 @@ import numpy as np
 import sys
 import os
 
-from jedi.inference.gradual.typeshed import try_to_load_stub_cached
+from DataTableChecker import DataTableChecker
 
 current_dir = os.path.dirname(__file__)
 
 parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(parent_dir)
-
-from DataTableChecker import DataTableChecker
 
 class TestDataTableChecker(unittest.TestCase):
     def setUp(self):
@@ -254,7 +252,7 @@ class TestDataTableChecker(unittest.TestCase):
                 'P2': [np.nan, 2.0, np.nan, np.nan],
                 'P3': [np.nan, np.nan, np.nan, 5.0]
             })
-            self.assertEqual(self.checker.filter_proteins(df), 10)
+            self.assertEqual(self.checker.filter_proteins(df, 0.5), 10)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 

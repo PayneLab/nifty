@@ -1,9 +1,8 @@
 import numpy as np
 import pandas as pd
 import statsmodels.stats.multitest as ssm
-import networkx as nx
-
-from sklearn.metrics import mutual_info_score, normalized_mutual_info_score
+# import networkx as nx
+from sklearn.metrics import normalized_mutual_info_score
 
 
 class EvaluateRules:
@@ -192,25 +191,46 @@ class EvaluateRules:
         edges_df = pd.DataFrame(edges)
         return edges_df
 
+    '''
     def cluster_by_mi_and_filter(self, summary_df, edges_df):
-        G = nx.Graph()
+        graph = nx.Graph()
 
         for _, row in summary_df.iterrows():
-            rule = row['Gene_Pair']
-            G.add_node(rule, p_value=row['P_Value'])
+            rule_identifier = row['Gene_Pair']
+            p_value_for_rule = row['P_Value']
+            graph.add_node(rule_identifier, p_value=p_value_for_rule)
 
         for _, row in edges_df.iterrows():
-            source = row['Source_Rule']
-            target = row['Target_Rule']
-            G.add_edge(source, target, weight=row['MI_Score'])
+            source_rule = row['Source_Rule']
+            target_rule = row['Target_Rule']
+            mi_score = row['MI_Score']
+            graph.add_edge(source_rule, target_rule, weight=mi_score)
 
-        print('Nodes with p-values')
-        print(G.nodes(data=True))
+        #print('Nodes with p-values')
+        #print(graph.nodes(data=True))
 
-        print('Edges with p-values')
-        print(G.edges(data=True))
+        #print('Edges with MI scores')
+        #print(graph.edges(data=True))
 
-        return G
+        winners = []
+        already_selected = set()
+
+        for cluster in nx.connected_components(graph):
+            if cluster & already_selected:
+                continue
+
+            best_rule = None
+            best_p_value = float('inf')
+
+            for rule_identifier in cluster:
+                p_value_for_rule = graph.nodes[rule_identifier]['p_value']
+                if p_value_for_rule < best_p_value:
+                    best_rule = rule_identifier
+                    best_p_value = p_value_for_rule
+            winners.append(best_rule)
+            already_selected.add(best_rule)
+        return winners
+    '''
 
     def filter_and_save_rules(self, summary_df: pd.DataFrame, k: int,
                               disjoint=True, output_file_path='output.tsv'):
@@ -256,19 +276,18 @@ class EvaluateRules:
 
         return true_scores, summary_df
 
-    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df):
+    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df, mi_threshold=0.9):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
-        # Evaluate pairs
         bool_dict = self.vectorize_all_pairs(pairs, quant_df)
         binarized_labels = self.binarize_labels(meta_df)
         true_scores = dict(self.evaluate_pairs(pairs, bool_dict, binarized_labels))
 
-        # Generate buckets and assign distributions after one permutation.
         rule_to_buckets = self.get_rule_to_buckets(pairs, bool_dict)
-        buckets = self.create_null_distributions_for_p_values_testing(pairs, bool_dict, binarized_labels,
-                                                                      rule_to_buckets)
+        buckets = self.create_null_distributions_for_p_values_testing(
+            pairs, bool_dict, binarized_labels, rule_to_buckets
+        )
 
-        # Get p-values using the buckets.
         summary_df = self.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
-        return true_scores, summary_df
+        edges_df = self.add_mutual_information(summary_df, bool_dict, min_threshold=mi_threshold)
+        return true_scores, summary_df, edges_df
