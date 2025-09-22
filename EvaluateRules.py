@@ -57,7 +57,6 @@ class EvaluateRules:
 
         return abs(TP_prop - FP_prop)
 
-
     def binarize_labels(self, meta_df) -> np.ndarray:
         '''Binarizes the labels in the metadata and computes denominators. Returns binarized labels'''
         class_labels = meta_df['classification_label'].to_numpy()
@@ -77,7 +76,6 @@ class EvaluateRules:
         scored_pairs = [(pair, self.score_pair(pair, bool_dict, binarized_labels)) for pair in pairs]
 
         return scored_pairs
-
 
     def randomize_labels(self, labels: np.ndarray) -> np.ndarray:
         '''Randomizes the labels in the metadata and returns a new DataFrame.'''
@@ -136,7 +134,8 @@ class EvaluateRules:
 
                 for i in range(needed_permutations - 1):
                     shuffled_labels = self.randomize_labels(binarized_labels)
-                    additional_scores = [self.score_pair(pair, bool_dict, shuffled_labels) for pair in bucket_to_rules[bucket]]
+                    additional_scores = [self.score_pair(pair, bool_dict, shuffled_labels) for pair in
+                                         bucket_to_rules[bucket]]
                     scores_all.extend(additional_scores)
                 buckets[bucket] = np.array(scores_all)
         return buckets
@@ -165,13 +164,12 @@ class EvaluateRules:
         #summary_df = self.get_significant_pairs(summary_df)
         return summary_df
 
-
-    def add_mutual_information(self, summary_df, bool_vectors, min_threshold = 0.9):
+    def add_mutual_information(self, summary_df, bool_vectors, min_threshold=0.9):
         rules = list(summary_df['Gene_Pair'])
         edges = []
 
         for i in range(len(rules)):
-            for j in range(i+1, len(rules)):
+            for j in range(i + 1, len(rules)):
                 rule_i = rules[i]
                 rule_j = rules[j]
 
@@ -282,12 +280,10 @@ class EvaluateRules:
         bool_dict = self.vectorize_all_pairs(pairs, quant_df)
         binarized_labels = self.binarize_labels(meta_df)
         true_scores = dict(self.evaluate_pairs(pairs, bool_dict, binarized_labels))
+        bucket_to_rules = self.get_bucket_to_rules(pairs, bool_dict)
+        buckets = self.create_null_distributions_for_p_values_testing(bool_dict, binarized_labels, bucket_to_rules)
+        expanded_buckets = self.expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
 
-        rule_to_buckets = self.get_rule_to_buckets(pairs, bool_dict)
-        buckets = self.create_null_distributions_for_p_values_testing(
-            pairs, bool_dict, binarized_labels, rule_to_buckets
-        )
-
-        summary_df = self.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
+        summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
         edges_df = self.add_mutual_information(summary_df, bool_dict, min_threshold=mi_threshold)
         return true_scores, summary_df, edges_df
