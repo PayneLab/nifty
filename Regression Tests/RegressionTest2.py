@@ -511,18 +511,24 @@ def test_new_method(num_samples=500, num_proteins=1000):
     evaluator = EvaluateRules()
 
     bool_vectors = evaluator.vectorize_all_pairs(pairs, quant_df)
-    binarized_labels = evaluator.binarize_labels(meta_df)
-    true_scores = dict(evaluator.evaluate_pairs(pairs, bool_vectors, binarized_labels))
-    rule_to_buckets = evaluator.get_rule_to_buckets(pairs, bool_vectors)
-    #buckets = evaluator.create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, rule_to_buckets)
+    bool_numbers = evaluator.TEST_vectorize_all_pairs(pairs, quant_df)
+    print(bool_vectors)
+    print()
+    print(bool_numbers)
 
-    buckets_to_rule = evaluator.get_bucket_to_rules(pairs, bool_vectors)
-    buckets = evaluator.create_null_distributions_for_p_values_testing(bool_vectors, binarized_labels,
-                                                                       buckets_to_rule)
-    # So we can compare them.
-    buckets_copy = copy.deepcopy(buckets)
-    filtered_buckets = evaluator.expand_small_null_distributions(buckets_copy, bool_vectors, binarized_labels,
-                                                                 buckets_to_rule)
+    # binarized_labels = evaluator.binarize_labels(meta_df)
+    # true_scores = dict(evaluator.evaluate_pairs(pairs, bool_vectors, binarized_labels))
+    # rule_to_buckets = evaluator.get_rule_to_buckets(pairs, bool_vectors)
+    # #buckets = evaluator.create_null_distributions_for_p_values_testing(pairs, bool_vectors, binarized_labels, rule_to_buckets)
+    #
+    # buckets_to_rule = evaluator.get_bucket_to_rules(pairs, bool_vectors)
+    # buckets = evaluator.create_null_distributions_for_p_values_testing(bool_vectors, binarized_labels,
+    #                                                                    buckets_to_rule)
+    # # So we can compare them.
+    # buckets_copy = copy.deepcopy(buckets)
+    # filtered_buckets = evaluator.expand_small_null_distributions(buckets_copy, bool_vectors, binarized_labels,
+    #                                                              buckets_to_rule)
+
     """
     print('Before filtering:')
     for bucket_key, values in buckets.items():
@@ -534,18 +540,18 @@ def test_new_method(num_samples=500, num_proteins=1000):
         print(f"{bucket_key} → {len(values)} null scores, sample: {values[:5]}")
         if len(values) < 100:
             print(f'{bucket_key} has less than 100 null scores, skipping.')
-    print()
+    print() 
     """
 
     #summary_df = evaluator.summarize_bucket_stats(true_scores, rule_to_buckets, buckets)
-    summary_df = evaluator.summarize_bucket_stats(true_scores, buckets_to_rule, buckets)
+    #summary_df = evaluator.summarize_bucket_stats(true_scores, buckets_to_rule, buckets)
 
-    edges = evaluator.add_mutual_information(summary_df, bool_vectors, 0.2)
-    print(edges)
-    print()
-    graph = evaluator.cluster_by_mi_and_filter(summary_df, edges)
+    #edges = evaluator.add_mutual_information(summary_df, bool_vectors, 0.9)
+    #print(edges)
+    #print()
+    #graph = evaluator.cluster_by_mi_and_filter(summary_df, edges)
 
-    filtered_df = evaluator.filter_and_save_rules(summary_df, k=5000)
+    #filtered_df = evaluator.filter_and_save_rules(summary_df, k=5000)
     #print(filtered_df)
 
 
@@ -689,6 +695,11 @@ def test_newest_method(num_samples=500, num_proteins=1000):
     #print(summary_df.tail(10).to_string(index=False))
 
     summary_df = evaluator.summarize_bucket_stats(true_scores, buckets_to_rule, buckets)
+    summary_small = summary_df.nsmallest(500, "P_Value")
+    edges = evaluator.add_mutual_information(summary_small, bool_vectors, 0.9, 200)
+    print(edges)
+
+    ''''
     filtered_df = evaluator.filter_and_save_rules(summary_df, k=5000)
     print(filtered_df.sort_values(by="True_Score", ascending=False))
 
@@ -828,11 +839,11 @@ def test_newest_method(num_samples=500, num_proteins=1000):
             f"Expected {weak_pair} to be excluded from filtered_df due to disjoint constraint, but it was included.")
     else:
         print(f"Test passed: {strong_pair} present and {weak_pair} excluded in filtered_df.")
-
+    '''
 
 if __name__ == "__main__":
     num_samples = 50
-    num_proteins = 10
+    num_proteins = 5
     print(f"Running test with {num_samples} samples and {num_proteins} proteins...")
     start_time = time.time()
     profiler = cProfile.Profile()
