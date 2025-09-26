@@ -134,6 +134,46 @@ class DataTableChecker:
             return 10
         return filtered_df
 
+    def filter_proteins_by_class(self, quant_df, class_labels, fraction_na, proteins_to_keep = []):
+        ''' Filter out proteins that have more than fraction_na of their values as NaN'''
+        quant_labels_df = quant_df.join(class_labels, how='inner')
+        # print(quant_labels_df.shape)
+        quant_labels_df = quant_labels_df.dropna(subset=[class_labels.columns[0]])
+        # print(quant_labels_df.shape)
+
+        label_col = class_labels.columns[0]
+
+        classes = class_labels['classification_label'].unique()
+       
+        proteins_to_drop = []
+
+        for col in quant_df.columns:
+            drop = True
+
+            if col in proteins_to_keep:
+                drop = False
+            else:
+                for cls in classes:
+                    class_subset = quant_labels_df[quant_labels_df[label_col] == cls]
+                   
+                    nan_ratio = class_subset[col].isna().mean()
+
+                    if nan_ratio <= fraction_na:
+                        drop = False
+                        break
+           
+            if drop:
+                proteins_to_drop.append(col)
+
+        filtered_df = quant_df.drop(columns=proteins_to_drop)
+
+        # Check if filtered_df is empty
+        if filtered_df.shape[1] <= 1:  # only sample_id column left
+            print("No proteins left after filtering. Please adjust the fraction_na parameter.")
+            return 10
+       
+        return filtered_df
+
     def check_enough_samples(self, meta_df, min_samples):
         ''' Ensures there are enough samples per class '''
         # Create series with counts of each label
