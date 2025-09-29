@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import sys
 
 
 class DataTableChecker:
@@ -14,11 +15,12 @@ class DataTableChecker:
     6 = The Quant data file only contains NA.
     7 = The Quant data file contains non-numerical or NA values.
     8 = The Quant data file has duplicate protein names.
-    9 = Duplicate sample_id in file.
+    9 = Duplicate sample_id in quant file.
     10 = All proteins were filtered out.
     11 = Not enough samples per class.
     12 = Not enough proteins in quantification data.
     13 = Meta data file contains NA values.
+    14 = Duplicate sample_id in meta data file.
     """
 
     def __init__(self):
@@ -29,32 +31,21 @@ class DataTableChecker:
         header = list(meta_df.columns)
         # The metadata file has to have two columns
         if len(header) != 2:
-            print(f"Meta data file must have 2 columns, got {len(header)}.")
             return 1
         # The metadata file's first column has to be named sample_id
         if header[0].strip() != "sample_id":
-            print(f"First column of meta data file must be named 'sample_id', but found '{header[0]}'.")
             return 2
         if header[1].strip() != "classification_label":
-            print(f"Second column of meta data file must be named 'classification_label', but found '{header[1]}'.")
             return 3
         # Ensure there are no NA values in meta file
         if meta_df.isna().any().any():
-            print("Meta data file contains NA values.")
             return 13
         return 0
 
     def check_samples(self, quant_df, meta_df):
         # Check if there is the same number of samples in both files.
-        quant_header = list(quant_df.columns)
-        # Same as the previous function, but in the quant_df.
-        if quant_header[0].strip() != "sample_id":
-            print(f"First column of quant data file must be named 'sample_id', but found '{quant_header[0]}'.")
-            return 2
         # Quant df and meta df do not have the same number of rows.
         if len(quant_df) != len(meta_df):
-            print(
-                f"Number of rows in quant data file {len(quant_df)} does not match number of meta data file {len(meta_df)}")
             return 4
 
         meta_ids = sorted(list(set(meta_df["sample_id"].astype(str).str.strip())))
@@ -62,7 +53,6 @@ class DataTableChecker:
 
         # Quant df and meta df do not have the same sample IDs.
         if quant_ids != meta_ids:
-            print(f"IDs in quant data file does not match IDs in meta data file.")
             return 5
 
         return 0
@@ -75,13 +65,18 @@ class DataTableChecker:
 
     def check_quant_data(self, quant_df):
         ''' Ensures values of quant table are either numeric or NA'''
+        quant_header = list(quant_df.columns)
+        # Same as the previous function, but in the quant_df.
+        if quant_header[0].strip() != "sample_id":
+            return 2
+        
+        quant_df_values = quant_df.drop(columns=['sample_id'], errors='ignore')
+        
         #replace empty cells or empty strings with NaN
         quant_df.replace(r'^\s*$', np.nan, regex=True, inplace=True)
 
         #ensures df is not empty
-        quant_df_values = quant_df.drop(columns=['sample_id'], errors='ignore')
         if quant_df_values.isna().all().all():
-            print("Quant data file is empty or contains only NaN values.")
             return 6
 
         #check for non-numeric values and NaN values
@@ -94,25 +89,21 @@ class DataTableChecker:
 
         if invalid_mask.any().any():
             invalid_value = quant_df_values[invalid_mask].stack().iloc[0]
-            print(f"Error: Found non-numeric, non-NA value in quant data: '{invalid_value}'")
             return 7
         return 0
 
     def check_duplicate_proteins(self, quant_df):
         # Check for no duplicate protein names in quant files.
         if any(quant_df.columns.duplicated()):
-            print("Duplicate protein names in quant data file.")
             return 8
         return 0
 
     def check_duplicate_samples(self, quant_df, meta_df):
         # Check that there are no duplicate sample IDs in both files.
         if quant_df["sample_id"].duplicated().any():
-            print("Duplicate samples ID in quant data file.")
             return 9
         if meta_df["sample_id"].duplicated().any():
-            print("Duplicate samples ID in meta data file.")
-            return 9
+            return 14
         return 0
 
     def filter_proteins(self, quant_df, fraction_na):
@@ -168,8 +159,8 @@ class DataTableChecker:
         filtered_df = quant_df.drop(columns=proteins_to_drop)
 
         # Check if filtered_df is empty
+        ## TODO: change fraction_na ourselves if needed, make less stringent until things work
         if filtered_df.shape[1] <= 1:  # only sample_id column left
-            print("No proteins left after filtering. Please adjust the fraction_na parameter.")
             return 10
        
         return filtered_df
@@ -181,7 +172,7 @@ class DataTableChecker:
 
         for label, count in label_counts.items():
             if count < min_samples:
-                print(f"Not enough samples for label '{label}': {count} samples found, minimum required is {min_samples}.")
+                print(f"ERROR: Not enough samples for label '{label}': {count} samples found, minimum required is {min_samples}.", file=sys.stderr, flush=True)
                 return 11
 
         return 0
@@ -190,6 +181,79 @@ class DataTableChecker:
         ''' Ensures there are enough proteins in the quantification data '''
         protein_count = quant_df.shape[1] - 1
         if protein_count < min_proteins:
-            print(f"Not enough proteins in quant data file: {protein_count} proteins found, minimum required is {min_proteins}.")
             return 12
         return 0
+
+    def run_data_table_checker(self, args, quant_df, meta_df):
+
+        check_meta_file_return = self.check_meta_file(meta_df)
+        if check_meta_file_return == 1:
+            print(f"ERROR: Meta data file must have 2 columns, got {len(meta_df.columns)}.", file=sys.stderr, flush=True)
+            sys.exit(1)
+        elif check_meta_file_return == 2:
+            print(f"ERROR: First column of meta data file must be named 'sample_id', but found '{meta_df.columns[0]}'.", file=sys.stderr, flush=True)
+            sys.exit(1)
+        elif check_meta_file_return == 3:
+            print(f"ERROR: Second column of meta data file must be named 'classification_label', but found '{meta_df.columns[1]}'.", file=sys.stderr, flush=True)
+            sys.exit(1)
+        elif check_meta_file_return == 13:
+            print("ERROR: Meta data file contains NA values.")
+            sys.exit(1)
+
+        
+        check_quant_data_return = self.check_quant_data(quant_df)
+        if check_quant_data_return == 2:
+            print(f"ERROR: First column of quant data file must be named 'sample_id', but found '{quant_df.columns[0]}'.", file=sys.stderr, flush=True)
+            sys.exit(1)
+        elif check_quant_data_return == 6:
+            print("ERROR: Quant data file is empty or contains only NaN values.", file=sys.stderr, flush=True)
+            sys.exit(1)
+        elif check_quant_data_return == 7:
+            print(f"ERROR: Found non-numeric, non-NA value in quant data.", file=sys.stderr, flush=True)
+            sys.exit(1)
+
+
+        quant_df, meta_df = self.sort_data(quant_df, meta_df)
+
+
+        check_protein_amount_return = self.check_protein_amount(quant_df)
+        if check_protein_amount_return == 12:
+            print(f"ERROR: Not enough proteins in quant data file: {quant_df.shape[1] - 1} proteins found, minimum required is 2.")
+
+
+        check_enough_samples_return = self.check_enough_samples(meta_df, args.min_sample_per_class)
+        if check_enough_samples_return == 11:
+            sys.exit(1)
+
+
+        check_samples_return = self.check_samples(quant_df, meta_df)
+        if check_samples_return == 4:
+            print(f"ERROR: Number of samples in quant data file {len(quant_df)} does not match number of samples meta data file {len(meta_df)}.", file=sys.stderr, flush=True)
+            sys.exit(1)
+        elif check_samples_return == 5:
+            print(f"ERROR: Sample IDs in quant data file do not match Sample IDs in meta data file.", file=sys.stderr, flush=True)
+            sys.exit(1)
+
+        
+        filtered_quant_df = self.filter_proteins_by_class(quant_df, meta_df, args.missing_cutoff)
+        if filtered_quant_df == 10:
+            print("ERROR: No proteins left after filtering. Please adjust the fraction_na parameter.", file=sys.stderr, flush=True)
+            sys.exit(1)
+
+
+        check_duplicate_proteins_return = self.check_duplicate_proteins(filtered_quant_df)
+        if check_duplicate_proteins_return == 8:
+            print("ERROR: Duplicate protein names in quant data file.", file=sys.stderr, flush=True)
+            sys.exit(1)
+
+        check_duplicate_samples_return = self.check_duplicate_samples(filtered_quant_df, meta_df)
+        if check_duplicate_samples_return == 9:
+            print("ERROR: Duplicate sample ID(s) in quant data file.", file=sys.stderr, flush=True)
+            sys.exit(1)
+        elif check_duplicate_samples_return == 14:
+            print("ERROR: Duplicate sample ID(s) in meta data file.", file=sys.stderr, flush=True)
+            sys.exit(1)
+
+
+        return filtered_quant_df, meta_df
+
