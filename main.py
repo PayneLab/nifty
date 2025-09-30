@@ -27,7 +27,7 @@ def main():
 
     # Evaluate Rules
     rule_evaluator = EvaluateRules()
-    # TODO
+    true_scores, summary_df, filtered_df = rule_evaluator.evaluate_buckets_wrapper(args, rules, filtered_quant_df, meta_df)
 
 
 if __name__ == "__main__":

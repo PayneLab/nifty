@@ -310,7 +310,7 @@ class EvaluateRules:
 
         return true_scores, summary_df
 
-    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df, mi_threshold=0.9):
+    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df, mi_threshold=0.9, k_value = 10):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
         bool_dict = self.vectorize_all_pairs(pairs, quant_df)
@@ -321,5 +321,7 @@ class EvaluateRules:
         expanded_buckets = self.expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
 
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
-        edges_df = self.add_mutual_information(summary_df, bool_dict, min_threshold=mi_threshold)
-        return true_scores, summary_df, edges_df
+        #edges_df = self.add_mutual_information(summary_df, bool_dict, min_threshold=mi_threshold)
+        # TODO will add MI filtering later, function will return edges_df
+        filtered_df = self.filter_and_save_rules(summary_df, k=k_value)
+        return true_scores, summary_df, filtered_df
