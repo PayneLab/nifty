@@ -118,11 +118,6 @@ class EvaluateRules:
 
         return scored_pairs
 
-    def randomize_labels(self, labels: np.ndarray) -> np.ndarray:
-        '''Randomizes the labels in the metadata and returns a new DataFrame.'''
-        #randomized_meta_df = meta_df.copy()
-        return np.random.permutation(labels)
-
     def get_significant_pairs(self, summary_df) -> pd.DataFrame:
         '''Adjust p-values for multiple testing'''
         summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
@@ -156,10 +151,20 @@ class EvaluateRules:
             bucket_to_rules[bucket].append(pair)
         return bucket_to_rules
 
+    def randomize_labels(self, labels: np.ndarray) -> np.ndarray:
+        '''Randomizes the labels in the metadata and returns a new DataFrame.'''
+        if hasattr(self, "seed") and self.seed is not None:
+            rng = np.random.default_rng(self.seed)
+            shuffled = rng.permutation(labels)
+            self.seed += 1
+            return shuffled
+        else:
+            return np.random.permutation(labels)
+
     def create_null_distributions_for_p_values_testing(self, bool_dict, binarized_labels, bucket_to_rules):
         shuffled_labels = self.randomize_labels(binarized_labels)
-        buckets = {}
 
+        buckets = {}
         # Reuse score_pair logic efficiently
         for bucket, rules in bucket_to_rules.items():
             scores = [self.score_pair(pair, bool_dict, shuffled_labels) for pair in rules]
@@ -225,50 +230,7 @@ class EvaluateRules:
                     })
         return pd.DataFrame(edges)
 
-    '''
-    def cluster_by_mi_and_filter(self, summary_df, edges_df):
-        graph = nx.Graph()
-
-        for _, row in summary_df.iterrows():
-            rule_identifier = row['Gene_Pair']
-            p_value_for_rule = row['P_Value']
-            graph.add_node(rule_identifier, p_value=p_value_for_rule)
-
-        for _, row in edges_df.iterrows():
-            source_rule = row['Source_Rule']
-            target_rule = row['Target_Rule']
-            mi_score = row['MI_Score']
-            graph.add_edge(source_rule, target_rule, weight=mi_score)
-
-        #print('Nodes with p-values')
-        #print(graph.nodes(data=True))
-
-        #print('Edges with MI scores')
-        #print(graph.edges(data=True))
-
-        winners = []
-        already_selected = set()
-
-        for cluster in nx.connected_components(graph):
-            if cluster & already_selected:
-                continue
-
-            best_rule = None
-            best_p_value = float('inf')
-
-            for rule_identifier in cluster:
-                p_value_for_rule = graph.nodes[rule_identifier]['p_value']
-                if p_value_for_rule < best_p_value:
-                    best_rule = rule_identifier
-                    best_p_value = p_value_for_rule
-            winners.append(best_rule)
-            already_selected.add(best_rule)
-        return winners
-    '''
-
-    def filter_and_save_rules(self, summary_df: pd.DataFrame, k: int,
-                              disjoint=True, output_file_path='output.tsv'):
-        # Sort by p-value ASC, then True_Score DESC
+    def filter_rules(self, summary_df: pd.DataFrame, k: int, disjoint=True):
         df = summary_df.sort_values(['P_Value', 'True_Score'],
                                     ascending=[True, False])
         used = set()
@@ -291,8 +253,12 @@ class EvaluateRules:
             filtered_df = filtered_df.drop(columns=['P_Value'])
         if disjoint and len(filtered_df) < k:
             print(f"Only {len(filtered_df)} disjoint pairs available (requested {k}).", flush=True)
-        filtered_df.to_csv(output_file_path, index=False, sep='\t')
+
         return filtered_df
+
+    def save_rules(self, filtered_df: pd.DataFrame, output_file_path: str = 'output.tsv'):
+        filtered_df.to_csv(output_file_path, index=False, sep='\t')
+        print(f"Rules saved to {output_file_path}", flush=True)
 
     #Wrappers:
 
@@ -310,7 +276,8 @@ class EvaluateRules:
 
         return true_scores, summary_df
 
-    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df, mi_threshold=0.9, k_value = 10):
+    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df, mi_threshold=0.9, k_value=10,
+                                 output_file_path="output.tsv"):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
         bool_dict = self.vectorize_all_pairs(pairs, quant_df)
@@ -323,5 +290,8 @@ class EvaluateRules:
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
         #edges_df = self.add_mutual_information(summary_df, bool_dict, min_threshold=mi_threshold)
         # TODO will add MI filtering later, function will return edges_df
-        filtered_df = self.filter_and_save_rules(summary_df, k=k_value)
+        filtered_df = self.filter_rules(summary_df, k=k_value)
+
+        self.save_rules(filtered_df, output_file_path)
+
         return true_scores, summary_df, filtered_df
