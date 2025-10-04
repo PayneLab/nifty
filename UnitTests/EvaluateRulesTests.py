@@ -5,11 +5,11 @@ import numpy as np
 import sys
 import os
 
-from EvaluateRules import EvaluateRules
-
 current_dir = os.path.dirname(__file__)
 parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(parent_dir)
+
+from EvaluateRules import EvaluateRules
 
 class TestEvaluateRules(unittest.TestCase):
     def setUp(self):

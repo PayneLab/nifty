@@ -41,7 +41,7 @@ class DataTableChecker:
         if meta_df.isna().any().any():
             return 13
         return 0
-
+    '''
     def check_samples(self, quant_df, meta_df):
         # Check if there is the same number of samples in both files.
         # Quant df and meta df do not have the same number of rows.
@@ -55,6 +55,19 @@ class DataTableChecker:
         if quant_ids != meta_ids:
             return 5
 
+        return 0'''
+    
+    def check_samples(self, quant_df, meta_df):
+        if "sample_id" not in quant_df.columns:
+            return 2
+        if "sample_id" not in meta_df.columns:
+            return 2
+        if len(quant_df) != len(meta_df):
+            return 4
+        meta_ids = sorted(set(meta_df["sample_id"].astype(str).str.strip()))
+        quant_ids = sorted(set(quant_df["sample_id"].astype(str).str.strip()))
+        if quant_ids != meta_ids:
+            return 5
         return 0
 
     def sort_data(self, quant_df, meta_df):
@@ -100,7 +113,7 @@ class DataTableChecker:
         if meta_df["sample_id"].duplicated().any():
             return 14
         return 0
-
+    
     def filter_proteins(self, quant_df, fraction_na):
         ''' Filter out proteins that have more than fraction_na of their values as NaN'''
         sample_col = quant_df.iloc[:, 0]
@@ -180,6 +193,10 @@ class DataTableChecker:
         if protein_count < min_proteins:
             return 12
         return 0
+    
+    def set_quant_index(self, quant_df):
+        quant_df = quant_df.set_index('sample_id')
+        return quant_df
 
     def run_data_table_checker(self, args, quant_df, meta_df):
 
@@ -235,6 +252,9 @@ class DataTableChecker:
             print(f"ERROR: Sample IDs in quant data file do not match Sample IDs in meta data file.", file=sys.stderr,
                   flush=True)
             sys.exit(1)
+
+        # Set index to sample_id for filtering   
+        quant_df = self.set_quant_index(quant_df)
 
         filtered_quant_df = self.filter_proteins_by_class(quant_df, meta_df, args.missing_cutoff)
         if filtered_quant_df == 10:

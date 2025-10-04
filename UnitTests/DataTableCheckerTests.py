@@ -4,12 +4,12 @@ import numpy as np
 import sys
 import os
 
-from DataTableChecker import DataTableChecker
-
 current_dir = os.path.dirname(__file__)
 
 parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(parent_dir)
+
+from DataTableChecker import DataTableChecker
 
 class TestDataTableChecker(unittest.TestCase):
     def setUp(self):
@@ -205,7 +205,7 @@ class TestDataTableChecker(unittest.TestCase):
     def test_check_duplicate_samples_duplicate_sample_ID_meta(self):
         try:
             df_meta_dup = pd.DataFrame({'sample_id': ['S1', 'S1'], 'classification_label': ['A', 'B']})
-            self.assertEqual(self.checker.check_duplicate_samples(self.quant_df, df_meta_dup), 9)
+            self.assertEqual(self.checker.check_duplicate_samples(self.quant_df, df_meta_dup), 14)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
@@ -326,6 +326,19 @@ class TestDataTableChecker(unittest.TestCase):
                 'P1': [1.0, 2.0]
             })
             self.assertEqual(self.checker.check_protein_amount(df_invalid, min_proteins=3), 12)
+        except Exception as e:
+            self.fail(f"Unexpected exception thrown: {e}")
+
+    def check_set_quant_index(self):
+        try:
+            df = pd.DataFrame({
+                'sample_id': ['S1', 'S2'],
+                'P1': [1.0, 2.0],
+                'P2': [3.0, 4.0]
+            })
+            df_indexed = self.checker.set_quant_index(df)
+            self.assertTrue(df_indexed.index.name == 'sample_id')
+            self.assertTrue('sample_id' not in df_indexed.columns)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
