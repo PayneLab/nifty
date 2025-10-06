@@ -11,14 +11,7 @@ from EvaluateRules import EvaluateRules
 def main():
     # Check Parameters
     param_checker = ParameterChecker()
-    parser = param_checker.set_up_parser()
-    args = param_checker.check_arguments(parser.parse_args())
-
-    # Set random seed if not given
-    if args.seed is not None:
-        import random, numpy as np
-        random.seed(args.seed)
-        np.random.seed(args.seed)
+    args = param_checker.run_paramater_checker()
 
     # Read in files
     meta_df = pd.read_csv(args.quant, sep="\t")

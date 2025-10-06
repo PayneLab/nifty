@@ -2,6 +2,7 @@ import os
 import argparse
 import random
 import sys
+import numpy as np
 
 
 class ParameterChecker:
@@ -68,4 +69,15 @@ class ParameterChecker:
         if output_dir and not os.path.isdir(output_dir):
             print(f"ERROR: Output directory '{output_dir}' does not exist.", file=sys.stderr, flush=True)
             sys.exit(1)
+        if args.seed is not None:
+            random.seed(args.seed)
+            np.random.seed(args.seed)
+
+        return args
+
+    def run_paramater_checker():
+        paramater_parser = self.set_up_parser()
+        args = paramater_parser.parse_args()
+        args = self.check_arguments(args)
+
         return args
