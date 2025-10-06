@@ -4,6 +4,7 @@ import statsmodels.stats.multitest as ssm
 # import networkx as nx
 from sklearn.metrics import normalized_mutual_info_score
 import sys
+import os
 
 
 class EvaluateRules:
@@ -283,6 +284,8 @@ class EvaluateRules:
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
         filtered_df = self.filter_rules(summary_df, k=k_value, mutual_info=mutual_info) # TODO will add MI filtering
 
+        if output_file_path != "output.tsv":
+            output_file_path = os.path.join(output_file_path, "output.tsv")
         self.save_rules(filtered_df, output_file_path)
 
         return true_scores, summary_df, filtered_df
