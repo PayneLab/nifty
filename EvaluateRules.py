@@ -6,8 +6,8 @@ from sklearn.metrics import normalized_mutual_info_score
 
 
 class EvaluateRules:
-    def __init__(self):
-        pass
+    def __init__(self, seed):
+        self.seed = seed
 
     def vectorize_all_pairs(self, pairs: list, quant_df) -> dict:
         '''Vectorizes all pairs of proteins and returns a dictionary of boolean vectors.
