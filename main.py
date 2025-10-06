@@ -34,7 +34,7 @@ def main():
                                                                                    meta_df=meta_df,
                                                                                    k_value=args.k,
                                                                                    output_file_path=args.output,
-                                                                                   disjoint=args.no_disjoint)   # <- maps your -nd flag
+                                                                                   mutual_info=args.mutual_info)   # <- maps your -mi flag
 
 if __name__ == "__main__":
     main()

@@ -3,6 +3,7 @@ import pandas as pd
 import statsmodels.stats.multitest as ssm
 # import networkx as nx
 from sklearn.metrics import normalized_mutual_info_score
+import sys
 
 
 class EvaluateRules:
@@ -230,29 +231,21 @@ class EvaluateRules:
                     })
         return pd.DataFrame(edges)
 
-    def filter_rules(self, summary_df: pd.DataFrame, k: int, disjoint=True):
+    def filter_rules(self, summary_df: pd.DataFrame, k: int, mutual_info=True):
         df = summary_df.sort_values(['P_Value', 'True_Score'],
                                     ascending=[True, False])
         used = set()
         filtered = []
 
-        if disjoint:
-            for _, row in df.iterrows():
-                p1, p2 = row['Gene_Pair']
-                if p1 in used or p2 in used:
-                    continue
-                filtered.append(row.to_dict())
-                used.update([p1, p2])
-                if len(filtered) >= k:
-                    break
+        if mutual_info:
+            pass
+            # TODO: implement MI filtering
         else:
             filtered = df.head(k).to_dict('records')
 
         filtered_df = pd.DataFrame(filtered).reset_index(drop=True)
-        if 'P_Value' in filtered_df.columns:
-            filtered_df = filtered_df.drop(columns=['P_Value'])
-        if disjoint and len(filtered_df) < k:
-            print(f"Only {len(filtered_df)} disjoint pairs available (requested {k}).", flush=True)
+        if mutual_info and len(filtered_df) < k:
+            print(f"WARNING: Only {len(filtered_df)} pairs with low mutual information available (requested {k}).", out=sys.stderr, flush=True)
 
         return filtered_df
 
@@ -276,7 +269,7 @@ class EvaluateRules:
 
         return true_scores, summary_df
 
-    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df, mi_threshold=0.9, k_value=10, disjoint = True,
+    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df, mi_threshold=0.9, k_value=10, mutual_info = True,
                                  output_file_path="output.tsv"):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
@@ -288,9 +281,7 @@ class EvaluateRules:
         expanded_buckets = self.expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
 
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
-        #edges_df = self.add_mutual_information(summary_df, bool_dict, min_threshold=mi_threshold)
-        # TODO will add MI filtering later, function will return edges_df
-        filtered_df = self.filter_rules(summary_df, k=k_value, disjoint=disjoint)
+        filtered_df = self.filter_rules(summary_df, k=k_value, mutual_info=mutual_info) # TODO will add MI filtering
 
         self.save_rules(filtered_df, output_file_path)
 
