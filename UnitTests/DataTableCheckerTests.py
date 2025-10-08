@@ -341,6 +341,53 @@ class TestDataTableChecker(unittest.TestCase):
             self.assertTrue('sample_id' not in df_indexed.columns)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
+    
+    
+    # filter_proteins_by_class tests.
+
+    def test_filters_high_nan_proteins(self):
+        result = self.checker.filter_proteins_by_class(
+            self.base_df.set_index("sample_id"),
+            self.meta_df.set_index("sample_id"),
+            fraction_na=0.5
+        )
+        self.assertIn("P1", result.columns)   # allowed since ~67% missing but class-wise check may keep
+        self.assertIn("P2", result.columns)   # clean
+        self.assertNotIn("P3", result.columns) # 100% NaN
+
+    def test_respects_fraction_threshold(self):
+        result = self.checker.filter_proteins_by_class(
+            self.base_df.set_index("sample_id"),
+            self.meta_df.set_index("sample_id"),
+            fraction_na=0.25
+        )
+        self.assertIn("P1", result.columns)   # stays, because Class A passes
+        self.assertIn("P2", result.columns)   # clean, always passes
+        self.assertNotIn("P3", result.columns) # always fails (100% NaN)
+
+
+    def test_proteins_to_keep(self):
+        result = self.checker.filter_proteins_by_class(
+            self.base_df.set_index("sample_id"),
+            self.meta_df.set_index("sample_id"),
+            fraction_na=0.25,
+            proteins_to_keep=["P1"]
+        )
+        self.assertIn("P1", result.columns)  # forced keep
+
+    def test_returns_10_if_empty(self):
+        df_all_nan = pd.DataFrame({
+            "sample_id": ["S1", "S2"],
+            "P1": [np.nan, np.nan],
+            "P2": [np.nan, np.nan]
+        }).set_index("sample_id")
+
+        result = self.checker.filter_proteins_by_class(
+            df_all_nan,
+            self.meta_df.set_index("sample_id"),
+            fraction_na=0.0
+        )
+        self.assertEqual(result, 10)
 
 if __name__ == "__main__":
     unittest.main()
