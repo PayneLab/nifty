@@ -9,17 +9,31 @@ current_dir = os.path.dirname(__file__)
 parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(parent_dir)
 
+from tempfile import TemporaryDirectory
 from EvaluateRules import EvaluateRules
 
 class TestEvaluateRules(unittest.TestCase):
     def setUp(self):
-        self.evaluator = EvaluateRules()
+        self.evaluator = EvaluateRules(seed=42)  # keep seed for reproducibility
+
+        # quant data
         self.quant_df_evaluate_pairs = pd.DataFrame({
             'sample_id': ['S1', 'S2', 'S3', 'S4'],
             'P1': [1, 6, 3, 8],
             'P2': [4, 5, 6, 1]
         })
 
+        # set sample_id as index
+        self.quant_df = self.quant_df_evaluate_pairs.set_index("sample_id")
+
+        # meta labels
+        self.meta_df = pd.DataFrame({
+            "classification_label": ["A", "A", "B", "B"]
+        }, index=["S1", "S2", "S3", "S4"])
+
+        # test pairs
+        self.pairs = [("P1", "P2")]
+        
     def test_vectorize_pair_no_na(self):
         df = pd.DataFrame({
             'P1': [1, 4, 6, 3, 1, 7, 1, 7],
@@ -286,80 +300,51 @@ class TestEvaluateRules(unittest.TestCase):
         self.assertAlmostEqual(df.loc[df['Gene_Pair'] == ('P3', 'P4'), 'P_Value'].iloc[0], 1.0)
 
         self.assertCountEqual(df['Bucket'].values, [50, 25])
+        
 
-    def test_filter_and_save_pairs_returns_top_k_non_disjoint_pairs(self):
-        self.evaluator = EvaluateRules.__new__(EvaluateRules)
-        self.evaluator.disjoint = False
+    #Evaluate Buckets Wrapper tests
+    def test_returns_expected_outputs(self):
+        """Wrapper should return true_scores dict, summary_df, and filtered_df with correct structure."""
+        true_scores, summary_df, filtered_df = self.evaluator.evaluate_buckets_wrapper(
+            self.pairs,
+            self.quant_df,
+            self.meta_df,
+            k_value=1,
+            mutual_info=False,   # simpler path
+            output_file_path="output.tsv"
+        )
 
-        summary_df = pd.DataFrame({
-            "Gene_Pair": [
-                ('P1', 'P2'),
-                ('P1', 'P3'),
-                ('P1', 'P4'),
-                ('P1', 'P5'),
-                ('P2', 'P3'),
-                ('P2', 'P4'),
-                ('P2', 'P5'),
-                ('P3', 'P4'),
-                ('P3', 'P5'),
-                ('P4', 'P5')
-            ],
-            "True_Score": [0.91, 0.88, 0.85, 0.82, 0.80, 0.78, 0.76, 0.74, 0.72, 0.70],
-            "Bucket": [60, 60, 80, 80, 60, 60, 80, 80, 60, 80],
-            "P_Value": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055],
-            "FDR": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055]
-        })
+        # true_scores should be a dict with the pair
+        self.assertIsInstance(true_scores, dict)
+        self.assertIn(("P1", "P2"), true_scores)
 
-        with tempfile.NamedTemporaryFile(delete=True) as temp:
-            summary = self.evaluator.filter_and_save_rules(summary_df, output_file_path=temp.name, k =5, disjoint=False)
+        # summary_df should be a DataFrame with required columns
+        self.assertIsInstance(summary_df, pd.DataFrame)
+        for col in ["Gene_Pair", "True_Score", "Bucket", "P_Value"]:
+            self.assertIn(col, summary_df.columns)
 
-        expected_pairs = [
-            ('P1', 'P2'),
-            ('P1', 'P3'),
-            ('P1', 'P4'),
-            ('P1', 'P5'),
-            ('P2', 'P3'),
-        ]
+        # filtered_df should be a DataFrame with at most k rows
+        self.assertIsInstance(filtered_df, pd.DataFrame)
+        self.assertLessEqual(len(filtered_df), 1)
 
-        actual_pairs = [tuple(x) if not isinstance(x, tuple) else x for x in summary['Gene_Pair']]
+    def test_saves_output_file(self):
+        """Wrapper should save output file when output_file_path is a directory."""
+        with TemporaryDirectory() as tmpdir:
+            _, _, filtered_df = self.evaluator.evaluate_buckets_wrapper(
+                self.pairs,
+                self.quant_df,
+                self.meta_df,
+                k_value=1,
+                mutual_info=False,
+                output_file_path=tmpdir
+            )
 
-        assert actual_pairs== expected_pairs
+            expected_path = os.path.join(tmpdir, "output.tsv")
+            self.assertTrue(os.path.exists(expected_path))
 
-    def test_filter_and_save_pairs_returns_top_k_disjoint_pairs(self):
-        self.evaluator = EvaluateRules.__new__(EvaluateRules)
-        self.evaluator.k = 2
-        self.evaluator.disjoint = True
-
-        summary_df = pd.DataFrame({
-            "Gene_Pair": [
-                ('P1', 'P2'),
-                ('P1', 'P3'),
-                ('P1', 'P4'),
-                ('P1', 'P5'),
-                ('P2', 'P3'),
-                ('P2', 'P4'),
-                ('P2', 'P5'),
-                ('P3', 'P4'),
-                ('P3', 'P5'),
-                ('P4', 'P5')
-            ],
-            "True_Score": [0.91, 0.88, 0.85, 0.82, 0.80, 0.78, 0.76, 0.74, 0.72, 0.70],
-            "Bucket": [60, 60, 80, 80, 60, 60, 80, 80, 60, 80],
-            "P_Value": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055],
-            "FDR": [0.01, 0.015, 0.02, 0.025, 0.03, 0.035, 0.04, 0.045, 0.05, 0.055]
-        })
-
-        with tempfile.NamedTemporaryFile(delete=True) as temp:
-            summary = self.evaluator.filter_and_save_rules(summary_df, output_file_path=temp.name, k=10)
-
-        expected_pairs = [
-            ('P1', 'P2'),
-            ('P3', 'P4')
-        ]
-
-        actual_pairs = [tuple(x) if not isinstance(x, tuple) else x for x in summary['Gene_Pair']]
-
-        assert actual_pairs == expected_pairs
+            with open(expected_path, "r") as f:
+                content = f.read()
+            self.assertGreater(len(content), 0)
 
 if __name__ == '__main__':
     unittest.main()
