@@ -5,10 +5,11 @@ import statsmodels.stats.multitest as ssm
 from sklearn.metrics import normalized_mutual_info_score
 import sys
 import os
+import matplotlib.pyplot as plt
 
 
 class EvaluateRules:
-    def __init__(self, seed):
+    def __init__(self, seed=None):
         self.seed = seed
 
     def vectorize_all_pairs(self, pairs: list, quant_df) -> dict:
@@ -232,23 +233,101 @@ class EvaluateRules:
                     })
         return pd.DataFrame(edges)
 
-    def filter_rules(self, summary_df: pd.DataFrame, k: int, mutual_info=True):
+    def TESTING_filter_disjoint_pairs(self, summary_df: pd.DataFrame, k: int, disjoint=True):
+        df = summary_df.sort_values(['P_Value', 'True_Score'],
+                                    ascending=[True, False])
+        used = set()
+        filtered = []
+        if disjoint:
+            for _, row in df.iterrows():
+                p1, p2 = row['Gene_Pair']
+                if p1 in used or p2 in used:
+                    continue
+                filtered.append(row.to_dict())
+                used.update([p1, p2])
+                if len(filtered) >= k:
+                    break
+        else:
+            filtered = df.head(k).to_dict('records')
+
+        filtered_df = pd.DataFrame(filtered).reset_index(drop=True)
+
+        if 'P_Value' in filtered_df.columns:
+            filtered_df = filtered_df.drop(columns=['P_Value'])
+
+        if disjoint and len(filtered_df) < k:
+            print(f"Only {len(filtered_df)} disjoint pairs available (requested {k}).", flush=True)
+        return filtered_df
+
+    def one_against_the_world(self, summary_df, bool_vectors, n_compare=1000):
+        summary_df = summary_df.sort_values(['P_Value', 'True_Score'],
+                                            ascending=[True, False])
+        first_rule = summary_df.iloc[0]['Gene_Pair']
+        first_vec = bool_vectors[first_rule]
+        print(f"First rule: {first_rule}")
+        n = n_compare
+        mi_values = []
+
+        for i, rule in enumerate(summary_df.iloc[1:1 + n]['Gene_Pair']):
+            vec = bool_vectors[rule]
+            mi = normalized_mutual_info_score(first_vec, vec)
+            mi_values.append(mi)
+            print(f"{first_rule} against {rule} -> MI = {mi:.4f}")
+
+        plt.figure(figsize=(7, 5))
+        plt.hist(mi_values, bins=50, edgecolor='black', alpha=0.7)
+        plt.title(f"Distribution of Mutual Information\nRelative to top rule {first_rule}")
+        plt.xlabel("Normalized Mutual Information (vs top rule)")
+        plt.ylabel("Count of other rules")
+        plt.tight_layout()
+        plt.show()
+
+        return ""
+
+    def filter_rules(self, summary_df, bool_vectors, k, mutual_info=True, mi_cutoff=0.9):
         df = summary_df.sort_values(['P_Value', 'True_Score'],
                                     ascending=[True, False])
         used = set()
         filtered = []
 
         if mutual_info:
-            pass
-            # TODO: implement MI filtering
+            for _, row in df.iterrows():
+                rule = row['Gene_Pair']
+                if not used:
+                    used.add(rule)
+                    filtered.append(row.to_dict())
+                    continue
+                redundant = False
+                for kept in used:
+                    mi = self.calculate_mutual_information(rule, kept, bool_vectors)
+                    if mi >= mi_cutoff:
+                        redundant = True
+                        break
+                if not redundant:
+                    used.add(rule)
+                    filtered.append(row.to_dict())
+                if len(filtered) >= k:
+                    break
+            #print(f"Rules kept after MI filtering: {len(filtered)}")
+            if filtered:
+                pass
+                #print(f"First rule kept: {filtered[0]['Gene_Pair']}")
+            #print(f"Total redundant rules skipped: {len(df) - len(filtered)}")
         else:
             filtered = df.head(k).to_dict('records')
-
         filtered_df = pd.DataFrame(filtered).reset_index(drop=True)
-        if mutual_info and len(filtered_df) < k:
-            print(f"WARNING: Only {len(filtered_df)} pairs with low mutual information available (requested {k}).", out=sys.stderr, flush=True)
+
+        # if mutual_info and len(filtered_df) < k:
+        #     print(f"WARNING: Only {len(filtered_df)} pairs with low mutual information available (requested {k}).",
+        #           file=sys.stderr, flush=True)
 
         return filtered_df
+
+    def calculate_mutual_information(self, pair1, pair2, bool_vectors):
+        vec1 = bool_vectors[pair1]
+        vec2 = bool_vectors[pair2]
+        mi = normalized_mutual_info_score(vec1, vec2)
+        return mi
 
     def save_rules(self, filtered_df: pd.DataFrame, output_file_path: str = 'output.tsv'):
         filtered_df.to_csv(output_file_path, index=False, sep='\t')
@@ -270,7 +349,7 @@ class EvaluateRules:
 
         return true_scores, summary_df
 
-    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df, mi_threshold=0.9, k_value=10, mutual_info = True,
+    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df, mi_threshold=0.9, k_value=10, mutual_info=True,
                                  output_file_path="output.tsv"):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
@@ -282,10 +361,11 @@ class EvaluateRules:
         expanded_buckets = self.expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
 
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
-        filtered_df = self.filter_rules(summary_df, k=k_value, mutual_info=mutual_info) # TODO will add MI filtering
+        filtered_df = self.filter_rules(summary_df, k=k_value, mutual_info=mutual_info)  # TODO will add MI filtering
 
         if output_file_path != "output.tsv":
             output_file_path = os.path.join(output_file_path, "output.tsv")
         self.save_rules(filtered_df, output_file_path)
 
         return true_scores, summary_df, filtered_df
+

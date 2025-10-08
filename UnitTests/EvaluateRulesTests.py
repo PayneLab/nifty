@@ -361,5 +361,29 @@ class TestEvaluateRules(unittest.TestCase):
 
         assert actual_pairs == expected_pairs
 
+    def test_filter_rules_with_mi(self):
+        summary_df = pd.DataFrame({
+            "Gene_Pair": [
+                ('P1', 'P2'),
+                ('P1', 'P3'),
+                ('P2', 'P3')
+            ],
+            "True_Score": [0.9, 0.85, 0.8],
+            "P_Value": [0.01, 0.02, 0.03]
+        })
+
+        bool_vectors = {
+            ('P1', 'P2'): np.array([1, 0, 1, 1, 0]),
+            ('P1', 'P3'): np.array([1, 0, 1, 1, 0]),
+            ('P2', 'P3'): np.array([0, 0, 1, 1, 1])
+        }
+
+        filtered_df = self.evaluator.filter_rules(summary_df, bool_vectors, k=3, mutual_info=True, mi_cutoff=0.9)
+
+        kept = set(filtered_df["Gene_Pair"])
+        self.assertIn(('P1', 'P2'), kept)
+        self.assertIn(('P2', 'P3'), kept)
+        self.assertNotIn(('P1', 'P3'), kept)
+
 if __name__ == '__main__':
     unittest.main()

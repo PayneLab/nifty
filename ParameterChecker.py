@@ -20,6 +20,7 @@ class ParameterChecker:
 
         parser.add_argument("-k", "--k", type=int, default=50, help="Number of top-scoring pairs to return. Default: "
                                                                     "50.")
+        #K cannot be more than 50.
         parser.add_argument("-mi", "--mutual-info", action="store_false", default=True, help="Disable mutual information "
                                                                                              "filtering. Default: "
                                                                                              "Enabled.")
@@ -65,11 +66,11 @@ class ParameterChecker:
             print("WARNING: No rule filtering enabled.", file=sys.stderr, flush=True)
         if args.seed is not None:
             print(f"INFO: Using fixed seed {args.seed}", file=sys.stderr, flush=True)
-        if output_dir is None:
+        if args.output is None:
             args.output = os.getcwd()
             print(f"INFO: Setting output directory to '{args.output}'.", file=sys.stderr, flush=True)
         if not os.path.isdir(args.output):
-            print(f"ERROR: Output directory '{output_dir}' does not exist.", file=sys.stderr, flush=True)
+            print(f"ERROR: Output directory '{args.output}' does not exist.", file=sys.stderr, flush=True)
             sys.exit(1)
         if args.seed is not None:
             random.seed(args.seed)
@@ -77,7 +78,7 @@ class ParameterChecker:
 
         return args
 
-    def run_paramater_checker():
+    def run_paramater_checker(self):
         paramater_parser = self.set_up_parser()
         args = paramater_parser.parse_args()
         args = self.check_arguments(args)
