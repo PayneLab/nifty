@@ -250,16 +250,34 @@ class TestEvaluateRules(unittest.TestCase):
         results = self.evaluator.get_bucket_to_rules(pairs, bool_dict)
         self.assertEqual(results, expected_rule_to_buckets)
 
-    """
     def test_expand_small_null_distributions(self):
         buckets = {57: np.array([0.1, 0.2])}
         bucket_to_rules = {57: [('P1','P2')]}
-        binarized_labels = np.array([1, 0, 1, 0])
-        bool_dict = {}
+        meta_df = pd.DataFrame({'classification_label': ['A','A','B','B']})
+        binarized_labels = self.evaluator.binarize_labels(meta_df)  # sets _n_pos/_n_neg
 
-        results = self.evaluator.NEWEST_expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
-        self.assertGreaterEqual(len(results[57]), 100)
-    """
+        bool_dict = {('P1','P2'): np.array([True, False, True, False])}
+
+        results = self.evaluator.expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
+
+        # Expected length = original_n + (needed_permutations - 1) * num_rules
+        original_n = 2
+        num_rules = 1
+        needed_permutations = int(np.ceil(100 / original_n))  # = 50
+        expected_len = original_n + (needed_permutations - 1) * num_rules  # 2 + 49*1 = 51
+
+        self.assertEqual(len(results[57]), expected_len)
+        self.assertGreater(len(results[57]), original_n)
+
+
+    def test_create_null_distributions(self):
+        bool_dict = {('P1', 'P2'): np.array([True, False, True, False])}
+        meta_df = pd.DataFrame({'classification_label': ['A','A','B','B']})
+        bin_labels = self.evaluator.binarize_labels(meta_df)  # sets _n_pos/_n_neg
+        bucket_to_rules = {50: [('P1', 'P2')]}
+        buckets = self.evaluator.create_null_distributions_for_p_values_testing(bool_dict, bin_labels, bucket_to_rules)
+        self.assertIn(50, buckets)
+        self.assertIsInstance(buckets[50], np.ndarray)
 
     def test_summarize_bucket_stats_score_above_all_nulls(self):
         true_scores = {('P1', 'P2'): 0.9}
@@ -300,7 +318,7 @@ class TestEvaluateRules(unittest.TestCase):
         self.assertAlmostEqual(df.loc[df['Gene_Pair'] == ('P3', 'P4'), 'P_Value'].iloc[0], 1.0)
 
         self.assertCountEqual(df['Bucket'].values, [50, 25])
-        
+
 
     #Evaluate Buckets Wrapper tests
     def test_returns_expected_outputs(self):
