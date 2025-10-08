@@ -1,5 +1,12 @@
-# nifty
-Never Impute Features (thank you)
+# NIFTY
+Never Impute Features (thank you).
 
-This is a python repository for feature scoring and feature selection (often used in machine learning classification). The important thing is that we never impute. We can deal with null values.
+NIFTY is a python program for feature generation, feature scoring and feature selection. The primary application is large molecular data, like proteomics. We assume input to be a table with samples as the columns and protein (or other data) as the rows. We also require an input file that has the label (class) for each sample. The output from our program is the list of k top features that can be used to train a ML classifier to annotate samples. 
+The important thing is that we never impute. We can deal with null values.
+
+Run this program with the following command line
+> python main.py -q [quant table file] -m [meta data containing sample labels]
+
+
+
 ![Switchbox Overview drawio](https://github.com/user-attachments/assets/6368d215-9d6a-4e9e-b1d1-daa8013c8668)
