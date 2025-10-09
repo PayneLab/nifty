@@ -41,7 +41,7 @@ class DataTableChecker:
         if meta_df.isna().any().any():
             return 13
         return 0
-    '''
+    
     def check_samples(self, quant_df, meta_df):
         # Check if there is the same number of samples in both files.
         # Quant df and meta df do not have the same number of rows.
@@ -55,8 +55,8 @@ class DataTableChecker:
         if quant_ids != meta_ids:
             return 5
 
-        return 0'''
-    
+        return 0
+    '''
     def check_samples(self, quant_df, meta_df):
         if "sample_id" not in quant_df.columns:
             return 2
@@ -68,7 +68,7 @@ class DataTableChecker:
         quant_ids = sorted(set(quant_df["sample_id"].astype(str).str.strip()))
         if quant_ids != meta_ids:
             return 5
-        return 0
+        return 0'''
 
     def sort_data(self, quant_df, meta_df):
         quant_df = quant_df.sort_values(by="sample_id").reset_index(drop=True)
@@ -180,8 +180,7 @@ class DataTableChecker:
 
         for label, count in label_counts.items():
             if count < min_samples:
-                print(
-                    f"ERROR: Not enough samples for label '{label}': {count} samples found, minimum required is {min_samples}.",
+                print(f"ERROR: Not enough samples for label '{label}': {count} samples found, minimum required is {min_samples}.",
                     file=sys.stderr, flush=True)
                 return 11
 
@@ -194,9 +193,9 @@ class DataTableChecker:
             return 12
         return 0
     
-    def set_quant_index(self, quant_df):
-        quant_df = quant_df.set_index('sample_id')
-        return quant_df
+    def set_index(self, df):
+        df = df.set_index('sample_id')
+        return df
 
     def run_data_table_checker(self, args, quant_df, meta_df):
 
@@ -210,8 +209,7 @@ class DataTableChecker:
                   file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_meta_file_return == 3:
-            print(
-                f"ERROR: Second column of meta data file must be named 'classification_label', but found '{meta_df.columns[1]}'.",
+            print(f"ERROR: Second column of meta data file must be named 'classification_label', but found '{meta_df.columns[1]}'.",
                 file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_meta_file_return == 13:
@@ -235,8 +233,7 @@ class DataTableChecker:
 
         check_protein_amount_return = self.check_protein_amount(quant_df)
         if check_protein_amount_return == 12:
-            print(
-                f"ERROR: Not enough proteins in quant data file: {quant_df.shape[1] - 1} proteins found, minimum required is 2.")
+            print(f"ERROR: Not enough proteins in quant data file: {quant_df.shape[1] - 1} proteins found, minimum required is 2.")
 
         check_enough_samples_return = self.check_enough_samples(meta_df, args.min_sample_per_class)
         if check_enough_samples_return == 11:
@@ -244,8 +241,7 @@ class DataTableChecker:
 
         check_samples_return = self.check_samples(quant_df, meta_df)
         if check_samples_return == 4:
-            print(
-                f"ERROR: Number of samples in quant data file {len(quant_df)} does not match number of samples meta data file {len(meta_df)}.",
+            print(f"ERROR: Number of samples in quant data file {len(quant_df)} does not match number of samples meta data file {len(meta_df)}.",
                 file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_samples_return == 5:
@@ -253,8 +249,17 @@ class DataTableChecker:
                   flush=True)
             sys.exit(1)
 
+        check_duplicate_samples_return = self.check_duplicate_samples(quant_df, meta_df)
+        if check_duplicate_samples_return == 9:
+            print("ERROR: Duplicate sample ID(s) in quant data file.", file=sys.stderr, flush=True)
+            sys.exit(1)
+        elif check_duplicate_samples_return == 14:
+            print("ERROR: Duplicate sample ID(s) in meta data file.", file=sys.stderr, flush=True)
+            sys.exit(1)
+
         # Set index to sample_id for filtering   
-        quant_df = self.set_quant_index(quant_df)
+        quant_df = self.set_index(quant_df)
+        meta_df = self.set_index(meta_df)
 
         filtered_quant_df = self.filter_proteins_by_class(quant_df, meta_df, args.missing_cutoff)
         if filtered_quant_df == 10:
@@ -267,11 +272,4 @@ class DataTableChecker:
             print("ERROR: Duplicate protein names in quant data file.", file=sys.stderr, flush=True)
             sys.exit(1)
 
-        check_duplicate_samples_return = self.check_duplicate_samples(filtered_quant_df, meta_df)
-        if check_duplicate_samples_return == 9:
-            print("ERROR: Duplicate sample ID(s) in quant data file.", file=sys.stderr, flush=True)
-            sys.exit(1)
-        elif check_duplicate_samples_return == 14:
-            print("ERROR: Duplicate sample ID(s) in meta data file.", file=sys.stderr, flush=True)
-            sys.exit(1)
         return filtered_quant_df, meta_df
