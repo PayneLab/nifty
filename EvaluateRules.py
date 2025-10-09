@@ -284,7 +284,7 @@ class EvaluateRules:
 
         return ""
 
-    def filter_rules(self, summary_df, bool_vectors, k, mutual_info=True, mi_cutoff=0.9):
+    def filter_rules(self, summary_df, bool_vectors, k, mutual_info, mi_cutoff):
         df = summary_df.sort_values(['P_Value', 'True_Score'],
                                     ascending=[True, False])
         used = set()
@@ -329,7 +329,7 @@ class EvaluateRules:
         mi = normalized_mutual_info_score(vec1, vec2)
         return mi
 
-    def save_rules(self, filtered_df: pd.DataFrame, output_file_path: str = 'output.tsv'):
+    def save_rules(self, filtered_df: pd.DataFrame, output_file_path: str):
         filtered_df.to_csv(output_file_path, index=False, sep='\t')
         print(f"Rules saved to {output_file_path}", flush=True)
 
