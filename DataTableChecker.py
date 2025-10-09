@@ -262,7 +262,7 @@ class DataTableChecker:
         meta_df = self.set_index(meta_df)
 
         print(f"INFO: {len(quant_df.columns)} proteins before filtering.", file=sys.stderr, flush=True)
-        filtered_quant_df = self.filter_proteins_by_class(quant_df, meta_df, args.missing_cutoff)
+        filtered_quant_df = self.filter_proteins_by_class(quant_df, meta_df, args.missingness_cutoff)
         if filtered_quant_df == 10:
             print("ERROR: No proteins left after filtering. Please adjust the fraction_na parameter.", file=sys.stderr,
                   flush=True)

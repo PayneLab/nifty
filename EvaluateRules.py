@@ -284,11 +284,14 @@ class EvaluateRules:
 
         return ""
 
-    def filter_rules(self, summary_df, bool_vectors, k, mutual_info, mi_cutoff):
+    def filter_rules(self, summary_df, bool_vectors, k, mutual_info, mi_cutoff, disjoint):
         df = summary_df.sort_values(['P_Value', 'True_Score'],
                                     ascending=[True, False])
         used = set()
         filtered = []
+
+        if disjoint:
+            pass
 
         if mutual_info:
             for _, row in df.iterrows():
@@ -360,7 +363,7 @@ class EvaluateRules:
         expanded_buckets = self.expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
 
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
-        filtered_df = self.filter_rules(summary_df, k=args.k, mutual_info=args.mutual_info)  # TODO will add MI filtering
+        filtered_df = self.filter_rules(summary_df, bool_dict, k=args.k, mutual_info=args.mutual_info, mi_cutoff=args.mi_cutoff, disjoint=args.disjoint)
 
         output_file_path = os.path.join(args.output, "output.tsv")
         self.save_rules(filtered_df, output_file_path)

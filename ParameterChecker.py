@@ -20,13 +20,17 @@ class ParameterChecker:
 
         parser.add_argument("-k", "--k", type=int, default=50, help="Number of top-scoring pairs to return. Default: "
                                                                     "50. Max: 50.")
-        #K cannot be more than 50.
+        parser.add_argument("-nd", "--disjoint", action="store_true", default=False, help="Enable disjoint "
+                                                                                          "filtering. Default: "
+                                                                                          "Disabled.")
         parser.add_argument("-mi", "--mutual-info", action="store_false", default=True, help="Disable mutual information "
                                                                                              "filtering. Default: "
                                                                                              "Enabled.")
-        parser.add_argument("-mc", "--missing-cutoff", type=float, default=0.5, help="Filter out proteins with more "
-                                                                                     "than X percent missing values. "
-                                                                                     "Default: 0.5.")
+        parser.add_argument("-mic", "--mi-cutoff", type=float, default=0.7, help="Filter out rules with mututal "
+                                                                                 "information higher than X. Default: 0.7.")
+        parser.add_argument("-mc", "--missingness-cutoff", type=float, default=0.5, help="Filter out proteins with more "
+                                                                                         "than X percent missing values in both classes. "
+                                                                                         "Default: 0.5.")
         parser.add_argument("-ms", "--min-sample-per-class", type=int, default=15, help="Minimum number of samples "
                                                                                         "required per class. Default:"
                                                                                         " 15.")
@@ -34,7 +38,7 @@ class ParameterChecker:
                                                                                  "Default: current working directory"
                             )
         parser.add_argument("-s", "--seed", type=int, default=None, help="Random seed for reproducibility. Default: "
-                                                                         "Randomly generated."
+                                                                         "random."
         )
         return parser
 
@@ -59,14 +63,19 @@ class ParameterChecker:
         if args.k > 50:
             print("WARNING: K must be a positive integer between 1 and 50. Defaulting to 50.", file=sys.stderr, flush=True)
             args.k = 50
-        if not (0.0 <= args.missing_cutoff <= 1.0):
+        if not (0.0 <= args.missingness_cutoff <= 1.0):
             print("WARNING: Missing cutoff must be between 0.0 and 1.0. Defaulting to 0.5.", file=sys.stderr, flush=True)
-            args.missing_cutoff = 0.5
+            args.missingness_cutoff = 0.5
         if args.min_sample_per_class < 1:
             print("WARNING: Minimum sample per class must be a positive integer. Defaulting to 15.", file=sys.stderr, flush=True)
             args.min_sample_per_class = 15
         if args.mutual_info is False:
-            print("WARNING: No rule filtering enabled.", file=sys.stderr, flush=True)
+            print("WARNING: Mutual information filtering disabled.", file=sys.stderr, flush=True)
+        if args.mi_cutoff < 0 or mi_cutoff > 1:
+            print("WARNING: Mutual information cutoff must be between 0.0 and 1.0. Defaulting to 0.7.", file=sys.stderr, flush=True)
+            args.mi_cutoff = 0.7
+        if args.disjoint is True:
+            print("INFO: Disjoint filtering enabled.", file=sys.stderr, flush=True)
         if args.seed is not None:
             print(f"INFO: Using fixed seed {args.seed}", file=sys.stderr, flush=True)
         if args.output is None:
