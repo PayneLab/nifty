@@ -261,11 +261,13 @@ class DataTableChecker:
         quant_df = self.set_index(quant_df)
         meta_df = self.set_index(meta_df)
 
+        print(f"INFO: {len(quant_df.columns)} proteins before filtering.", file=sys.stderr, flush=True)
         filtered_quant_df = self.filter_proteins_by_class(quant_df, meta_df, args.missing_cutoff)
         if filtered_quant_df == 10:
             print("ERROR: No proteins left after filtering. Please adjust the fraction_na parameter.", file=sys.stderr,
                   flush=True)
             sys.exit(1)
+        print(f"INFO: {len(filtered_quant_df.columns)} proteins after filtering.", file=sys.stderr, flush=True)
 
         check_duplicate_proteins_return = self.check_duplicate_proteins(filtered_quant_df)
         if check_duplicate_proteins_return == 8:

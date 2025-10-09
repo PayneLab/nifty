@@ -317,9 +317,9 @@ class EvaluateRules:
             filtered = df.head(k).to_dict('records')
         filtered_df = pd.DataFrame(filtered).reset_index(drop=True)
 
-        # if mutual_info and len(filtered_df) < k:
-        #     print(f"WARNING: Only {len(filtered_df)} pairs with low mutual information available (requested {k}).",
-        #           file=sys.stderr, flush=True)
+        if mutual_info and len(filtered_df) < k:
+            print(f"WARNING: Only {len(filtered_df)} pairs with low mutual information available (requested {k}).",
+                  file=sys.stderr, flush=True)
 
         return filtered_df
 
