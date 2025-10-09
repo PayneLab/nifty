@@ -287,37 +287,67 @@ class EvaluateRules:
     def filter_rules(self, summary_df, bool_vectors, k, mutual_info, mi_cutoff, disjoint):
         df = summary_df.sort_values(['P_Value', 'True_Score'],
                                     ascending=[True, False])
-        used = set()
+        used_rules = set()
+        used_proteins = set()
         filtered = []
 
-        if disjoint:
-            pass
-
-        if mutual_info:
+        if disjoint and mutual_info:
             for _, row in df.iterrows():
                 rule = row['Gene_Pair']
-                if not used:
-                    used.add(rule)
+                p1 = rule[0]
+                p2 = rule[1]
+
+                if p1 in used_proteins or p2 in used_proteins:
+                    continue
+
+                if not used_rules:
+                    used_rules.add(rule)
+                    used_proteins.update([p1, p2])
                     filtered.append(row.to_dict())
                     continue
+                    
                 redundant = False
-                for kept in used:
+                for kept in used_rules:
                     mi = self.calculate_mutual_information(rule, kept, bool_vectors)
                     if mi >= mi_cutoff:
                         redundant = True
                         break
                 if not redundant:
-                    used.add(rule)
+                    used_rules.add(rule)
+                    used_proteins.update([p1, p2])
                     filtered.append(row.to_dict())
                 if len(filtered) >= k:
                     break
-            #print(f"Rules kept after MI filtering: {len(filtered)}")
-            if filtered:
-                pass
-                #print(f"First rule kept: {filtered[0]['Gene_Pair']}")
-            #print(f"Total redundant rules skipped: {len(df) - len(filtered)}")
+        elif disjoint and not mutual_info:
+            for _, row in df.iterrows():
+                p1, p2 = row['Gene_Pair']
+                if p1 in used_proteins or p2 in used_proteins:
+                    continue
+                filtered.append(row.to_dict())
+                used_proteins.update([p1, p2])
+                if len(filtered) >= k:
+                    break
+        elif mutual_info and not disjoint:
+            for _, row in df.iterrows():
+                rule = row['Gene_Pair']
+                if not used_rules:
+                    used_rules.add(rule)
+                    filtered.append(row.to_dict())
+                    continue
+                redundant = False
+                for kept in used_rules:
+                    mi = self.calculate_mutual_information(rule, kept, bool_vectors)
+                    if mi >= mi_cutoff:
+                        redundant = True
+                        break
+                if not redundant:
+                    used_rules.add(rule)
+                    filtered.append(row.to_dict())
+                if len(filtered) >= k:
+                    break
         else:
             filtered = df.head(k).to_dict('records')
+
         filtered_df = pd.DataFrame(filtered).reset_index(drop=True)
 
         if mutual_info and len(filtered_df) < k:
