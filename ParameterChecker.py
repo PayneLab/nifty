@@ -19,7 +19,7 @@ class ParameterChecker:
         parser.add_argument("-m", "--meta", required=True, help="Path to the Meta file (tsv).")
 
         parser.add_argument("-k", "--k", type=int, default=50, help="Number of top-scoring pairs to return. Default: "
-                                                                    "50.")
+                                                                    "50. Max: 50.")
         #K cannot be more than 50.
         parser.add_argument("-mi", "--mutual-info", action="store_false", default=True, help="Disable mutual information "
                                                                                              "filtering. Default: "
@@ -54,7 +54,10 @@ class ParameterChecker:
                   file=sys.stderr, flush=True)
             sys.exit(1)
         if args.k <= 0:
-            print("WARNING: K must be a positive integer. Defaulting to 50.", file=sys.stderr, flush=True)
+            print("WARNING: K must be a positive integer between 1 and 50. Defaulting to 50.", file=sys.stderr, flush=True)
+            args.k = 50
+        if args.k > 50:
+            print("WARNING: K must be a positive integer between 1 and 50. Defaulting to 50.", file=sys.stderr, flush=True)
             args.k = 50
         if not (0.0 <= args.missing_cutoff <= 1.0):
             print("WARNING: Missing cutoff must be between 0.0 and 1.0. Defaulting to 0.5.", file=sys.stderr, flush=True)
