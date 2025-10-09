@@ -33,9 +33,9 @@ class DataTableChecker:
         if len(header) != 2:
             return 1
         # The metadata file's first column has to be named sample_id
-        if header[0].strip() != "sample_id":
+        if "sample_id" not in header:
             return 2
-        if header[1].strip() != "classification_label":
+        if "classification_label" not in header:
             return 3
         # Ensure there are no NA values in meta file
         if meta_df.isna().any().any():
@@ -80,7 +80,7 @@ class DataTableChecker:
         ''' Ensures values of quant table are either numeric or NA'''
         quant_header = list(quant_df.columns)
         # Same as the previous function, but in the quant_df.
-        if quant_header[0].strip() != "sample_id":
+        if "sample_id" not in quant_header:
             return 2
 
         quant_df_values = quant_df.drop(columns=['sample_id'], errors='ignore')
@@ -206,11 +206,11 @@ class DataTableChecker:
                   flush=True)
             sys.exit(1)
         elif check_meta_file_return == 2:
-            print(f"ERROR: First column of meta data file must be named 'sample_id', but found '{meta_df.columns[0]}'.",
+            print(f"ERROR: Meta data file must have 'sample_id' column.",
                   file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_meta_file_return == 3:
-            print(f"ERROR: Second column of meta data file must be named 'classification_label', but found '{meta_df.columns[1]}'.",
+            print(f"ERROR: Meta data file must have 'classification_label' column.",
                 file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_meta_file_return == 13:
@@ -221,7 +221,7 @@ class DataTableChecker:
         check_quant_data_return = self.check_quant_data(quant_df)
         if check_quant_data_return == 2:
             print(
-                f"ERROR: First column of quant data file must be named 'sample_id', but found '{quant_df.columns[0]}'.",
+                f"ERROR: Quant data file must have 'sample_id' column.",
                 file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_quant_data_return == 6:
