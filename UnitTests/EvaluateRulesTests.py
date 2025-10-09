@@ -321,9 +321,10 @@ class TestEvaluateRules(unittest.TestCase):
 
 
     #Evaluate Buckets Wrapper tests
+    # TODO: fix these two tests with new args structure
     def test_returns_expected_outputs(self):
         """Wrapper should return true_scores dict, summary_df, and filtered_df with correct structure."""
-        true_scores, summary_df, filtered_df = self.evaluator.evaluate_buckets_wrapper(
+        true_scores, summary_df, filtered_df = self.evaluator.run_rule_evaluator(
             self.pairs,
             self.quant_df,
             self.meta_df,
@@ -348,7 +349,7 @@ class TestEvaluateRules(unittest.TestCase):
     def test_saves_output_file(self):
         """Wrapper should save output file when output_file_path is a directory."""
         with TemporaryDirectory() as tmpdir:
-            _, _, filtered_df = self.evaluator.evaluate_buckets_wrapper(
+            _, _, filtered_df = self.evaluator.run_rule_evaluator(
                 self.pairs,
                 self.quant_df,
                 self.meta_df,
@@ -364,6 +365,7 @@ class TestEvaluateRules(unittest.TestCase):
                 content = f.read()
             self.assertGreater(len(content), 0)
 
+    # test MI filtering
     def test_filter_rules_with_mi(self):
         summary_df = pd.DataFrame({
             "Gene_Pair": [

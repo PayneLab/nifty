@@ -29,12 +29,10 @@ def main():
 
     # Evaluate Rules
     rule_evaluator = EvaluateRules(args.seed)
-    true_scores, summary_df, filtered_df = rule_evaluator.evaluate_buckets_wrapper(pairs=rules,
-                                                                                   quant_df=filtered_quant_df,
-                                                                                   meta_df=meta_df,
-                                                                                   k_value=args.k,
-                                                                                   output_file_path=args.output,
-                                                                                   mutual_info=args.mutual_info)   # <- maps your -mi flag
+    true_scores, summary_df, filtered_df = rule_evaluator.run_rule_evaluator(args=args, 
+                                                                             pairs=rules,
+                                                                             quant_df=filtered_quant_df,
+                                                                             meta_df=meta_df)
 
 if __name__ == "__main__":
     main()

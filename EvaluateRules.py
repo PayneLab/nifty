@@ -349,8 +349,7 @@ class EvaluateRules:
 
         return true_scores, summary_df
 
-    def evaluate_buckets_wrapper(self, pairs: list, quant_df, meta_df, mi_threshold=0.9, k_value=10, mutual_info=True,
-                                 output_file_path="output.tsv"):
+    def run_rule_evaluator(self, args, pairs: list, quant_df, meta_df):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
         bool_dict = self.vectorize_all_pairs(pairs, quant_df)
@@ -361,10 +360,9 @@ class EvaluateRules:
         expanded_buckets = self.expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
 
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
-        filtered_df = self.filter_rules(summary_df, k=k_value, mutual_info=mutual_info)  # TODO will add MI filtering
+        filtered_df = self.filter_rules(summary_df, k=args.k, mutual_info=args.mutual_info)  # TODO will add MI filtering
 
-        if output_file_path != "output.tsv":
-            output_file_path = os.path.join(output_file_path, "output.tsv")
+        output_file_path = os.path.join(args.output, "output.tsv")
         self.save_rules(filtered_df, output_file_path)
 
         return true_scores, summary_df, filtered_df
