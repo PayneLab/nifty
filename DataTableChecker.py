@@ -199,6 +199,7 @@ class DataTableChecker:
 
     def run_data_table_checker(self, args, quant_df, meta_df):
 
+        print("CHECKING META DATA FILE", file=sys.stderr, flush=True)
         check_meta_file_return = self.check_meta_file(meta_df)
         if check_meta_file_return == 1:
             print(f"ERROR: Meta data file must have 2 columns, got {len(meta_df.columns)}.", file=sys.stderr,
@@ -216,6 +217,7 @@ class DataTableChecker:
             print("ERROR: Meta data file contains NA values.")
             sys.exit(1)
 
+        print("CHECKING QUANT DATA FILE", file=sys.stderr, flush=True)
         check_quant_data_return = self.check_quant_data(quant_df)
         if check_quant_data_return == 2:
             print(
@@ -231,10 +233,18 @@ class DataTableChecker:
 
         quant_df, meta_df = self.sort_data(quant_df, meta_df)
 
+        print("CHECKING PROTEINS", file=sys.stderr, flush=True)
         check_protein_amount_return = self.check_protein_amount(quant_df)
         if check_protein_amount_return == 12:
             print(f"ERROR: Not enough proteins in quant data file: {quant_df.shape[1] - 1} proteins found, minimum required is 2.")
+            sys.exit(1)
 
+        check_duplicate_proteins_return = self.check_duplicate_proteins(filtered_quant_df)
+        if check_duplicate_proteins_return == 8:
+            print("ERROR: Duplicate protein names in quant data file.", file=sys.stderr, flush=True)
+            sys.exit(1)
+
+        print("CHECKING SAMPLES", file=sys.stderr, flush=True)
         check_enough_samples_return = self.check_enough_samples(meta_df, args.min_sample_per_class)
         if check_enough_samples_return == 11:
             sys.exit(1)
@@ -261,6 +271,7 @@ class DataTableChecker:
         quant_df = self.set_index(quant_df)
         meta_df = self.set_index(meta_df)
 
+        print("FILTERING PROTEINS", file=sys.stderr, flush=True)
         print(f"INFO: {len(quant_df.columns)} proteins before filtering.", file=sys.stderr, flush=True)
         filtered_quant_df = self.filter_proteins_by_class(quant_df, meta_df, args.missingness_cutoff)
         if filtered_quant_df == 10:
@@ -268,10 +279,5 @@ class DataTableChecker:
                   flush=True)
             sys.exit(1)
         print(f"INFO: {len(filtered_quant_df.columns)} proteins after filtering.", file=sys.stderr, flush=True)
-
-        check_duplicate_proteins_return = self.check_duplicate_proteins(filtered_quant_df)
-        if check_duplicate_proteins_return == 8:
-            print("ERROR: Duplicate protein names in quant data file.", file=sys.stderr, flush=True)
-            sys.exit(1)
 
         return filtered_quant_df, meta_df

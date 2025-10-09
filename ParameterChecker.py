@@ -91,8 +91,10 @@ class ParameterChecker:
         return args
 
     def run_paramater_checker(self):
+        print("PARSING ARGS", file=sys.stderr, flush=True)
         paramater_parser = self.set_up_parser()
         args = paramater_parser.parse_args()
+        print("CHECKING ARGS", file=sys.stderr, flush=True)
         args = self.check_arguments(args)
 
         return args

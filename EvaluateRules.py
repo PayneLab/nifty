@@ -305,7 +305,7 @@ class EvaluateRules:
                     used_proteins.update([p1, p2])
                     filtered.append(row.to_dict())
                     continue
-                    
+
                 redundant = False
                 for kept in used_rules:
                     mi = self.calculate_mutual_information(rule, kept, bool_vectors)
@@ -385,16 +385,27 @@ class EvaluateRules:
     def run_rule_evaluator(self, args, pairs: list, quant_df, meta_df):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
+
+        print("GENERATING RULE TABLE", file=sys.stderr, flush=True)
         bool_dict = self.vectorize_all_pairs(pairs, quant_df)
+
+        print("BINARIZING LABELS", file=sys.stderr, flush=True)
         binarized_labels = self.binarize_labels(meta_df)
+
+        print("SCORING RULES", file=sys.stderr, flush=True)
         true_scores = dict(self.evaluate_pairs(pairs, bool_dict, binarized_labels))
+
+        print("EVALUATING SCORES", file=sys.stderr, flush=True)
         bucket_to_rules = self.get_bucket_to_rules(pairs, bool_dict)
         buckets = self.create_null_distributions_for_p_values_testing(bool_dict, binarized_labels, bucket_to_rules)
         expanded_buckets = self.expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
 
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
+
+        print("FILTERING RULES", file=sys.stderr, flush=True)
         filtered_df = self.filter_rules(summary_df, bool_dict, k=args.k, mutual_info=args.mutual_info, mi_cutoff=args.mi_cutoff, disjoint=args.disjoint)
 
+        print("SAVING RULES", file=sys.stderr, flush=True)
         output_file_path = os.path.join(args.output, "output.tsv")
         self.save_rules(filtered_df, output_file_path)
 
