@@ -97,7 +97,6 @@ class DataTableChecker:
         if nan_after > nan_before:
             return 7
 
-        quant_df.iloc[:, 1:] = coerced
         return 0
 
     def check_duplicate_proteins(self, quant_df):
@@ -197,6 +196,10 @@ class DataTableChecker:
         df = df.set_index('sample_id')
         return df
 
+    def coerce_to_numeric(self, df):
+        df = df.apply(pd.to_numeric, errors='coerce')
+        return df
+
     def run_data_table_checker(self, args, quant_df, meta_df):
 
         print("CHECKING META DATA FILE", file=sys.stderr, flush=True)
@@ -270,6 +273,9 @@ class DataTableChecker:
         # Set index to sample_id for filtering   
         quant_df = self.set_index(quant_df)
         meta_df = self.set_index(meta_df)
+
+        # Coerce quant df to numeric before filtering
+        quant_df = self.coerce_to_numeric(quant_df)
 
         print("FILTERING PROTEINS", file=sys.stderr, flush=True)
         print(f"INFO: {len(quant_df.columns)} proteins before filtering.", file=sys.stderr, flush=True)
