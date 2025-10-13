@@ -350,8 +350,14 @@ class EvaluateRules:
 
         filtered_df = pd.DataFrame(filtered).reset_index(drop=True)
 
-        if mutual_info and len(filtered_df) < k:
+        if disjoint and mutual_info and len(filtered_df) < k:
+            print(f"WARNING: Only {len(filtered_df)} disjoint pairs with low mutual information available (requested {k}).",
+                  file=sys.stderr, flush=True)
+        elif mutual_info and not disjoint and len(filtered_df) < k:
             print(f"WARNING: Only {len(filtered_df)} pairs with low mutual information available (requested {k}).",
+                  file=sys.stderr, flush=True)
+        elif disjoint and not mutual_info and len(filtered_df) < k:
+            print(f"WARNING: Only {len(filtered_df)} disjoint pairs available (requested {k}).",
                   file=sys.stderr, flush=True)
 
         return filtered_df
@@ -364,7 +370,7 @@ class EvaluateRules:
 
     def save_rules(self, filtered_df: pd.DataFrame, output_file_path: str):
         filtered_df.to_csv(output_file_path, index=False, sep='\t')
-        print(f"Rules saved to {output_file_path}", flush=True)
+        print(f"INFO: Rules saved to {output_file_path}", file=sys.stderr, flush=True)
 
     #Wrappers:
 
