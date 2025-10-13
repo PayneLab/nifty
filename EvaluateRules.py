@@ -369,6 +369,12 @@ class EvaluateRules:
         return mi
 
     def save_rules(self, filtered_df: pd.DataFrame, output_file_path: str):
+        filtered_df['Protein1'] = filtered_df['Gene_Pair'].apply(lambda x: x[0])
+        filtered_df['Protein2'] = filtered_df['Gene_Pair'].apply(lambda x: x[1])
+
+        filtered_df.rename(columns={'Gene_Pair': 'Protein_Pair', 'True_Score': 'Score'})
+        output_filtered_df = filtered_df.drop('Bucket', axis=1)
+
         filtered_df.to_csv(output_file_path, index=False, sep='\t')
         print(f"INFO: Rules saved to {output_file_path}", file=sys.stderr, flush=True)
 
