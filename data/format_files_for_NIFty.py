@@ -28,8 +28,8 @@ def save_df(df, output_file_path, output_file_name):
 # hard_file_path_na = "na-allow-testing-dfs\\Khan_Elcheikhali_et_al_2024"
 
 # easy dataset - imputation
-easy_dataset_no_na = "no-na-testing-dfs\\proteinXsinglecell_imputed_labeled_corrected.csv"
-easy_file_path_no_na = "no-na-testing-dfs\\Leduc_et_al_2022"
+easy_dataset_no_na = os.path.join("no-na-testing-dfs", "proteinXsinglecell_imputed_labeled_corrected.csv")
+easy_file_path_no_na = os.path.join("no-na-testing-dfs", "Leduc_et_al_2022")
 
 # # hard dataset  - imputation
 # hard_dataset_no_na = "no-na-testing-dfs\\Protein_imputed_labeled.csv"
