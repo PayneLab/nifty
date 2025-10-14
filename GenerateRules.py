@@ -2,6 +2,8 @@ from itertools import combinations
 import pandas as pd
 import sys
 
+from Colors import Colors
+
 class GenerateRules:
     def __init__(self):
         pass
@@ -17,6 +19,6 @@ class GenerateRules:
 
         protein_list = self.get_protein_list(quant_df)
         rule_pairs = list(combinations(protein_list, 2))
-        print(f"INFO: {len(rule_pairs)} rules generated from {len(quant_df.columns)} proteins.", file=sys.stderr, flush=True)
+        print(f"{Colors.INFO}INFO: {len(rule_pairs)} rules generated from {len(quant_df.columns)} proteins.{Colors.END}", file=sys.stderr, flush=True)
         return rule_pairs
     

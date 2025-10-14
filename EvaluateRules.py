@@ -7,6 +7,8 @@ import sys
 import os
 import matplotlib.pyplot as plt
 
+from Colors import Colors
+
 
 class EvaluateRules:
     def __init__(self, seed=None):
@@ -351,13 +353,13 @@ class EvaluateRules:
         filtered_df = pd.DataFrame(filtered).reset_index(drop=True)
 
         if disjoint and mutual_info and len(filtered_df) < k:
-            print(f"WARNING: Only {len(filtered_df)} disjoint pairs with low mutual information available (requested {k}).",
+            print(f"{Colors.WARNING}WARNING: Only {len(filtered_df)} disjoint pairs with low mutual information available (requested {k}).{Colors.END}",
                   file=sys.stderr, flush=True)
         elif mutual_info and not disjoint and len(filtered_df) < k:
-            print(f"WARNING: Only {len(filtered_df)} pairs with low mutual information available (requested {k}).",
+            print(f"{Colors.WARNING}WARNING: Only {len(filtered_df)} pairs with low mutual information available (requested {k}).{Colors.END}",
                   file=sys.stderr, flush=True)
         elif disjoint and not mutual_info and len(filtered_df) < k:
-            print(f"WARNING: Only {len(filtered_df)} disjoint pairs available (requested {k}).",
+            print(f"{Colors.WARNING}WARNING: Only {len(filtered_df)} disjoint pairs available (requested {k}).{Colors.END}",
                   file=sys.stderr, flush=True)
 
         return filtered_df
@@ -377,10 +379,10 @@ class EvaluateRules:
         output_filtered_df = output_filtered_df.iloc[:, [0, 3, 4, 1, 2]]
 
         output_filtered_df.to_csv(output_file_path, index=False, sep='\t')
-        print(f"INFO: Rules saved to {output_file_path}", file=sys.stderr, flush=True)
+        print(f"{Colors.INFO}INFO: Rules saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
     #Wrappers:
-
+    
     # def evaluate_permutate_wrapper(self, pairs: list, quant_df, meta_df, n_permutations=100):
     #     ''' A wrapper function that evaluates pairs and runs permutation test on them.'''
     #     # Evaluate pairs
