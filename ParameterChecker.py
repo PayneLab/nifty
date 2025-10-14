@@ -71,7 +71,7 @@ class ParameterChecker:
             args.min_sample_per_class = 15
         if args.mutual_info is False:
             print("WARNING: Mutual information filtering disabled.", file=sys.stderr, flush=True)
-        if args.mi_cutoff < 0 or mi_cutoff > 1:
+        if args.mi_cutoff < 0 or args.mi_cutoff > 1:
             print("WARNING: Mutual information cutoff must be between 0.0 and 1.0. Defaulting to 0.7.", file=sys.stderr, flush=True)
             args.mi_cutoff = 0.7
         if args.disjoint is True:
