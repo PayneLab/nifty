@@ -20,7 +20,7 @@ class ParameterChecker:
 
         parser.add_argument("-k", "--k", type=int, default=50, help="Number of top-scoring pairs to return. Default: "
                                                                     "50. Max: 50.")
-        parser.add_argument("-nd", "--disjoint", action="store_true", default=False, help="Enable disjoint "
+        parser.add_argument("-d", "--disjoint", action="store_true", default=False, help="Enable disjoint "
                                                                                           "filtering. Default: "
                                                                                           "Disabled.")
         parser.add_argument("-mi", "--mutual-info", action="store_false", default=True, help="Disable mutual information "
