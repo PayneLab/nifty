@@ -280,7 +280,7 @@ class DataTableChecker:
         print("FILTERING PROTEINS", file=sys.stderr, flush=True)
         print(f"INFO: {len(quant_df.columns)} proteins before filtering.", file=sys.stderr, flush=True)
         filtered_quant_df = self.filter_proteins_by_class(quant_df, meta_df, args.missingness_cutoff)
-        if filtered_quant_df == 10:
+        if isinstance(filtered_quant_df, int) and filtered_quant_df == 10:
             print("ERROR: No proteins left after filtering. Please adjust the fraction_na parameter.", file=sys.stderr,
                   flush=True)
             sys.exit(1)
