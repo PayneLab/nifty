@@ -375,7 +375,7 @@ class EvaluateRules:
         filtered_df.rename(columns={'Gene_Pair': 'Protein_Pair', 'True_Score': 'Score'})
         output_filtered_df = filtered_df.drop('Bucket', axis=1)
 
-        filtered_df.to_csv(output_file_path, index=False, sep='\t')
+        output_filtered_df.to_csv(output_file_path, index=False, sep='\t')
         print(f"INFO: Rules saved to {output_file_path}", file=sys.stderr, flush=True)
 
     #Wrappers:
