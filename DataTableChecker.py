@@ -242,7 +242,7 @@ class DataTableChecker:
             print(f"ERROR: Not enough proteins in quant data file: {quant_df.shape[1] - 1} proteins found, minimum required is 2.")
             sys.exit(1)
 
-        check_duplicate_proteins_return = self.check_duplicate_proteins(filtered_quant_df)
+        check_duplicate_proteins_return = self.check_duplicate_proteins(quant_df)
         if check_duplicate_proteins_return == 8:
             print("ERROR: Duplicate protein names in quant data file.", file=sys.stderr, flush=True)
             sys.exit(1)
