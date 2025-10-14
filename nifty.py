@@ -16,8 +16,8 @@ def main():
     # Read in files
     print("", file=sys.stderr, flush=True)
     print("---READING IN FILES---", file=sys.stderr, flush=True)
-    meta_df = pd.read_csv(args.quant, sep="\t")
-    quant_df = pd.read_csv(args.meta, sep="\t")
+    meta_df = pd.read_csv(args.meta, sep="\t")
+    quant_df = pd.read_csv(args.quant, sep="\t")
 
     # Check Data Tables
     print("", file=sys.stderr, flush=True)
