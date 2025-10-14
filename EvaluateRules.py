@@ -380,19 +380,19 @@ class EvaluateRules:
 
     #Wrappers:
 
-    def evaluate_permutate_wrapper(self, pairs: list, quant_df, meta_df, n_permutations=100):
-        ''' A wrapper function that evaluates pairs and runs permutation test on them.'''
-        # Evaluate pairs
-        bool_dict = self.vectorize_all_pairs(pairs, quant_df)
-        binarized_labels = self.binarize_labels(meta_df)
+    # def evaluate_permutate_wrapper(self, pairs: list, quant_df, meta_df, n_permutations=100):
+    #     ''' A wrapper function that evaluates pairs and runs permutation test on them.'''
+    #     # Evaluate pairs
+    #     bool_dict = self.vectorize_all_pairs(pairs, quant_df)
+    #     binarized_labels = self.binarize_labels(meta_df)
 
-        # Get true scores
-        true_scores = dict(self.evaluate_pairs(pairs, bool_dict, binarized_labels))
+    #     # Get true scores
+    #     true_scores = dict(self.evaluate_pairs(pairs, bool_dict, binarized_labels))
 
-        # Run permutation test
-        summary_df = self.permutate(pairs, bool_dict, binarized_labels, n_permutations)
+    #     # Run permutation test
+    #     summary_df = self.permutate(pairs, bool_dict, binarized_labels, n_permutations)
 
-        return true_scores, summary_df
+    #     return true_scores, summary_df
 
     def run_rule_evaluator(self, args, pairs: list, quant_df, meta_df):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
