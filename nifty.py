@@ -1,5 +1,6 @@
 import pandas as pd
 import sys
+import time
 
 from ParameterChecker import ParameterChecker
 from DataTableChecker import DataTableChecker
@@ -8,6 +9,8 @@ from EvaluateRules import EvaluateRules
 
 
 def main():
+    start_time = time.time()
+
     # Check Parameters
     print("---CHECKING PARAMETERS---", file=sys.stderr, flush=True)
     param_checker = ParameterChecker()
@@ -41,6 +44,11 @@ def main():
                                                                              pairs=rules,
                                                                              quant_df=filtered_quant_df,
                                                                              meta_df=meta_df)
+
+    end_time = time.time()
+    total_time = (end_time - start_time) / 60
+    print("", file=sys.stderr, flush=True)
+    print(f"---RUNTIME: {total_time:.2f} MINUTES---", file=sys.stderr, flush=True)
 
 if __name__ == "__main__":
     main()
