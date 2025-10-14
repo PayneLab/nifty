@@ -1,4 +1,5 @@
 import pandas as pd
+import sys
 
 from ParameterChecker import ParameterChecker
 from DataTableChecker import DataTableChecker
