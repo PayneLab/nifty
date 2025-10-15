@@ -1,14 +1,12 @@
+import sys
+import os
+
 import numpy as np
 import pandas as pd
 import statsmodels.stats.multitest as ssm
-# import networkx as nx
 from sklearn.metrics import normalized_mutual_info_score
-import sys
-import os
-import matplotlib.pyplot as plt
 
 from Colors import Colors
-
 
 class EvaluateRules:
     def __init__(self, seed=None):
@@ -49,47 +47,6 @@ class EvaluateRules:
         bool_vector = prot1_values > prot2_values
 
         return bool_vector
-
-    def TEST_vectorize_all_pairs(self, pairs: list, quant_df) -> dict:
-        '''Vectorizes all pairs of proteins and returns a dictionary of boolean vectors.
-        Rows are indexed by the string representation of each pair.'''
-        bool_dict = {}
-        for pair in pairs:
-            bool_vector = self.TEST_vectorize_pairs(pair, quant_df)
-            bool_dict[pair] = bool_vector
-        return bool_dict
-
-    def TEST_vectorize_pairs(self, pair: list, quant_df) -> np.ndarray:
-        prot1_values = quant_df[pair[0]].to_numpy(copy=True)
-        prot2_values = quant_df[pair[1]].to_numpy(copy=True)
-
-        mask1_nan = np.isnan(prot1_values)
-        mask2_nan = np.isnan(prot2_values)
-
-        both_nan = mask1_nan & mask2_nan
-        only1_nan = mask1_nan & ~mask2_nan
-        only2_nan = mask2_nan & ~mask1_nan
-
-        prot1_values[only1_nan] = 0
-        prot2_values[only1_nan] = 10
-
-        prot2_values[only2_nan] = 0
-        prot1_values[only2_nan] = 10
-
-        prot1_values[both_nan] = 0
-        prot2_values[both_nan] = 0
-
-        bool_table = np.where(prot1_values > prot2_values, 1, np.where(prot1_values < prot2_values, 0, 2))
-
-        return bool_table
-
-    def get_percentage(self, bool_table):
-        total = 0
-        total_ties = 0
-        for _, arrays in bool_table.items():
-            total += len(arrays)
-            total_ties += np.sum(arrays == 2)
-        return (total_ties / total) * 100
 
     def score_pair(self, pair: list, bool_dict, binarized_labels: np.ndarray) -> float:
         '''Scores a pair of proteins based on how well they separate the classes in the metadata'''
@@ -212,79 +169,7 @@ class EvaluateRules:
                     "P_Value": p_value
                 })
         summary_df = pd.DataFrame(data)
-        #summary_df = self.get_significant_pairs(summary_df)
         return summary_df
-
-    def add_mutual_information(self, summary_df, bool_vectors, min_threshold=0.9, max_rules=200):
-        rules = list(summary_df.nsmallest(max_rules, "P_Value")['Gene_Pair'])
-        pval_map = dict(zip(summary_df['Gene_Pair'], summary_df['P_Value']))
-
-        edges = []
-        for i in range(len(rules)):
-            v1 = bool_vectors[rules[i]]
-            for j in range(i + 1, len(rules)):
-                v2 = bool_vectors[rules[j]]
-                mi = normalized_mutual_info_score(v1, v2)
-                if mi >= min_threshold:
-                    edges.append({
-                        "Source_Rule": rules[i],
-                        "Target_Rule": rules[j],
-                        "MI_Score": mi,
-                        "Source_P_Value": pval_map[rules[i]],
-                        "Target_P_Value": pval_map[rules[j]],
-                    })
-        return pd.DataFrame(edges)
-
-    def TESTING_filter_disjoint_pairs(self, summary_df: pd.DataFrame, k: int, disjoint=True):
-        df = summary_df.sort_values(['P_Value', 'True_Score'],
-                                    ascending=[True, False])
-        used = set()
-        filtered = []
-        if disjoint:
-            for _, row in df.iterrows():
-                p1, p2 = row['Gene_Pair']
-                if p1 in used or p2 in used:
-                    continue
-                filtered.append(row.to_dict())
-                used.update([p1, p2])
-                if len(filtered) >= k:
-                    break
-        else:
-            filtered = df.head(k).to_dict('records')
-
-        filtered_df = pd.DataFrame(filtered).reset_index(drop=True)
-
-        if 'P_Value' in filtered_df.columns:
-            filtered_df = filtered_df.drop(columns=['P_Value'])
-
-        if disjoint and len(filtered_df) < k:
-            print(f"Only {len(filtered_df)} disjoint pairs available (requested {k}).", flush=True)
-        return filtered_df
-
-    def one_against_the_world(self, summary_df, bool_vectors, n_compare=1000):
-        summary_df = summary_df.sort_values(['P_Value', 'True_Score'],
-                                            ascending=[True, False])
-        first_rule = summary_df.iloc[0]['Gene_Pair']
-        first_vec = bool_vectors[first_rule]
-        print(f"First rule: {first_rule}")
-        n = n_compare
-        mi_values = []
-
-        for i, rule in enumerate(summary_df.iloc[1:1 + n]['Gene_Pair']):
-            vec = bool_vectors[rule]
-            mi = normalized_mutual_info_score(first_vec, vec)
-            mi_values.append(mi)
-            print(f"{first_rule} against {rule} -> MI = {mi:.4f}")
-
-        plt.figure(figsize=(7, 5))
-        plt.hist(mi_values, bins=50, edgecolor='black', alpha=0.7)
-        plt.title(f"Distribution of Mutual Information\nRelative to top rule {first_rule}")
-        plt.xlabel("Normalized Mutual Information (vs top rule)")
-        plt.ylabel("Count of other rules")
-        plt.tight_layout()
-        plt.show()
-
-        return ""
 
     def filter_rules(self, summary_df, bool_vectors, k, mutual_info, mi_cutoff, disjoint):
         df = summary_df.sort_values(['P_Value', 'True_Score'],
@@ -381,22 +266,7 @@ class EvaluateRules:
         output_filtered_df.to_csv(output_file_path, index=False, sep='\t')
         print(f"{Colors.INFO}INFO: Rules saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
-    #Wrappers:
-    
-    # def evaluate_permutate_wrapper(self, pairs: list, quant_df, meta_df, n_permutations=100):
-    #     ''' A wrapper function that evaluates pairs and runs permutation test on them.'''
-    #     # Evaluate pairs
-    #     bool_dict = self.vectorize_all_pairs(pairs, quant_df)
-    #     binarized_labels = self.binarize_labels(meta_df)
-
-    #     # Get true scores
-    #     true_scores = dict(self.evaluate_pairs(pairs, bool_dict, binarized_labels))
-
-    #     # Run permutation test
-    #     summary_df = self.permutate(pairs, bool_dict, binarized_labels, n_permutations)
-
-    #     return true_scores, summary_df
-
+    #Wrapper:
     def run_rule_evaluator(self, args, pairs: list, quant_df, meta_df):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''

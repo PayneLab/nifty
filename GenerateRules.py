@@ -1,6 +1,6 @@
-from itertools import combinations
-import pandas as pd
 import sys
+
+from itertools import combinations
 
 from Colors import Colors
 

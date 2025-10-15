@@ -1,9 +1,9 @@
-import numpy as np
-import pandas as pd
 import sys
 
-from Colors import Colors
+import numpy as np
+import pandas as pd
 
+from Colors import Colors
 
 class DataTableChecker:
     """
@@ -58,24 +58,10 @@ class DataTableChecker:
             return 5
 
         return 0
-    '''
-    def check_samples(self, quant_df, meta_df):
-        if "sample_id" not in quant_df.columns:
-            return 2
-        if "sample_id" not in meta_df.columns:
-            return 2
-        if len(quant_df) != len(meta_df):
-            return 4
-        meta_ids = sorted(set(meta_df["sample_id"].astype(str).str.strip()))
-        quant_ids = sorted(set(quant_df["sample_id"].astype(str).str.strip()))
-        if quant_ids != meta_ids:
-            return 5
-        return 0'''
 
     def sort_data(self, quant_df, meta_df):
         quant_df = quant_df.sort_values(by="sample_id").reset_index(drop=True)
         meta_df = meta_df.sort_values(by="sample_id").reset_index(drop=True)
-        #Add and error?
         return quant_df, meta_df
 
     def check_quant_data(self, quant_df):
@@ -168,7 +154,7 @@ class DataTableChecker:
         filtered_df = quant_df.drop(columns=proteins_to_drop)
 
         # Check if filtered_df is empty
-        ## TODO: change fraction_na ourselves if needed, make less stringent until things work
+        ## TODO: change fraction_na ourselves if needed, make less stringent until things work?
         if filtered_df.shape[1] <= 1:  # only sample_id column left
             return 10
 
@@ -203,7 +189,6 @@ class DataTableChecker:
         return df
 
     def run_data_table_checker(self, args, quant_df, meta_df):
-
         print("CHECKING META DATA FILE", file=sys.stderr, flush=True)
         check_meta_file_return = self.check_meta_file(meta_df)
         if check_meta_file_return == 1:

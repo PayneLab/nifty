@@ -2,10 +2,10 @@ import os
 import argparse
 import random
 import sys
+
 import numpy as np
 
 from Colors import Colors
-
 
 class ParameterChecker:
     '''A class to check the validity of parameters for TSP rule generation.'''
