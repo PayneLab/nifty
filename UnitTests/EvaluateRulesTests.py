@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import sys
 import os
+from pathlib import Path
 
 current_dir = os.path.dirname(__file__)
 parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
@@ -11,9 +12,19 @@ sys.path.append(parent_dir)
 
 from tempfile import TemporaryDirectory
 from EvaluateRules import EvaluateRules
+from ParameterChecker import ParameterChecker
 
 class TestEvaluateRules(unittest.TestCase):
     def setUp(self):
+        self.checker = ParameterChecker()
+        self.parser = self.checker.set_up_parser()
+
+        # create a quant and meta files that are good
+        Path(os.path.join("UnitTests", "quant.tsv")).touch()
+        Path(os.path.join("UnitTests", "meta.tsv")).touch()
+        # create an output path that's good
+        Path(os.path.join("UnitTests", "Test_Output")).mkdir(exist_ok=True)
+
         self.evaluator = EvaluateRules(seed=42)  # keep seed for reproducibility
 
         # quant data
@@ -324,13 +335,18 @@ class TestEvaluateRules(unittest.TestCase):
     # TODO: fix these two tests with new args structure
     def test_returns_expected_outputs(self):
         """Wrapper should return true_scores dict, summary_df, and filtered_df with correct structure."""
+        quant_file_path = os.path.join("UnitTests", "quant.tsv")
+        meta_file_path = os.path.join("UnitTests", "meta.tsv")
+        args = ['-q', quant_file_path, '-m', meta_file_path, '-k', '1', '-mi']
+        args = self.parser.parse_args(args)
+
+        args = self.checker.check_arguments(args)
+        
         true_scores, summary_df, filtered_df = self.evaluator.run_rule_evaluator(
+            args, 
             self.pairs,
             self.quant_df,
-            self.meta_df,
-            k_value=1,
-            mutual_info=False,   # simpler path
-            output_file_path="output.tsv"
+            self.meta_df
         )
 
         # true_scores should be a dict with the pair
@@ -349,13 +365,19 @@ class TestEvaluateRules(unittest.TestCase):
     def test_saves_output_file(self):
         """Wrapper should save output file when output_file_path is a directory."""
         with TemporaryDirectory() as tmpdir:
+            quant_file_path = os.path.join("UnitTests", "quant.tsv")
+            meta_file_path = os.path.join("UnitTests", "meta.tsv")
+            output_path = os.path.join(tmpdir)
+            args = ['-q', quant_file_path, '-m', meta_file_path, '-k', '1', '-mi', '-o', output_path]
+            args = self.parser.parse_args(args)
+
+            args = self.checker.check_arguments(args)
+
             _, _, filtered_df = self.evaluator.run_rule_evaluator(
+                args, 
                 self.pairs,
                 self.quant_df,
-                self.meta_df,
-                k_value=1,
-                mutual_info=False,
-                output_file_path=tmpdir
+                self.meta_df
             )
 
             expected_path = os.path.join(tmpdir, "output.tsv")
@@ -383,7 +405,7 @@ class TestEvaluateRules(unittest.TestCase):
             ('P2', 'P3'): np.array([0, 0, 1, 1, 1])
         }
 
-        filtered_df = self.evaluator.filter_rules(summary_df, bool_vectors, k=3, mutual_info=True, mi_cutoff=0.9)
+        filtered_df = self.evaluator.filter_rules(summary_df, bool_vectors, k=3, mutual_info=True, mi_cutoff=0.9, disjoint=False)
 
         kept = set(filtered_df["Gene_Pair"])
         self.assertIn(('P1', 'P2'), kept)
