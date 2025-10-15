@@ -83,7 +83,10 @@ class TestDataTableChecker(unittest.TestCase):
     def test_check_samples_wrong_column_name(self):
         try:
             quant_df_wrong_col = pd.DataFrame({'SampleID': ['S1', 'S2'], 'P1': [1, 2]})
-            self.assertEqual(self.checker.check_samples(quant_df_wrong_col, self.meta_df), 2)
+            self.assertEqual(self.checker.check_quant_data(quant_df_wrong_col), 2)
+
+            meta_df_wrong_col = pd.DataFrame({'SampleID': ['S1', 'S2'], 'classification_label': ['B', 'A']})
+            self.assertEqual(self.checker.check_meta_file(meta_df_wrong_col), 2)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
