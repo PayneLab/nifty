@@ -1,0 +1,47 @@
+# project settings
+find_features =   # required
+train_model =   # required
+apply_model =   # required
+seed = "random"  # optional, default is "random"
+
+input_files = "reference"  # required if find_features or train_model are true; options: "reference", "individual"; default is "reference"
+
+
+
+# files
+output_dir = "cwd"  # Optional, default is "cwd"
+
+reference_quant_file = ""  # required if find_features or train_model are true and input_files = "reference"
+reference_meta_file = ""  # required if find_features or train_model are true and input_files = "reference"
+
+feature_quant_file = ""  # required if find_features = true and input_files = "individual"
+feature_meta_file = ""  # required if find_features = true and input_files = "individual"
+feature_file = ""  # required if find_features = false
+
+train_quant_file = ""  # required if train_model = true and input_files = "individual"
+train_meta_file = ""  # required if train_model = true and input_files = "individual"
+validate_quant_file = ""  # required if train_model = true and input_files = "individual"
+validate_meta_file = ""  # required if train_model = true and input_files = "individual"
+model_file = ""  # required if train_model = false and apply_model = true
+
+experimental_quant_file = ""  # required if apply_model = true
+
+
+
+# find feature settings
+k = 50  # optional, default is 50
+mc = 0.5  # optional, default is 0.5
+d = false  # optional, default is false
+mi = true  # optional, default is true
+mic = 0.7  # optional, default is 0.7
+
+
+
+# train model settings
+impute_NA_missing = true  # optional, default is true
+
+
+# apply model settings
+
+
+
