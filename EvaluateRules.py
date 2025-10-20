@@ -267,17 +267,17 @@ class EvaluateRules:
         print(f"{Colors.INFO}INFO: Rules saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
     #Wrapper:
-    def run_rule_evaluator(self, args, pairs: list, quant_df, meta_df):
+    def run_rule_evaluator(self, configs, pairs: list, quant_df, meta_df):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
 
-        print("GENERATING RULE TABLE", file=sys.stderr, flush=True)
+        print(" - GENERATING RULE TABLE", file=sys.stderr, flush=True)
         bool_dict = self.vectorize_all_pairs(pairs, quant_df)
 
-        print("BINARIZING LABELS", file=sys.stderr, flush=True)
+        print(" - BINARIZING LABELS", file=sys.stderr, flush=True)
         binarized_labels = self.binarize_labels(meta_df)
 
-        print("SCORING RULES", file=sys.stderr, flush=True)
+        print(" - SCORING RULES", file=sys.stderr, flush=True)
         true_scores = dict(self.evaluate_pairs(pairs, bool_dict, binarized_labels))
 
         print("EVALUATING SCORES", file=sys.stderr, flush=True)
@@ -288,10 +288,10 @@ class EvaluateRules:
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
 
         print("FILTERING RULES", file=sys.stderr, flush=True)
-        filtered_df = self.filter_rules(summary_df, bool_dict, k=args.k, mutual_info=args.mutual_info, mi_cutoff=args.mi_cutoff, disjoint=args.disjoint)
+        filtered_df = self.filter_rules(summary_df, bool_dict, k=configs['k'], mutual_info=configs['mi'], mi_cutoff=configs['mic'], disjoint=configs['d'])
 
         print("SAVING RULES", file=sys.stderr, flush=True)
-        output_file_path = os.path.join(args.output, "output.tsv")
+        output_file_path = os.path.join(configs['output_dir'], "selected_features.tsv")
         self.save_rules(filtered_df, output_file_path)
 
         return true_scores, summary_df, filtered_df
