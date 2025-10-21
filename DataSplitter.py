@@ -74,11 +74,11 @@ class DataSplitter:
         elif not configs['split_for_FS'] and configs['split_for_train'] and configs['split_for_validate']:
             configs['train_quant_table'], configs['train_meta_table'], configs['validate_quant_table'], configs['validate_meta_table'] = self.split_table(quant_df=configs['reference_quant_table'], 
                                                                                                                                                           meta_df=configs['reference_meta_table'], 
-                                                                                                                                                          proportions=(0.7, 0.3), 
+                                                                                                                                                          proportions=(0.7, 0.3),  # TODO: finalize these proportions
                                                                                                                                                           seed=configs['seed'])
         else:  # all three are True
             configs['feature_quant_df'], configs['feature_meta_df'], configs['train_quant_table'], configs['train_meta_table'], configs['validate_quant_table'], configs['validate_meta_table'] = self.split_table(quant_df=configs['reference_quant_table'], 
                                                                                                                                                                                                                    meta_df=configs['reference_meta_table'], 
-                                                                                                                                                                                                                   proportions=(0.15, 0.65, 0.2), 
+                                                                                                                                                                                                                   proportions=(0.15, 0.65, 0.2),  # TODO: finalize these proportions
                                                                                                                                                                                                                    seed=configs['seed'])
 
