@@ -9,11 +9,11 @@ current_dir = os.path.dirname(__file__)
 parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(parent_dir)
 
-from DataTableChecker import DataTableChecker
+from DataStructureChecker import DataStructureChecker
 
 class TestDataTableChecker(unittest.TestCase):
     def setUp(self):
-        self.checker = DataTableChecker()
+        self.checker = DataStructureChecker()
         self.quant_df = pd.DataFrame({'sample_id': ['S1', 'S2'], 'P1': [1, 2]})
         self.meta_df = pd.DataFrame({'sample_id': ['S1', 'S2'], 'classification_label': ['A', 'B']})
         self.base_df = pd.DataFrame({
@@ -194,21 +194,22 @@ class TestDataTableChecker(unittest.TestCase):
     # check_duplicate_samples tests.
     def test_check_duplicate_samples_valid(self):
         try:
-            self.assertEqual(self.checker.check_duplicate_samples(self.quant_df, self.meta_df), 0)
+            self.assertEqual(self.checker.check_duplicate_samples(self.quant_df), 0)
+            self.assertEqual(self.checker.check_duplicate_samples(self.meta_df), 0)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
     def test_check_duplicate_samples_duplicate_sample_ID_quant(self):
         try:
             df_quant_dup = pd.DataFrame({'sample_id': ['S1', 'S1'], 'P1': [1, 2]})
-            self.assertEqual(self.checker.check_duplicate_samples(df_quant_dup, self.meta_df), 9)
+            self.assertEqual(self.checker.check_duplicate_samples(df_quant_dup), 9)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
     def test_check_duplicate_samples_duplicate_sample_ID_meta(self):
         try:
             df_meta_dup = pd.DataFrame({'sample_id': ['S1', 'S1'], 'classification_label': ['A', 'B']})
-            self.assertEqual(self.checker.check_duplicate_samples(self.quant_df, df_meta_dup), 14)
+            self.assertEqual(self.checker.check_duplicate_samples(df_meta_dup), 9)
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
