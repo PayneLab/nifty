@@ -88,6 +88,7 @@ class ParameterChecker:
 
         if configs['find_features'] is False and configs['train_model'] is False and configs['apply_model'] is False:
             print(f"{Colors.ERROR}ERROR: at least one of 'find_features', 'train_model', and 'apply_model' must be true.{Colors.END}")
+            sys.exit(1)
 
         # seed must be "random" or int
         if configs['seed'] == "random":
