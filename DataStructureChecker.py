@@ -17,13 +17,12 @@ class DataStructureChecker:
     6 = The Quant data table only contains NA.
     7 = The Quant data table contains non-numerical or NA values.
     8 = The Quant data table has duplicate protein names.
-    9 = Duplicate sample_id in quant file.
+    9 = Duplicate sample_id in file.
     10 = All proteins were filtered out.
     11 = Not enough samples per class.
     12 = Not enough proteins in quantification data.
     13 = Meta data table contains NA values.
-    14 = Duplicate sample_id in meta data table.
-    15 = Number of classification labels != 2 (currently force binary classification)
+    14 = Number of classification labels != 2 (currently force binary classification)
     """
 
     def __init__(self):
@@ -167,7 +166,7 @@ class DataStructureChecker:
         if len(label_counts) != 2:
             print(f"{Colors.ERROR}ERROR: Wrong number of classification labels; must have 2, found {len(label_counts)}.{Colors.END}",
                     file=sys.stderr, flush=True)
-            return 15
+            return 14
 
         for label, count in label_counts.items():
             if count < min_samples:
@@ -242,7 +241,7 @@ class DataStructureChecker:
         check_enough_samples_return = self.check_enough_samples(meta_df, min_samples)
         if check_enough_samples_return == 11:
             sys.exit(1)
-        if check_enough_samples_return == 15:
+        if check_enough_samples_return == 14:
             sys.exit(1)
 
         check_samples_return = self.check_samples(quant_df, meta_df)
