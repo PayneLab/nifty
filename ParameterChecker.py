@@ -46,7 +46,7 @@ class ParameterChecker:
 
     def read_tsv(self, tsv_file_path):
         try:
-            print(f" - READING IN {tsv_file_path}", file=sys.stderr, flush=True)
+            print(f"    - READING IN {tsv_file_path}", file=sys.stderr, flush=True)
             df = pd.read_csv(tsv_file_path, sep='\t')
             return df
         except pd.errors.ParserError as e:
@@ -58,7 +58,7 @@ class ParameterChecker:
 
     def read_pkl(self, pkl_file_path):
         try:
-            print(f" - READING IN {pkl_file_path}", file=sys.stderr, flush=True)
+            print(f"    - READING IN {pkl_file_path}", file=sys.stderr, flush=True)
             with open(pkl_file_path, 'rb') as f:
                 model = pickle.load(f)
             return model
@@ -69,7 +69,8 @@ class ParameterChecker:
             print(f"{Colors.ERROR}ERROR: {e}{Colors.END}", file=sys.stderr, flush=True)
             sys.exit(1)
 
-    def check_configurations(self, configs):
+    def check_configurations_project_settings(self, configs):
+        print(" - CHECKING PROJECT SETTINGS", file=sys.stderr, flush=True)
         # check project settings
         # all but seed must be booleans
         # all but seed cannot be False
@@ -104,7 +105,8 @@ class ParameterChecker:
             print(f"{Colors.ERROR}ERROR: 'input_files' must be \"reference\" or \"individual\", got {configs['input_files']}.{Colors.END}", file=sys.stderr, flush=True)
             sys.exit(1)
 
-
+    def check_configurations_files(self, configs):
+        print(" - CHECKING FILES", file=sys.stderr, flush=True)
         # check files
         # check that the FS, train, and validate paths are not the same if they're not all empty
         if configs['input_files'] == "individual":
@@ -287,9 +289,10 @@ class ParameterChecker:
             print(f"{Colors.ERROR}ERROR: 'output_dir' '{configs['output_dir']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
             sys.exit(1)
 
-
+    def check_configurations_feature_selection(self, configs):
         # check find features settings
         if configs['find_features']:
+            print(" - CHECKING FEATURE SELECTION SETTINGS", file=sys.stderr, flush=True)
             if not isinstance(configs['k'], int) or not (0 < configs['k'] <= 50):
                 print(f"{Colors.WARNING}WARNING: 'k' must be a positive integer between 1 and 50. Changing 'k' to 50.{Colors.END}", file=sys.stderr, flush=True)
                 configs['k'] = 50
@@ -314,16 +317,18 @@ class ParameterChecker:
                 print(f"{Colors.WARNING}WARNING: 'mic' must be between 0.0 and 1.0. Changing 'mic' to 0.7.{Colors.END}", file=sys.stderr, flush=True)
                 configs['mic'] = 0.7
 
-        
+    def check_configurations_model_training(self, configs):
         # check train model settings
         # TODO
         if configs['train_model']:
+            print(" - CHECKING MODEL TRAINING SETTINGS", file=sys.stderr, flush=True)
             pass
 
-
+    def check_configurations_experimental_classification(self, configs):
         # check apply model settings
         # TODO
         if configs['apply_model']:
+            print(" - CHECKING EXPERIMENTAL CLASSIFICATION SETTINGS", file=sys.stderr, flush=True)
             pass
 
     def run_paramater_checker(self):
@@ -333,7 +338,11 @@ class ParameterChecker:
         configs = self.check_arguments(args)
 
         print("CHECKING PARAMETERS", file=sys.stderr, flush=True)
-        self.check_configurations(configs)
+        self.check_configurations_project_settings(configs)
+        self.check_configurations_files(configs)
+        self.check_configurations_feature_selection(configs)
+        self.check_configurations_model_training(configs)
+        self.check_configurations_experimental_classification(configs)
 
         return configs
     
