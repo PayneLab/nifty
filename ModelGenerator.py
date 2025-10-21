@@ -26,8 +26,8 @@ class ModelGenerator:
         data_transformer = DataTransformer()
         if configs['impute_NA_missing']:
             print("ADDING MISSING PROTEINS AND IMPUTING NA", file=sys.stderr, flush=True)
-            configs['train_quant_table'] = data_transformer.add_null_proteins(feature_df=configs['feature_table'], quant_df=configs['train_quant_table'])
-            configs['validate_quant_table'] = data_transformer.add_null_proteins(feature_df=configs['feature_table'], quant_df=configs['validate_quant_table'])
+            configs['train_quant_table'] = data_transformer.add_missing_proteins(feature_df=configs['feature_table'], quant_df=configs['train_quant_table'])
+            configs['validate_quant_table'] = data_transformer.add_missing_proteins(feature_df=configs['feature_table'], quant_df=configs['validate_quant_table'])
         else:
             print("FILTERING OUT RULES CONTAINING MISSING PROTEINS")
             configs['feature_table'] = data_transformer.filter_rules(feature_df=configs['feature_table'], quant_df=configs['train_quant_table'])

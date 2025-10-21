@@ -1,7 +1,8 @@
-## TODO
 import sys
 import pandas as pd
 import numpy as np
+
+from Colors import Colors
 
 class DataTransformer:
 
@@ -55,7 +56,21 @@ class DataTransformer:
         
         return updated_feature_df
 
-    def add_null_proteins(self, feature_df, quant_df):
+    def add_missing_proteins(self, feature_df, quant_df):
         # TODO: add in missing proteins and populate with NA in preparation for transform
+        proteins = {}
+        proteins.update(feature_df['Protein1'])
+        proteins.update(feature_df['Protein2'])
+
+        all_missing = True
+        for protein in proteins:
+            if protein not in quant_df.columns:
+                quant_df[protein] = np.nan
+            else:
+                all_missing = False
+
+        if all_missing:
+            print(f"{Colors.ERROR}ERROR: All proteins in rules are missing in the quant table.{Colors.END}", file=sys.stderr, flush=True)
+            sys.exit(1)
         
-        return updated_quant_df
+        return quant_df
