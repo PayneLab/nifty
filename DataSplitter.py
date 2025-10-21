@@ -54,8 +54,6 @@ class DataSplitter:
             sys.exit(1)
 
     def run_data_splitter(self, configs):
-        # TODO: split reference as needed and store splits to the correct config locations
-        
         if configs['split_for_FS'] and not configs['split_for_train'] and not configs['split_for_validate']:
             configs['feature_quant_table'] = configs['reference_quant_table']
             configs['feature_meta_table'] = configs['reference_meta_table']
