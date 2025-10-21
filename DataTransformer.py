@@ -69,7 +69,6 @@ class DataTransformer:
         return updated_feature_df
 
     def add_missing_proteins(self, feature_df, quant_df):
-        # TODO: add in missing proteins and populate with NA in preparation for transform
         proteins = {}
         proteins.update(feature_df['Protein1'])
         proteins.update(feature_df['Protein2'])

@@ -8,15 +8,19 @@ from DataTransformer import DataTransformer
 class ModelGenerator:
 
     def __init__(self):
+        # TODO
         pass
 
     def optimize_model(self):
+        # TODO
         pass
 
     def train_model(self):
+        # TODO
         pass
 
     def validate_model(self):
+        # TODO
         pass
 
     def save_model(self, model, output_file_path):
@@ -25,7 +29,7 @@ class ModelGenerator:
         print(f"{Colors.INFO}INFO: Model saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
     def save_performance_metrics(self, metrics, output_file_path):
-        pass
+        # TODO
         print(f"{Colors.INFO}INFO: Model performance metrics saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
     def run_model_generator(self, configs):
