@@ -7,46 +7,11 @@ import statsmodels.stats.multitest as ssm
 from sklearn.metrics import normalized_mutual_info_score
 
 from Colors import Colors
+from DataTransformer import DataTransformer
 
 class EvaluateRules:
     def __init__(self, seed=None):
         self.seed = seed
-
-    def vectorize_all_pairs(self, pairs: list, quant_df) -> dict:
-        '''Vectorizes all pairs of proteins and returns a dictionary of boolean vectors.
-        Rows are indexed by the string representation of each pair.'''
-        bool_dict = {}
-        for pair in pairs:
-            bool_vector = self.vectorize_pair(pair, quant_df)
-            bool_dict[pair] = bool_vector
-        return bool_dict
-
-    def vectorize_pair(self, pair: list, quant_df) -> np.ndarray:
-        '''Gets all values for two proteins of a pair, compares them and returns a boolean vector'''
-        prot1_values = quant_df[pair[0]].to_numpy(copy=True)
-        prot2_values = quant_df[pair[1]].to_numpy(copy=True)
-
-        # Create masks for NaN combinations
-        mask1_nan = np.isnan(prot1_values)
-        mask2_nan = np.isnan(prot2_values)
-
-        both_nan = mask1_nan & mask2_nan
-        only1_nan = mask1_nan & ~mask2_nan
-        only2_nan = mask2_nan & ~mask1_nan
-
-        # Apply replacement logic
-        prot1_values[only1_nan] = 0
-        prot2_values[only1_nan] = 10
-
-        prot2_values[only2_nan] = 0
-        prot1_values[only2_nan] = 10
-
-        prot1_values[both_nan] = 0
-        prot2_values[both_nan] = 10
-
-        bool_vector = prot1_values > prot2_values
-
-        return bool_vector
 
     def score_pair(self, pair: list, bool_dict, binarized_labels: np.ndarray) -> float:
         '''Scores a pair of proteins based on how well they separate the classes in the metadata'''
@@ -272,7 +237,8 @@ class EvaluateRules:
         based on bucket distribution.'''
 
         print(" - GENERATING RULE TABLE", file=sys.stderr, flush=True)
-        bool_dict = self.vectorize_all_pairs(pairs, quant_df)
+        data_transformer = DataTransformer()
+        bool_dict = data_transformer.vectorize_all_pairs(pairs, quant_df)
 
         print(" - BINARIZING LABELS", file=sys.stderr, flush=True)
         binarized_labels = self.binarize_labels(meta_df)

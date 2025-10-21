@@ -34,8 +34,6 @@ class ModelGenerator:
             configs['feature_table'] = data_transformer.filter_rules(feature_df=configs['feature_table'], quant_df=configs['validate_quant_table'])
     
         print("TRANSFORMING DATA", file=sys.stderr, flush=True)
-        # TODO: take proteins from feature table and make list of tuples needed for vectorization
-        
         train_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['train_quant_table'])
         validate_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['validate_quant_table'])
 
