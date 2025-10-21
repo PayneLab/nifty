@@ -23,6 +23,7 @@ class DataStructureChecker:
     12 = Not enough proteins in quantification data.
     13 = Meta data file contains NA values.
     14 = Duplicate sample_id in meta data file.
+    15 = Number of classification labels != 2 (currently force binary classification)
     """
 
     def __init__(self):
@@ -163,6 +164,11 @@ class DataStructureChecker:
         # Create series with counts of each label
         label_counts = meta_df['classification_label'].value_counts()
 
+        if len(label_counts) != 2:
+            print(f"{Colors.ERROR}ERROR: Wrong number of classification labels; must have 2, found {len(label_counts)}.{Colors.END}",
+                    file=sys.stderr, flush=True)
+            return 15
+
         for label, count in label_counts.items():
             if count < min_samples:
                 print(f"{Colors.ERROR}ERROR: Not enough samples for label '{label}': {count} samples found, minimum required is {min_samples}.{Colors.END}",
@@ -236,6 +242,8 @@ class DataStructureChecker:
         check_enough_samples_return = self.check_enough_samples(meta_df, min_samples)
         if check_enough_samples_return == 11:
             sys.exit(1)
+        if check_enough_samples_return == 15:
+            sys.exit(1)
 
         check_samples_return = self.check_samples(quant_df, meta_df)
         if check_samples_return == 4:
@@ -267,7 +275,6 @@ class DataStructureChecker:
         return quant_df, meta_df
     
     def check_quant_table(self, configs, quant_df):
-        ## TODO: fill this in, checks a lone quant table only
         print(" - CHECKING QUANT DATA FILE", file=sys.stderr, flush=True)
         check_quant_data_return = self.check_quant_data(quant_df)
         if check_quant_data_return == 2:
