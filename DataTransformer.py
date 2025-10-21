@@ -38,7 +38,7 @@ class DataTransformer:
         prot1_values[only2_nan] = 10
 
         prot1_values[both_nan] = 0
-        prot2_values[both_nan] = 10
+        prot2_values[both_nan] = 0
 
         bool_vector = prot1_values > prot2_values
 
