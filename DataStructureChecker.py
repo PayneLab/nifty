@@ -14,15 +14,15 @@ class DataStructureChecker:
     3 = Second column is not 'classification_label' column.
     4 = Different number of rows in both files.
     5 = Different sample_ids in both files.
-    6 = The Quant data file only contains NA.
-    7 = The Quant data file contains non-numerical or NA values.
-    8 = The Quant data file has duplicate protein names.
+    6 = The Quant data table only contains NA.
+    7 = The Quant data table contains non-numerical or NA values.
+    8 = The Quant data table has duplicate protein names.
     9 = Duplicate sample_id in quant file.
     10 = All proteins were filtered out.
     11 = Not enough samples per class.
     12 = Not enough proteins in quantification data.
-    13 = Meta data file contains NA values.
-    14 = Duplicate sample_id in meta data file.
+    13 = Meta data table contains NA values.
+    14 = Duplicate sample_id in meta data table.
     15 = Number of classification labels != 2 (currently force binary classification)
     """
 
@@ -32,10 +32,10 @@ class DataStructureChecker:
     def check_meta_file(self, meta_df):
         # Check if there are two columns in the meta file.
         header = list(meta_df.columns)
-        # The metadata file has to have two columns
+        # The metadata table has to have two columns
         if len(header) != 2:
             return 1
-        # The metadata file's first column has to be named sample_id
+        # The metadata table's first column has to be named sample_id
         if "sample_id" not in header:
             return 2
         if "classification_label" not in header:
@@ -193,33 +193,33 @@ class DataStructureChecker:
         return df
 
     def check_paired_quant_and_meta_tables(self, configs, quant_df, meta_df, min_samples):
-        print(" - CHECKING META DATA FILE", file=sys.stderr, flush=True)
+        print(" - CHECKING META DATA TABLE", file=sys.stderr, flush=True)
         check_meta_file_return = self.check_meta_file(meta_df)
         if check_meta_file_return == 1:
-            print(f"{Colors.ERROR}ERROR: Meta data file must have 2 columns, got {len(meta_df.columns)}.{Colors.END}", file=sys.stderr,
+            print(f"{Colors.ERROR}ERROR: Meta data table must have 2 columns, got {len(meta_df.columns)}.{Colors.END}", file=sys.stderr,
                   flush=True)
             sys.exit(1)
         elif check_meta_file_return == 2:
-            print(f"{Colors.ERROR}ERROR: Meta data file must have 'sample_id' column.{Colors.END}",
+            print(f"{Colors.ERROR}ERROR: Meta data table must have 'sample_id' column.{Colors.END}",
                   file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_meta_file_return == 3:
-            print(f"{Colors.ERROR}ERROR: Meta data file must have 'classification_label' column.{Colors.END}",
+            print(f"{Colors.ERROR}ERROR: Meta data table must have 'classification_label' column.{Colors.END}",
                 file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_meta_file_return == 13:
-            print(f"{Colors.ERROR}ERROR: Meta data file contains NA values.{Colors.END}")
+            print(f"{Colors.ERROR}ERROR: Meta data table contains NA values.{Colors.END}")
             sys.exit(1)
 
-        print(" - CHECKING QUANT DATA FILE", file=sys.stderr, flush=True)
+        print(" - CHECKING QUANT DATA TABLE", file=sys.stderr, flush=True)
         check_quant_data_return = self.check_quant_data(quant_df)
         if check_quant_data_return == 2:
             print(
-                f"{Colors.ERROR}ERROR: Quant data file must have 'sample_id' column.{Colors.END}",
+                f"{Colors.ERROR}ERROR: Quant data table must have 'sample_id' column.{Colors.END}",
                 file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_quant_data_return == 6:
-            print(f"{Colors.ERROR}ERROR: Quant data file is empty or contains only NaN values.{Colors.END}", file=sys.stderr, flush=True)
+            print(f"{Colors.ERROR}ERROR: Quant data table is empty or contains only NaN values.{Colors.END}", file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_quant_data_return == 7:
             print(f"{Colors.ERROR}ERROR: Found non-numeric, non-NA value in quant data.{Colors.END}", file=sys.stderr, flush=True)
@@ -230,12 +230,12 @@ class DataStructureChecker:
         print(" - CHECKING PROTEINS", file=sys.stderr, flush=True)
         check_protein_amount_return = self.check_protein_amount(quant_df)
         if check_protein_amount_return == 12:
-            print(f"{Colors.ERROR}ERROR: Not enough proteins in quant data file: {quant_df.shape[1] - 1} proteins found, minimum required is 2.{Colors.END}")
+            print(f"{Colors.ERROR}ERROR: Not enough proteins in quant data table: {quant_df.shape[1] - 1} proteins found, minimum required is 2.{Colors.END}")
             sys.exit(1)
 
         check_duplicate_proteins_return = self.check_duplicate_proteins(quant_df)
         if check_duplicate_proteins_return == 8:
-            print(f"{Colors.ERROR}ERROR: Duplicate protein names in quant data file.{Colors.END}", file=sys.stderr, flush=True)
+            print(f"{Colors.ERROR}ERROR: Duplicate protein names in quant data table.{Colors.END}", file=sys.stderr, flush=True)
             sys.exit(1)
 
         print(" - CHECKING SAMPLES", file=sys.stderr, flush=True)
@@ -247,22 +247,22 @@ class DataStructureChecker:
 
         check_samples_return = self.check_samples(quant_df, meta_df)
         if check_samples_return == 4:
-            print(f"{Colors.ERROR}ERROR: Number of samples in quant data file {len(quant_df)} does not match number of samples meta data file {len(meta_df)}.{Colors.END}",
+            print(f"{Colors.ERROR}ERROR: Number of samples in quant data table {len(quant_df)} does not match number of samples meta data table {len(meta_df)}.{Colors.END}",
                 file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_samples_return == 5:
-            print(f"{Colors.ERROR}ERROR: Sample IDs in quant data file do not match Sample IDs in meta data file.{Colors.END}", file=sys.stderr,
+            print(f"{Colors.ERROR}ERROR: Sample IDs in quant data table do not match Sample IDs in meta data table.{Colors.END}", file=sys.stderr,
                   flush=True)
             sys.exit(1)
 
         check_duplicate_samples_return_quant = self.check_duplicate_samples(quant_df)
         if check_duplicate_samples_return_quant == 9:
-            print(f"{Colors.ERROR}ERROR: Duplicate sample ID(s) in quant data file.{Colors.END}", file=sys.stderr, flush=True)
+            print(f"{Colors.ERROR}ERROR: Duplicate sample ID(s) in quant data table.{Colors.END}", file=sys.stderr, flush=True)
             sys.exit(1)
 
         check_duplicate_samples_return_meta = self.check_duplicate_samples(meta_df)
         if check_duplicate_samples_return_meta == 9:
-            print(f"{Colors.ERROR}ERROR: Duplicate sample ID(s) in meta data file.{Colors.END}", file=sys.stderr, flush=True)
+            print(f"{Colors.ERROR}ERROR: Duplicate sample ID(s) in meta data table.{Colors.END}", file=sys.stderr, flush=True)
             sys.exit(1)
         
         # Set index to sample_id for filtering   
@@ -275,15 +275,15 @@ class DataStructureChecker:
         return quant_df, meta_df
     
     def check_quant_table(self, configs, quant_df):
-        print(" - CHECKING QUANT DATA FILE", file=sys.stderr, flush=True)
+        print(" - CHECKING QUANT DATA TABLE", file=sys.stderr, flush=True)
         check_quant_data_return = self.check_quant_data(quant_df)
         if check_quant_data_return == 2:
             print(
-                f"{Colors.ERROR}ERROR: Quant data file must have 'sample_id' column.{Colors.END}",
+                f"{Colors.ERROR}ERROR: Quant data table must have 'sample_id' column.{Colors.END}",
                 file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_quant_data_return == 6:
-            print(f"{Colors.ERROR}ERROR: Quant data file is empty or contains only NaN values.{Colors.END}", file=sys.stderr, flush=True)
+            print(f"{Colors.ERROR}ERROR: Quant data table is empty or contains only NaN values.{Colors.END}", file=sys.stderr, flush=True)
             sys.exit(1)
         elif check_quant_data_return == 7:
             print(f"{Colors.ERROR}ERROR: Found non-numeric, non-NA value in quant data.{Colors.END}", file=sys.stderr, flush=True)
@@ -292,18 +292,18 @@ class DataStructureChecker:
         print(" - CHECKING PROTEINS", file=sys.stderr, flush=True)
         check_protein_amount_return = self.check_protein_amount(quant_df)
         if check_protein_amount_return == 12:
-            print(f"{Colors.ERROR}ERROR: Not enough proteins in quant data file: {quant_df.shape[1] - 1} proteins found, minimum required is 2.{Colors.END}")
+            print(f"{Colors.ERROR}ERROR: Not enough proteins in quant data table: {quant_df.shape[1] - 1} proteins found, minimum required is 2.{Colors.END}")
             sys.exit(1)
 
         check_duplicate_proteins_return = self.check_duplicate_proteins(quant_df)
         if check_duplicate_proteins_return == 8:
-            print(f"{Colors.ERROR}ERROR: Duplicate protein names in quant data file.{Colors.END}", file=sys.stderr, flush=True)
+            print(f"{Colors.ERROR}ERROR: Duplicate protein names in quant data table.{Colors.END}", file=sys.stderr, flush=True)
             sys.exit(1)
 
         print(" - CHECKING SAMPLES", file=sys.stderr, flush=True)
         check_duplicate_samples_return_quant = self.check_duplicate_samples(quant_df)
         if check_duplicate_samples_return_quant == 9:
-            print(f"{Colors.ERROR}ERROR: Duplicate sample ID(s) in quant data file.{Colors.END}", file=sys.stderr, flush=True)
+            print(f"{Colors.ERROR}ERROR: Duplicate sample ID(s) in quant data table.{Colors.END}", file=sys.stderr, flush=True)
             sys.exit(1)
 
         quant_df = self.set_index(quant_df)
@@ -324,8 +324,13 @@ class DataStructureChecker:
         return filtered_quant_df
     
     def check_feature_table(self, feature_df):
-        # TODO: make sure feature table has the needed columns
-        pass
+        if "Protein1" not in feature_df.columns or "Protein2" not in feature_df.columns:
+            print(f"{Colors.ERROR}ERROR: Feature table must have columns (\"Protein1\", \"Protein2\").{Colors.END}", file=sys.stderr, flush=True)
+            sys.exit(1)
+
+        if len(feature_df) < 1:
+            print(f"{Colors.ERROR}ERROR: Feature table must have at least 1 rule, found {len(feature_df)}.{Colors.END}", file=sys.stderr, flush=True)
+            sys.exit(1)
 
     def check_model(self, model):
         # TODO: check that the model is structured correctly
