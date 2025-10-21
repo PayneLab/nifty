@@ -52,7 +52,19 @@ class DataTransformer:
         return vectorized_pairs
 
     def filter_rules(self, feature_df, quant_df):
-        # TODO: filter out rules that don't have proteins in the quant_df
+        proteins = {}
+        proteins.update(feature_df['Protein1'])
+        proteins.update(feature_df['Protein2'])
+
+        updated_feature_df = feature_df
+
+        for protein in proteins:
+            if protein not in quant_df.columns:
+                updated_feature_df = updated_feature_df[~((updated_feature_df['Protein1'] == protein) | (updated_feature_df['Protein2'] == protein))]
+
+        if len(updated_feature_df) < 1:
+            print(f"{Colors.ERROR}ERROR: All rules filtered out due to missing proteins in the quant table.{Colors.END}", file=sys.stderr, flush=True)
+            sys.exit(1)
         
         return updated_feature_df
 
