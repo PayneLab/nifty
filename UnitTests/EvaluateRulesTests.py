@@ -13,18 +13,13 @@ sys.path.append(parent_dir)
 from tempfile import TemporaryDirectory
 from EvaluateRules import EvaluateRules
 from ParameterChecker import ParameterChecker
+from DataTransformer import DataTransformer
 
 class TestEvaluateRules(unittest.TestCase):
     def setUp(self):
         self.checker = ParameterChecker()
         self.parser = self.checker.set_up_parser()
-
-        # create a quant and meta files that are good
-        Path(os.path.join("UnitTests", "quant.tsv")).touch()
-        Path(os.path.join("UnitTests", "meta.tsv")).touch()
-        # create an output path that's good
-        Path(os.path.join("UnitTests", "Test_Output")).mkdir(exist_ok=True)
-
+        self.transformer = DataTransformer()
         self.evaluator = EvaluateRules(seed=42)  # keep seed for reproducibility
 
         # quant data
@@ -44,48 +39,6 @@ class TestEvaluateRules(unittest.TestCase):
 
         # test pairs
         self.pairs = [("P1", "P2")]
-        
-    def test_vectorize_pair_no_na(self):
-        df = pd.DataFrame({
-            'P1': [1, 4, 6, 3, 1, 7, 1, 7],
-            'P2': [2, 3, 6, 2, 6, 1, 2, 9]
-        })
-        expected = np.array([False, True, False, True, False, True, False, False])
-        result = self.evaluator.vectorize_pair(['P1', 'P2'], df)
-        np.testing.assert_array_equal(result, expected)
-
-    def test_vectorize_pair_na_protein_1(self):
-        df = pd.DataFrame({
-            'P1': [np.nan, 4, 6, np.nan],
-            'P2': [2, 3, 6, 1]
-        })
-        expected = np.array([False, True, False, False])
-        result = self.evaluator.vectorize_pair(['P1', 'P2'], df)
-        np.testing.assert_array_equal(result, expected)
-
-    def test_vectorize_pair_na_protein_2(self):
-        df = pd.DataFrame({
-            'P1': [1, 4, 6],
-            'P2': [2, np.nan, 6]
-        })
-        expected = np.array([False, True, False])
-        result = self.evaluator.vectorize_pair(['P1', 'P2'], df)
-        np.testing.assert_array_equal(result, expected)
-
-    def test_vectorize_pair_na_in_both(self):
-        df = pd.DataFrame({
-            'P1': [0, 4, 6, 3, np.nan, 7, np.nan, 7],
-            'P2': [2, 3, 6, np.nan, 6, np.nan, np.nan, 9]
-        })
-        expected = np.array([False, True, False, True, False, True, False, False])
-        result = self.evaluator.vectorize_pair(['P1', 'P2'], df)
-        np.testing.assert_array_equal(result, expected)
-
-    def test_vectorize_pair_same_proteins(self):
-        df = pd.DataFrame({'P1': [1, 2, 3, 4]})
-        expected = np.array([False, False, False, False])
-        result = self.evaluator.vectorize_pair(['P1', 'P1'], df)
-        np.testing.assert_array_equal(result, expected)
 
     def test_score_pair_no_separation(self):
         quant_df = pd.DataFrame({
@@ -95,7 +48,7 @@ class TestEvaluateRules(unittest.TestCase):
         pair = ('P1', 'P2')
         meta_df = pd.DataFrame({'classification_label': ['H', 'D', 'H', 'D']})
         bin_labels = self.evaluator.binarize_labels(meta_df)
-        bool_dict = {pair: self.evaluator.vectorize_pair(pair, quant_df)}
+        bool_dict = {pair: self.transformer.vectorize_pair(pair, quant_df)}
         self.evaluator._n_pos = np.sum(bin_labels == 1)
         self.evaluator._n_neg = np.sum(bin_labels == 0)
         score = self.evaluator.score_pair(pair, bool_dict, bin_labels)
@@ -109,7 +62,7 @@ class TestEvaluateRules(unittest.TestCase):
         pair = ('P1', 'P2')
         meta_df = pd.DataFrame({'classification_label': ['H', 'H', 'D', 'D']})
         bin_labels = self.evaluator.binarize_labels(meta_df)
-        bool_dict = {pair: self.evaluator.vectorize_pair(pair, quant_df)}
+        bool_dict = {pair: self.transformer.vectorize_pair(pair, quant_df)}
         self.evaluator._n_pos = np.sum(bin_labels == 1)
         self.evaluator._n_neg = np.sum(bin_labels == 0)
         score = self.evaluator.score_pair(pair, bool_dict, bin_labels)
@@ -123,7 +76,7 @@ class TestEvaluateRules(unittest.TestCase):
         pair = ('P1', 'P2')
         meta_df = pd.DataFrame({'classification_label': ['D', 'D', 'H', 'H']})
         bin_labels = self.evaluator.binarize_labels(meta_df)
-        bool_dict = {pair: self.evaluator.vectorize_pair(pair, quant_df)}
+        bool_dict = {pair: self.transformer.vectorize_pair(pair, quant_df)}
         self.evaluator._n_pos = np.sum(bin_labels == 1)
         self.evaluator._n_neg = np.sum(bin_labels == 0)
         score = self.evaluator.score_pair(pair, bool_dict, bin_labels)
@@ -137,7 +90,7 @@ class TestEvaluateRules(unittest.TestCase):
         })
         meta_df = pd.DataFrame({'classification_label': ['H', 'D', 'H', 'D']})
         pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
-        bool_dict = self.evaluator.vectorize_all_pairs(pairs, quant_df)
+        bool_dict = self.transformer.vectorize_all_pairs(pairs, quant_df)
         bin_labels = self.evaluator.binarize_labels(meta_df)
         result = self.evaluator.evaluate_pairs(pairs, bool_dict, bin_labels)
 
@@ -162,7 +115,7 @@ class TestEvaluateRules(unittest.TestCase):
         })
         pairs = [('P1', 'P2')]
         expected_vector = np.array([False, True, False, True, False, True, False, False])
-        bool_vectors = self.evaluator.vectorize_all_pairs(pairs, df)
+        bool_vectors = self.transformer.vectorize_all_pairs(pairs, df)
         np.testing.assert_array_equal(bool_vectors[('P1', 'P2')], expected_vector)
 
     def test_get_proportion_bucket_true_false(self):
@@ -335,52 +288,45 @@ class TestEvaluateRules(unittest.TestCase):
     # TODO: fix these two tests with new args structure
     def test_returns_expected_outputs(self):
         """Wrapper should return true_scores dict, summary_df, and filtered_df with correct structure."""
-        quant_file_path = os.path.join("UnitTests", "quant.tsv")
-        meta_file_path = os.path.join("UnitTests", "meta.tsv")
-        args = ['-q', quant_file_path, '-m', meta_file_path, '-k', '1', '-mi']
-        args = self.parser.parse_args(args)
-
-        args = self.checker.check_arguments(args)
-        
-        true_scores, summary_df, filtered_df = self.evaluator.run_rule_evaluator(
-            args, 
-            self.pairs,
-            self.quant_df,
-            self.meta_df
-        )
-
-        # true_scores should be a dict with the pair
-        self.assertIsInstance(true_scores, dict)
-        self.assertIn(("P1", "P2"), true_scores)
-
-        # summary_df should be a DataFrame with required columns
-        self.assertIsInstance(summary_df, pd.DataFrame)
-        for col in ["Gene_Pair", "True_Score", "Bucket", "P_Value"]:
-            self.assertIn(col, summary_df.columns)
-
-        # filtered_df should be a DataFrame with at most k rows
-        self.assertIsInstance(filtered_df, pd.DataFrame)
-        self.assertLessEqual(len(filtered_df), 1)
-
-    def test_saves_output_file(self):
-        """Wrapper should save output file when output_file_path is a directory."""
         with TemporaryDirectory() as tmpdir:
-            quant_file_path = os.path.join("UnitTests", "quant.tsv")
-            meta_file_path = os.path.join("UnitTests", "meta.tsv")
             output_path = os.path.join(tmpdir)
-            args = ['-q', quant_file_path, '-m', meta_file_path, '-k', '1', '-mi', '-o', output_path]
-            args = self.parser.parse_args(args)
-
-            args = self.checker.check_arguments(args)
-
-            _, _, filtered_df = self.evaluator.run_rule_evaluator(
-                args, 
+            configs = {'k': 1, 'mi': True, 'mic': 0.7, 'd': False, 'output_dir': output_path}
+            
+            true_scores, summary_df, filtered_df = self.evaluator.run_rule_evaluator(
+                configs, 
                 self.pairs,
                 self.quant_df,
                 self.meta_df
             )
 
-            expected_path = os.path.join(tmpdir, "output.tsv")
+            # true_scores should be a dict with the pair
+            self.assertIsInstance(true_scores, dict)
+            self.assertIn(("P1", "P2"), true_scores)
+
+            # summary_df should be a DataFrame with required columns
+            self.assertIsInstance(summary_df, pd.DataFrame)
+            for col in ["Gene_Pair", "True_Score", "Bucket", "P_Value"]:
+                self.assertIn(col, summary_df.columns)
+
+            # filtered_df should be a DataFrame with at most k rows
+            self.assertIsInstance(filtered_df, pd.DataFrame)
+            self.assertLessEqual(len(filtered_df), 1)
+
+    def test_saves_output_file(self):
+        """Wrapper should save output file when output_file_path is a directory."""
+        with TemporaryDirectory() as tmpdir:
+            output_path = os.path.join(tmpdir)
+
+            configs = {'k': 1, 'mi': True, 'mic': 0.7, 'd': False, 'output_dir': output_path}
+
+            _, _, filtered_df = self.evaluator.run_rule_evaluator(
+                configs, 
+                self.pairs,
+                self.quant_df,
+                self.meta_df
+            )
+
+            expected_path = os.path.join(tmpdir, "selected_features.tsv")
             self.assertTrue(os.path.exists(expected_path))
 
             with open(expected_path, "r") as f:
