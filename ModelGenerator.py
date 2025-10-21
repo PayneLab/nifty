@@ -1,5 +1,7 @@
 import sys
+import os
 
+from Colors import Colors
 from DataTransformer import DataTransformer
 
 class ModelGenerator:
@@ -16,11 +18,13 @@ class ModelGenerator:
     def validate_model(self):
         pass
 
-    def save_model(self):
+    def save_model(self, model, output_file_path):
         pass
+        print(f"{Colors.INFO}INFO: Model saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
-    def save_performance_metrics(self):
+    def save_performance_metrics(self, metrics, output_file_path):
         pass
+        print(f"{Colors.INFO}INFO: Model performance metrics saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
     def run_model_generator(self, configs):
         data_transformer = DataTransformer()
@@ -37,10 +41,17 @@ class ModelGenerator:
         train_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['train_quant_table'])
         validate_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['validate_quant_table'])
 
-        # TODO: turn binary dict into df for model training
+        # TODO: turn binary dict into df or matrix for model training (depending on what the format needs to be for scikit-learn)
 
-        # TODO: train and save model to "trained_model.pkl" in the specified output dir, 
-        #       validate model, 
-        #       save train/validate information to "model_performance_metrics.???" in the specified output dir, (ModelGenerator) 
+        # TODO: train model, 
+        #       validate model
+
+        # Save model to "trained_model.pkl" in the specified output dir (configs['output_dir'])
+        model_output_path = os.path.join(configs['output_dir'], "trained_model.pkl")
+        self.save_model(model=model, output_file_path=model_output_path)
+
+        # Save train/validate information to "model_performance_metrics.???" in the specified output dir
+        metrics_output_path = os.path.join(configs['output_dir'], "model_performance_metrics.txt")  # TODO: fix file extension when function is written
+        self.save_performance_metrics(metrics=performance_metrics, output_file_path=metrics_output_path)
         
         return model
