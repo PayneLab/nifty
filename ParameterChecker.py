@@ -295,8 +295,8 @@ class ParameterChecker:
         if configs['find_features']:
             print(" - CHECKING FEATURE SELECTION SETTINGS", file=sys.stderr, flush=True)
             if not isinstance(configs['k_rules'], int) or not (0 < configs['k_rules'] <= 50):
-                print(f"{Colors.WARNING}WARNING: 'k_rules' must be a positive integer between 1 and 50. Changing 'k_rules' to 50.{Colors.END}", file=sys.stderr, flush=True)
-                configs['k_rules'] = 50
+                print(f"{Colors.WARNING}WARNING: 'k_rules' must be a positive integer between 1 and 50. Changing 'k_rules' to 15.{Colors.END}", file=sys.stderr, flush=True)
+                configs['k_rules'] = 15
 
             if not isinstance(configs['missingness_cutoff'], (int, float, complex)) or not (0.0 <= configs['missingness_cutoff'] <= 1.0):
                 print(f"{Colors.WARNING}WARNING: 'missingness_cutoff' must be between 0.0 and 1.0. Changing 'missingness_cutoff' to 0.5.{Colors.END}", file=sys.stderr, flush=True)
