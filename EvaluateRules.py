@@ -254,7 +254,7 @@ class EvaluateRules:
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
 
         print("FILTERING RULES", file=sys.stderr, flush=True)
-        filtered_df = self.filter_rules(summary_df, bool_dict, k=configs['k'], mutual_info=configs['mi'], mi_cutoff=configs['mic'], disjoint=configs['d'])
+        filtered_df = self.filter_rules(summary_df, bool_dict, k=configs['k_rules'], mutual_info=configs['mutual_information'], mi_cutoff=configs['mutual_information_cutoff'], disjoint=configs['disjoint'])
 
         print("SAVING RULES", file=sys.stderr, flush=True)
         output_file_path = os.path.join(configs['output_dir'], "selected_features.tsv")

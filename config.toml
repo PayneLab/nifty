@@ -29,11 +29,11 @@ experimental_quant_file = ""  # required if apply_model = true
 
 
 # find feature settings
-k = 50  # optional, default is 50
-mc = 0.5  # optional, default is 0.5
-d = false  # optional, default is false
-mi = true  # optional, default is true
-mic = 0.7  # optional, default is 0.7
+k_rules = 15  # optional, default is 15, max is 50
+missingness_cutoff = 0.5  # optional, default is 0.5
+disjoint = false  # optional, default is false
+mutual_information = true  # optional, default is true
+mutual_information_cutoff = 0.7  # optional, default is 0.7
 
 
 

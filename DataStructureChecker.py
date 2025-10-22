@@ -313,9 +313,9 @@ class DataStructureChecker:
     def filter_quant_table(self, configs, quant_df, meta_df):
         print("FILTERING PROTEINS", file=sys.stderr, flush=True)
         print(f"{Colors.INFO}INFO: {len(quant_df.columns)} proteins before filtering.{Colors.END}", file=sys.stderr, flush=True)
-        filtered_quant_df = self.filter_proteins_by_class(quant_df, meta_df, configs['mc'])
+        filtered_quant_df = self.filter_proteins_by_class(quant_df, meta_df, configs['missingness_cutoff'])
         if isinstance(filtered_quant_df, int) and filtered_quant_df == 10:
-            print(f"{Colors.ERROR}ERROR: No proteins left after filtering. Please adjust the 'mc' parameter.{Colors.END}", file=sys.stderr,
+            print(f"{Colors.ERROR}ERROR: No proteins left after filtering. Please adjust the 'missingness_cutoff' parameter.{Colors.END}", file=sys.stderr,
                   flush=True)
             sys.exit(1)
         print(f"{Colors.INFO}INFO: {len(filtered_quant_df.columns)} proteins after filtering.{Colors.END}", file=sys.stderr, flush=True)

@@ -294,29 +294,29 @@ class ParameterChecker:
         # check find features settings
         if configs['find_features']:
             print(" - CHECKING FEATURE SELECTION SETTINGS", file=sys.stderr, flush=True)
-            if not isinstance(configs['k'], int) or not (0 < configs['k'] <= 50):
-                print(f"{Colors.WARNING}WARNING: 'k' must be a positive integer between 1 and 50. Changing 'k' to 50.{Colors.END}", file=sys.stderr, flush=True)
-                configs['k'] = 50
+            if not isinstance(configs['k_rules'], int) or not (0 < configs['k_rules'] <= 50):
+                print(f"{Colors.WARNING}WARNING: 'k_rules' must be a positive integer between 1 and 50. Changing 'k_rules' to 50.{Colors.END}", file=sys.stderr, flush=True)
+                configs['k_rules'] = 50
 
-            if not isinstance(configs['mc'], (int, float, complex)) or not (0.0 <= configs['mc'] <= 1.0):
-                print(f"{Colors.WARNING}WARNING: 'mc' must be between 0.0 and 1.0. Changing 'mc' to 0.5.{Colors.END}", file=sys.stderr, flush=True)
-                configs['mc'] = 0.5
+            if not isinstance(configs['missingness_cutoff'], (int, float, complex)) or not (0.0 <= configs['missingness_cutoff'] <= 1.0):
+                print(f"{Colors.WARNING}WARNING: 'missingness_cutoff' must be between 0.0 and 1.0. Changing 'missingness_cutoff' to 0.5.{Colors.END}", file=sys.stderr, flush=True)
+                configs['missingness_cutoff'] = 0.5
 
-            if not isinstance(configs['d'], bool):
-                print(f"{Colors.ERROR}WARNING: 'd' must be a boolean. Type of 'd' is: {type(configs['d'])}. Changing 'd' to False.{Colors.END}", file=sys.stderr, flush=True)
-                configs['d'] = False
-            if configs['d']:
+            if not isinstance(configs['disjoint'], bool):
+                print(f"{Colors.ERROR}WARNING: 'disjoint' must be a boolean. Type of 'disjoint' is: {type(configs['disjoint'])}. Changing 'disjoint' to False.{Colors.END}", file=sys.stderr, flush=True)
+                configs['disjoint'] = False
+            if configs['disjoint']:
                 print(f"{Colors.INFO}INFO: Disjoint filtering enabled.{Colors.END}", file=sys.stderr, flush=True)
 
-            if not isinstance(configs['mi'], bool):
-                print(f"{Colors.ERROR}WARNING: 'mi' must be a boolean. Type of 'mi' is: {type(configs['mi'])}. Changing 'mi' to True.{Colors.END}", file=sys.stderr, flush=True)
-                configs['mi'] = True
-            if not configs['mi']:
+            if not isinstance(configs['mutual_information'], bool):
+                print(f"{Colors.ERROR}WARNING: 'mutual_information' must be a boolean. Type of 'mutual_information' is: {type(configs['mutual_information'])}. Changing 'mutual_information' to True.{Colors.END}", file=sys.stderr, flush=True)
+                configs['mutual_information'] = True
+            if not configs['mutual_information']:
                 print(f"{Colors.WARNING}WARNING: Mutual information filtering disabled.{Colors.END}", file=sys.stderr, flush=True)
 
-            if not isinstance(configs['mic'], (int, float, complex)) or not (0 <= configs['mic'] <= 1):
-                print(f"{Colors.WARNING}WARNING: 'mic' must be between 0.0 and 1.0. Changing 'mic' to 0.7.{Colors.END}", file=sys.stderr, flush=True)
-                configs['mic'] = 0.7
+            if not isinstance(configs['mutual_information_cutoff'], (int, float, complex)) or not (0 <= configs['mutual_information_cutoff'] <= 1):
+                print(f"{Colors.WARNING}WARNING: 'mutual_information_cutoff' must be between 0.0 and 1.0. Changing 'mutual_information_cutoff' to 0.7.{Colors.END}", file=sys.stderr, flush=True)
+                configs['mutual_information_cutoff'] = 0.7
 
     def check_configurations_model_training(self, configs):
         # check train model settings
