@@ -34,6 +34,7 @@ class ParameterChecker:
             raise SystemExit(1)
 
         try:
+            print(f" - READING IN {args.config}", file=sys.stderr, flush=True)
             with open(args.config, "rb") as f:
                 configs = tomllib.load(f)
             return configs
