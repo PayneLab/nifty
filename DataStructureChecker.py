@@ -197,18 +197,18 @@ class DataStructureChecker:
         if check_meta_file_return == 1:
             print(f"{Colors.ERROR}ERROR: Meta data table must have 2 columns, got {len(meta_df.columns)}.{Colors.END}", file=sys.stderr,
                   flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif check_meta_file_return == 2:
             print(f"{Colors.ERROR}ERROR: Meta data table must have 'sample_id' column.{Colors.END}",
                   file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif check_meta_file_return == 3:
             print(f"{Colors.ERROR}ERROR: Meta data table must have 'classification_label' column.{Colors.END}",
                 file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif check_meta_file_return == 13:
             print(f"{Colors.ERROR}ERROR: Meta data table contains NA values.{Colors.END}")
-            sys.exit(1)
+            raise SystemExit(1)
 
         print(" - CHECKING QUANT DATA TABLE", file=sys.stderr, flush=True)
         check_quant_data_return = self.check_quant_data(quant_df)
@@ -216,13 +216,13 @@ class DataStructureChecker:
             print(
                 f"{Colors.ERROR}ERROR: Quant data table must have 'sample_id' column.{Colors.END}",
                 file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif check_quant_data_return == 6:
             print(f"{Colors.ERROR}ERROR: Quant data table is empty or contains only NaN values.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif check_quant_data_return == 7:
             print(f"{Colors.ERROR}ERROR: Found non-numeric, non-NA value in quant data.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         quant_df, meta_df = self.sort_data(quant_df, meta_df)
 
@@ -230,39 +230,39 @@ class DataStructureChecker:
         check_protein_amount_return = self.check_protein_amount(quant_df)
         if check_protein_amount_return == 12:
             print(f"{Colors.ERROR}ERROR: Not enough proteins in quant data table: {quant_df.shape[1] - 1} proteins found, minimum required is 2.{Colors.END}")
-            sys.exit(1)
+            raise SystemExit(1)
 
         check_duplicate_proteins_return = self.check_duplicate_proteins(quant_df)
         if check_duplicate_proteins_return == 8:
             print(f"{Colors.ERROR}ERROR: Duplicate protein names in quant data table.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         print(" - CHECKING SAMPLES", file=sys.stderr, flush=True)
         check_enough_samples_return = self.check_enough_samples(meta_df, min_samples)
         if check_enough_samples_return == 11:
-            sys.exit(1)
+            raise SystemExit(1)
         if check_enough_samples_return == 14:
-            sys.exit(1)
+            raise SystemExit(1)
 
         check_samples_return = self.check_samples(quant_df, meta_df)
         if check_samples_return == 4:
             print(f"{Colors.ERROR}ERROR: Number of samples in quant data table {len(quant_df)} does not match number of samples meta data table {len(meta_df)}.{Colors.END}",
                 file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif check_samples_return == 5:
             print(f"{Colors.ERROR}ERROR: Sample IDs in quant data table do not match Sample IDs in meta data table.{Colors.END}", file=sys.stderr,
                   flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         check_duplicate_samples_return_quant = self.check_duplicate_samples(quant_df)
         if check_duplicate_samples_return_quant == 9:
             print(f"{Colors.ERROR}ERROR: Duplicate sample ID(s) in quant data table.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         check_duplicate_samples_return_meta = self.check_duplicate_samples(meta_df)
         if check_duplicate_samples_return_meta == 9:
             print(f"{Colors.ERROR}ERROR: Duplicate sample ID(s) in meta data table.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         
         # Set index to sample_id for filtering   
         quant_df = self.set_index(quant_df)
@@ -280,30 +280,30 @@ class DataStructureChecker:
             print(
                 f"{Colors.ERROR}ERROR: Quant data table must have 'sample_id' column.{Colors.END}",
                 file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif check_quant_data_return == 6:
             print(f"{Colors.ERROR}ERROR: Quant data table is empty or contains only NaN values.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif check_quant_data_return == 7:
             print(f"{Colors.ERROR}ERROR: Found non-numeric, non-NA value in quant data.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         print(" - CHECKING PROTEINS", file=sys.stderr, flush=True)
         check_protein_amount_return = self.check_protein_amount(quant_df)
         if check_protein_amount_return == 12:
             print(f"{Colors.ERROR}ERROR: Not enough proteins in quant data table: {quant_df.shape[1] - 1} proteins found, minimum required is 2.{Colors.END}")
-            sys.exit(1)
+            raise SystemExit(1)
 
         check_duplicate_proteins_return = self.check_duplicate_proteins(quant_df)
         if check_duplicate_proteins_return == 8:
             print(f"{Colors.ERROR}ERROR: Duplicate protein names in quant data table.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         print(" - CHECKING SAMPLES", file=sys.stderr, flush=True)
         check_duplicate_samples_return_quant = self.check_duplicate_samples(quant_df)
         if check_duplicate_samples_return_quant == 9:
             print(f"{Colors.ERROR}ERROR: Duplicate sample ID(s) in quant data table.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         quant_df = self.set_index(quant_df)
         quant_df = self.coerce_to_numeric(quant_df)
@@ -317,7 +317,7 @@ class DataStructureChecker:
         if isinstance(filtered_quant_df, int) and filtered_quant_df == 10:
             print(f"{Colors.ERROR}ERROR: No proteins left after filtering. Please adjust the 'missingness_cutoff' parameter.{Colors.END}", file=sys.stderr,
                   flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         print(f"{Colors.INFO}INFO: {len(filtered_quant_df.columns)} proteins after filtering.{Colors.END}", file=sys.stderr, flush=True)
 
         return filtered_quant_df
@@ -325,11 +325,11 @@ class DataStructureChecker:
     def check_feature_table(self, feature_df):
         if "Protein1" not in feature_df.columns or "Protein2" not in feature_df.columns:
             print(f"{Colors.ERROR}ERROR: Feature table must have columns (\"Protein1\", \"Protein2\").{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         if len(feature_df) < 1:
             print(f"{Colors.ERROR}ERROR: Feature table must have at least 1 rule, found {len(feature_df)}.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
     def check_model(self, model):
         # TODO: check that the model is structured correctly

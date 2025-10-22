@@ -38,20 +38,20 @@ class DataSplitter:
             else:
                 print(f"{Colors.ERROR}ERROR: Number of proportions provided must be 2 or 3, got {len(proportions)} (please submit issue on GitHub, this is an internal problem).{Colors.END}", 
                     file=sys.stderr, flush=True)
-                sys.exit(1)
+                raise SystemExit(1)
 
             # sanity check
             total_length = sum(len(df) for df in split_dfs[::2])  # count only quant_dfs
             if total_length != len(quant_df):
                 print(f"{Colors.ERROR}ERROR: Number of rows in the split data tables does not match the number of rows in the reference data table (please submit issue on GitHub, this is an internal problem).{Colors.END}", 
                     file=sys.stderr, flush=True)
-                sys.exit(1)
+                raise SystemExit(1)
 
             # return a tuple of all the dataframes, quant then meta, in order of proportions
             return split_dfs
         except Exception as e:
             print(f"{Colors.ERROR}ERROR splitting data: {e}{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
     def run_data_splitter(self, configs):
         if configs['split_for_FS'] and not configs['split_for_train'] and not configs['split_for_validate']:
@@ -59,16 +59,16 @@ class DataSplitter:
             configs['feature_meta_table'] = configs['reference_meta_table']
         elif not configs['split_for_FS'] and configs['split_for_train'] and not configs['split_for_validate']:  # should never happen
             print(f"{Colors.ERROR}ERROR: 'split_for_train' and 'split_for_validate' must both be True or False (please submit issue on GitHub, this is an internal problem).{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif not configs['split_for_FS'] and not configs['split_for_train'] and configs['split_for_validate']:  # should never happen
             print(f"{Colors.ERROR}ERROR: 'split_for_train' and 'split_for_validate' must both be True or False (please submit issue on GitHub, this is an internal problem).{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif configs['split_for_FS'] and configs['split_for_train'] and not configs['split_for_validate']:  # should never happen
             print(f"{Colors.ERROR}ERROR: 'split_for_train' and 'split_for_validate' must both be True or False (please submit issue on GitHub, this is an internal problem).{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif configs['split_for_FS'] and not configs['split_for_train'] and configs['split_for_validate']:  # should never happen
             print(f"{Colors.ERROR}ERROR: 'split_for_train' and 'split_for_validate' must both be True or False (please submit issue on GitHub, this is an internal problem).{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         elif not configs['split_for_FS'] and configs['split_for_train'] and configs['split_for_validate']:
             configs['train_quant_table'], configs['train_meta_table'], configs['validate_quant_table'], configs['validate_meta_table'] = self.split_table(quant_df=configs['reference_quant_table'], 
                                                                                                                                                           meta_df=configs['reference_meta_table'], 

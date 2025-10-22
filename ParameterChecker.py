@@ -27,11 +27,11 @@ class ParameterChecker:
     def check_arguments(self, args):
         if not os.path.isfile(args.config):
             print(f"{Colors.ERROR}ERROR: Config file '{args.config}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         if not args.config.endswith('.toml'):
             print(f"{Colors.ERROR}ERROR: Config file '{args.config}' does not have a valid file extension. Expected '.toml'.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         try:
             with open(args.config, "rb") as f:
@@ -39,10 +39,10 @@ class ParameterChecker:
             return configs
         except tomllib.TOMLDecodeError as e:
             print(f"{Colors.ERROR}ERROR decoding TOML: {e}{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         except Exception as e:
             print(f"{Colors.ERROR}ERROR: {e}{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
     def read_tsv(self, tsv_file_path):
         try:
@@ -51,10 +51,10 @@ class ParameterChecker:
             return df
         except pd.errors.ParserError as e:
             print(f"{Colors.ERROR}ERROR parsing TSV '{tsv_file_path}': {e}{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         except Exception as e:
             print(f"{Colors.ERROR}ERROR: {e}{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
     def read_pkl(self, pkl_file_path):
         try:
@@ -64,10 +64,10 @@ class ParameterChecker:
             return model
         except pickle.UnpicklingError as e:
             print(f"{Colors.ERROR}ERROR unpickling the model '{pkl_file_path}': {e}{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         except Exception as e:
             print(f"{Colors.ERROR}ERROR: {e}{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
     def check_configurations_project_settings(self, configs):
         print(" - CHECKING PROJECT SETTINGS", file=sys.stderr, flush=True)
@@ -76,19 +76,19 @@ class ParameterChecker:
         # all but seed cannot be False
         if not isinstance(configs['find_features'], bool):
             print(f"{Colors.ERROR}ERROR: 'find_features' must be a boolean. Type of 'find_features' is: {type(configs['find_features'])}.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         if not isinstance(configs['train_model'], bool):
             print(f"{Colors.ERROR}ERROR: 'train_model' must be a boolean. Type of 'train_model' is: {type(configs['train_model'])}.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         if not isinstance(configs['apply_model'], bool):
             print(f"{Colors.ERROR}ERROR: 'apply_model' must be a boolean. Type of 'apply_model' is: {type(configs['apply_model'])}.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
         if configs['find_features'] is False and configs['train_model'] is False and configs['apply_model'] is False:
             print(f"{Colors.ERROR}ERROR: at least one of 'find_features', 'train_model', and 'apply_model' must be true.{Colors.END}")
-            sys.exit(1)
+            raise SystemExit(1)
 
         # seed must be "random" or int
         if configs['seed'] == "random":
@@ -104,7 +104,7 @@ class ParameterChecker:
         # input_files can be "reference" or "individual"
         if configs['input_files'] != "reference" and configs['input_files'] != "individual":
             print(f"{Colors.ERROR}ERROR: 'input_files' must be \"reference\" or \"individual\", got {configs['input_files']}.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
     def check_configurations_files(self, configs):
         print(" - CHECKING FILES", file=sys.stderr, flush=True)
@@ -121,7 +121,7 @@ class ParameterChecker:
 
             if identical_files > 0:
                 print(f"{Colors.ERROR}ERROR: 'feature_quant_file'+'feature_meta_file', 'train_quant_file'+'train_meta_file', and 'validate_quant_file'+'validate_meta_file' must all be different, unless empty.{Colors.END}", file=sys.stderr, flush=True)
-                sys.exit(1)
+                raise SystemExit(1)
         
         # if path is required based on project settings:
         #   - must be valid path
@@ -145,19 +145,19 @@ class ParameterChecker:
             else:
                 if not os.path.isfile(configs['feature_quant_file']):
                     print(f"{Colors.ERROR}ERROR: 'feature_quant_file' '{configs['feature_quant_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 if not os.path.isfile(configs['feature_meta_file']):
                     print(f"{Colors.ERROR}ERROR: 'feature_meta_file' '{configs['feature_meta_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 if not configs['feature_quant_file'].endswith('.tsv'):
                     print(f"{Colors.ERROR}ERROR: 'feature_quant_file' '{configs['feature_quant_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 if not configs['feature_meta_file'].endswith('.tsv'):
                     print(f"{Colors.ERROR}ERROR: 'feature_meta_file' '{configs['feature_meta_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 configs['feature_quant_table'] = self.read_tsv(configs['feature_quant_file'])
                 configs['feature_meta_table'] = self.read_tsv(configs['feature_meta_file'])
@@ -166,11 +166,11 @@ class ParameterChecker:
             #   - feature_file
             if not os.path.isfile(configs['feature_file']):
                 print(f"{Colors.ERROR}ERROR: 'feature_file' '{configs['feature_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                sys.exit(1)
+                raise SystemExit(1)
 
             if not configs['feature_file'].endswith('.tsv'):
                 print(f"{Colors.ERROR}ERROR: 'feature_file' '{configs['feature_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
-                sys.exit(1)
+                raise SystemExit(1)
 
             configs['feature_table'] = self.read_tsv(configs['feature_file'])
 
@@ -196,19 +196,19 @@ class ParameterChecker:
                 # train/test dataset
                 if not os.path.isfile(configs['train_quant_file']):
                     print(f"{Colors.ERROR}ERROR: 'train_quant_file' '{configs['train_quant_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 if not os.path.isfile(configs['train_meta_file']):
                     print(f"{Colors.ERROR}ERROR: 'train_meta_file' '{configs['train_meta_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 if not configs['train_quant_file'].endswith('.tsv'):
                     print(f"{Colors.ERROR}ERROR: 'train_quant_file' '{configs['train_quant_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 if not configs['train_meta_file'].endswith('.tsv'):
                     print(f"{Colors.ERROR}ERROR: 'train_meta_file' '{configs['train_meta_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 configs['train_quant_table'] = self.read_tsv(configs['train_quant_file'])
                 configs['train_meta_table'] = self.read_tsv(configs['train_meta_file'])
@@ -216,19 +216,19 @@ class ParameterChecker:
                 # validation dataset
                 if not os.path.isfile(configs['validate_quant_file']):
                     print(f"{Colors.ERROR}ERROR: 'validate_quant_file' '{configs['validate_quant_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 if not os.path.isfile(configs['validate_meta_file']):
                     print(f"{Colors.ERROR}ERROR: 'validate_meta_file' '{configs['validate_meta_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 if not configs['validate_quant_file'].endswith('.tsv'):
                     print(f"{Colors.ERROR}ERROR: 'validate_quant_file' '{configs['validate_quant_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 if not configs['validate_meta_file'].endswith('.tsv'):
                     print(f"{Colors.ERROR}ERROR: 'validate_meta_file' '{configs['validate_meta_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 configs['validate_quant_table'] = self.read_tsv(configs['validate_quant_file'])
                 configs['validate_meta_table'] = self.read_tsv(configs['validate_meta_file'])
@@ -238,47 +238,47 @@ class ParameterChecker:
                 #   - model_file
                 if not os.path.isfile(configs['model_file']):
                     print(f"{Colors.ERROR}ERROR: 'model_file' '{configs['model_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 if not configs['model_file'].endswith('.pkl'):
                     print(f"{Colors.ERROR}ERROR: 'model_file' '{configs['model_file']}' does not have a valid file extension. Expected '.pkl'.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
                 if not configs['find_features']:
                     configs['model'] = self.read_pkl(configs['model_file'])
                 else:
                     print(f"{Colors.ERROR}ERROR: 'find_features' and 'apply_model' enabled while 'train_model' disabled. Generated features may not match loaded model.{Colors.END}", file=sys.stderr, flush=True)
-                    sys.exit(1)
+                    raise SystemExit(1)
 
         if configs['apply_model']:
             # required paths:
             #   - experimental_quant_file
             if not os.path.isfile(configs['experimental_quant_file']):
                 print(f"{Colors.ERROR}ERROR: 'experimental_quant_file' '{configs['experimental_quant_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                sys.exit(1)
+                raise SystemExit(1)
 
             if not configs['experimental_quant_file'].endswith('.tsv'):
                 print(f"{Colors.ERROR}ERROR: 'experimental_quant_file' '{configs['experimental_quant_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
-                sys.exit(1)
+                raise SystemExit(1)
 
             configs['experimental_quant_table'] = self.read_tsv(configs['experimental_quant_file'])
 
         if configs['input_files'] == "reference":
             if not os.path.isfile(configs['reference_quant_file']):
                 print(f"{Colors.ERROR}ERROR: 'reference_quant_file' '{configs['reference_quant_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                sys.exit(1)
+                raise SystemExit(1)
 
             if not os.path.isfile(configs['reference_meta_file']):
                 print(f"{Colors.ERROR}ERROR: 'reference_meta_file' '{configs['reference_meta_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                sys.exit(1)
+                raise SystemExit(1)
 
             if not configs['reference_quant_file'].endswith('.tsv'):
                 print(f"{Colors.ERROR}ERROR: 'reference_quant_file' '{configs['reference_quant_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
-                sys.exit(1)
+                raise SystemExit(1)
 
             if not configs['reference_meta_file'].endswith('.tsv'):
                 print(f"{Colors.ERROR}ERROR: 'reference_meta_file' '{configs['reference_meta_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
-                sys.exit(1)
+                raise SystemExit(1)
 
             configs['reference_quant_table'] = self.read_tsv(configs['reference_quant_file'])
             configs['reference_meta_table'] = self.read_tsv(configs['reference_meta_file'])
@@ -288,7 +288,7 @@ class ParameterChecker:
             print(f"{Colors.INFO}INFO: Setting output directory to '{configs['output_dir']}'.{Colors.END}", file=sys.stderr, flush=True)
         if not os.path.isdir(configs['output_dir']):
             print(f"{Colors.ERROR}ERROR: 'output_dir' '{configs['output_dir']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
 
     def check_configurations_feature_selection(self, configs):
         # check find features settings
@@ -303,13 +303,13 @@ class ParameterChecker:
                 configs['missingness_cutoff'] = 0.5
 
             if not isinstance(configs['disjoint'], bool):
-                print(f"{Colors.ERROR}WARNING: 'disjoint' must be a boolean. Type of 'disjoint' is: {type(configs['disjoint'])}. Changing 'disjoint' to False.{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.WARNING}WARNING: 'disjoint' must be a boolean. Type of 'disjoint' is: {type(configs['disjoint'])}. Changing 'disjoint' to False.{Colors.END}", file=sys.stderr, flush=True)
                 configs['disjoint'] = False
             if configs['disjoint']:
                 print(f"{Colors.INFO}INFO: Disjoint filtering enabled.{Colors.END}", file=sys.stderr, flush=True)
 
             if not isinstance(configs['mutual_information'], bool):
-                print(f"{Colors.ERROR}WARNING: 'mutual_information' must be a boolean. Type of 'mutual_information' is: {type(configs['mutual_information'])}. Changing 'mutual_information' to True.{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.WARNING}WARNING: 'mutual_information' must be a boolean. Type of 'mutual_information' is: {type(configs['mutual_information'])}. Changing 'mutual_information' to True.{Colors.END}", file=sys.stderr, flush=True)
                 configs['mutual_information'] = True
             if not configs['mutual_information']:
                 print(f"{Colors.WARNING}WARNING: Mutual information filtering disabled.{Colors.END}", file=sys.stderr, flush=True)

@@ -64,7 +64,7 @@ class DataTransformer:
 
         if len(updated_feature_df) < 1:
             print(f"{Colors.ERROR}ERROR: All rules filtered out due to missing proteins in the quant table.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         
         return updated_feature_df
 
@@ -82,6 +82,6 @@ class DataTransformer:
 
         if all_missing:
             print(f"{Colors.ERROR}ERROR: All proteins in rules are missing in the quant table.{Colors.END}", file=sys.stderr, flush=True)
-            sys.exit(1)
+            raise SystemExit(1)
         
         return quant_df
