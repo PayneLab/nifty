@@ -21,17 +21,16 @@ class TestCheckArguments(unittest.TestCase):
     def setUp(self):
         self.checker = ParameterChecker()
 
-    @patch('sys.exit')
-    def test_bad_config_path(self, mock_exit):
+    def test_bad_config_path(self):
         parser = self.checker.set_up_parser()
         args = parser.parse_args()
 
-        self.checker.check_arguments(args)
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_arguments(args)
 
-        mock_exit.assert_called_once_with(1)
+        self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_bad_config_extension(self, mock_exit):
+    def test_bad_config_extension(self):
         with TemporaryDirectory() as tmpdir:
             config_path = os.path.join(tmpdir, "config.txt")
             with open(config_path, "w") as config:
@@ -40,12 +39,12 @@ class TestCheckArguments(unittest.TestCase):
             parser = self.checker.set_up_parser()
             args = parser.parse_args(['-c', config_path])
 
-            self.checker.check_arguments(args)
+            with self.assertRaises(SystemExit) as e:
+                self.checker.check_arguments(args)
 
-            mock_exit.assert_called_once_with(1)
+            self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_bad_config_contents(self, mock_exit):
+    def test_bad_config_contents(self):
         with TemporaryDirectory() as tmpdir:
             config_path = os.path.join(tmpdir, "config.toml")
             with open(config_path, "w") as config:
@@ -54,9 +53,10 @@ class TestCheckArguments(unittest.TestCase):
             parser = self.checker.set_up_parser()
             args = parser.parse_args(['-c', config_path])
 
-            self.checker.check_arguments(args)
+            with self.assertRaises(SystemExit) as e:
+                self.checker.check_arguments(args)
 
-            mock_exit.assert_called_once_with(1)
+            self.assertEqual(e.exception.code, 1)
 
     def test_good_config(self):
         with TemporaryDirectory() as tmpdir:
@@ -78,8 +78,7 @@ class TestReadTsv(unittest.TestCase):
     def setUp(self):
         self.checker = ParameterChecker()
 
-    @patch('sys.exit')
-    def test_parse_error_mismatched_numer_of_tabs(self, mock_exit):
+    def test_parse_error_mismatched_numer_of_tabs(self):
         with TemporaryDirectory() as tmpdir:
             tsv_path = os.path.join(tmpdir, "test.tsv")
             with open(tsv_path, "w") as tsv:
@@ -87,12 +86,12 @@ class TestReadTsv(unittest.TestCase):
                 tsv.write("Value\tValue2\tValue3\n")
                 tsv.write("Value\tValue2\tValue3\tValue4\n")
 
-            self.checker.read_tsv(tsv_path)
+            with self.assertRaises(SystemExit) as e:
+                self.checker.read_tsv(tsv_path)
 
-            mock_exit.assert_called_once_with(1)
+            self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_parse_error_unexpected_line_ending(self, mock_exit):
+    def test_parse_error_unexpected_line_ending(self):
         with TemporaryDirectory() as tmpdir:
             tsv_path = os.path.join(tmpdir, "test.tsv")
             with open(tsv_path, "w") as tsv:
@@ -100,12 +99,12 @@ class TestReadTsv(unittest.TestCase):
                 tsv.write("Value\tValue2\tValue3\n")
                 tsv.write("Value\tValue2\tValue3\n")
 
-            self.checker.read_tsv(tsv_path)
+            with self.assertRaises(SystemExit) as e:
+                self.checker.read_tsv(tsv_path)
 
-            mock_exit.assert_called_once_with(1)
+            self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_parse_error_bad_encoding(self, mock_exit):
+    def test_parse_error_bad_encoding(self):
         with TemporaryDirectory() as tmpdir:
             tsv_path = os.path.join(tmpdir, "test.tsv")
             with open(tsv_path, "w", encoding="utf-16") as tsv:
@@ -113,9 +112,10 @@ class TestReadTsv(unittest.TestCase):
                 tsv.write("Value\tValue2\tValue3\n")
                 tsv.write("Value\tValue2\tValue3\n")
 
-            self.checker.read_tsv(tsv_path)
+            with self.assertRaises(SystemExit) as e:
+                self.checker.read_tsv(tsv_path)
 
-            mock_exit.assert_called_once_with(1)
+            self.assertEqual(e.exception.code, 1)
 
     def test_good_tsv(self):
         with TemporaryDirectory() as tmpdir:
@@ -136,19 +136,18 @@ class TestReadPkl(unittest.TestCase):
     def setUp(self):
         self.checker = ParameterChecker()
 
-    @patch('sys.exit')
-    def test_unpickling_error_truncated_pkl_file(self, mock_exit):
+    def test_unpickling_error_truncated_pkl_file(self):
         with TemporaryDirectory() as tmpdir:
             pkl_path = os.path.join(tmpdir, "test.pkl")
             with open(pkl_path, "wb") as pkl:
                 pkl.write(b"Bad pickle file.")
 
-            self.checker.read_pkl(pkl_path)
+            with self.assertRaises(SystemExit) as e:
+                self.checker.read_pkl(pkl_path)
 
-            mock_exit.assert_called_once_with(1)
+            self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_unpickling_error_modified_pkl_data(self, mock_exit):
+    def test_unpickling_error_modified_pkl_data(self):
         with TemporaryDirectory() as tmpdir:
             data = {'a': 1, 'b': 2}
             pkl_path = os.path.join(tmpdir, "test.pkl")
@@ -160,9 +159,10 @@ class TestReadPkl(unittest.TestCase):
                 pkl.seek(10)
                 pkl.write(b"ABC123")
 
-            self.checker.read_pkl(pkl_path)
+            with self.assertRaises(SystemExit) as e:
+                self.checker.read_pkl(pkl_path)
 
-            mock_exit.assert_called_once_with(1)
+            self.assertEqual(e.exception.code, 1)
 
     def test_good_pkl(self):
         with TemporaryDirectory() as tmpdir:
@@ -187,63 +187,63 @@ class TestCheckConfigurationsProjectSettings(unittest.TestCase):
                         'seed': 'random', 
                         'input_files': 'reference'}
 
-    @patch('sys.exit')
-    def test_find_features_string(self, mock_exit):
+    def test_find_features_string(self):
         self.configs['find_features'] = "not a bool"
 
-        self.checker.check_configurations_project_settings(configs=self.configs)
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_project_settings(configs=self.configs)
 
-        mock_exit.assert_called_once_with(1)
+        self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_find_features_int(self, mock_exit):
+    def test_find_features_int(self):
         self.configs['find_features'] = 0
 
-        self.checker.check_configurations_project_settings(configs=self.configs)
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_project_settings(configs=self.configs)
 
-        mock_exit.assert_called_once_with(1)
+        self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_train_model_string(self, mock_exit):
+    def test_train_model_string(self):
         self.configs['train_model'] = "not a bool"
 
-        self.checker.check_configurations_project_settings(configs=self.configs)
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_project_settings(configs=self.configs)
 
-        mock_exit.assert_called_once_with(1)
+        self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_train_model_int(self, mock_exit):
+    def test_train_model_int(self):
         self.configs['train_model'] = 1
 
-        self.checker.check_configurations_project_settings(configs=self.configs)
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_project_settings(configs=self.configs)
 
-        mock_exit.assert_called_once_with(1)
+        self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_apply_model_string(self, mock_exit):
+    def test_apply_model_string(self):
         self.configs['apply_model'] = "not a bool"
 
-        self.checker.check_configurations_project_settings(configs=self.configs)
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_project_settings(configs=self.configs)
 
-        mock_exit.assert_called_once_with(1)
+        self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_apply_model_int(self, mock_exit):
+    def test_apply_model_int(self):
         self.configs['apply_model'] = 2
 
-        self.checker.check_configurations_project_settings(configs=self.configs)
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_project_settings(configs=self.configs)
 
-        mock_exit.assert_called_once_with(1)
+        self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_find_train_apply_all_false(self, mock_exit):
+    def test_find_train_apply_all_false(self):
         self.configs['find_features'] = False
         self.configs['train_model'] = False
         self.configs['apply_model'] = False
 
-        self.checker.check_configurations_project_settings(configs=self.configs)
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_project_settings(configs=self.configs)
 
-        mock_exit.assert_called_once_with(1)
+        self.assertEqual(e.exception.code, 1)
 
     def test_seed_random(self):
         self.checker.check_configurations_project_settings(configs=self.configs)
@@ -285,21 +285,21 @@ class TestCheckConfigurationsProjectSettings(unittest.TestCase):
 
         self.assertEqual(self.configs['seed'], None)
 
-    @patch('sys.exit')
-    def test_input_files_bad_string(self, mock_exit):
+    def test_input_files_bad_string(self):
         self.configs['input_files'] = "bad string"
 
-        self.checker.check_configurations_project_settings(configs=self.configs)
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_project_settings(configs=self.configs)
 
-        mock_exit.assert_called_once_with(1)
+        self.assertEqual(e.exception.code, 1)
 
-    @patch('sys.exit')
-    def test_input_files_int(self, mock_exit):
+    def test_input_files_int(self):
         self.configs['input_files'] = 100
 
-        self.checker.check_configurations_project_settings(configs=self.configs)
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_project_settings(configs=self.configs)
 
-        mock_exit.assert_called_once_with(1)
+        self.assertEqual(e.exception.code, 1)
 
     def test_input_files_reference(self):
         self.configs['input_files'] = "reference"
@@ -322,13 +322,45 @@ class CheckConfigurationsFiles(unittest.TestCase):
     def setUp(self):
         self.checker = ParameterChecker()
 
-        self.configs = {'find_features': True, 
-                        'train_model': True, 
-                        'apply_model': True, 
-                        'input_files': 'reference'}
+        self.configs = {'find_features': False, 
+                        'train_model': False, 
+                        'apply_model': False, 
+                        'input_files': 'reference', 
+                        'output_dir': "cwd", 
+                        'reference_quant_file': "", 
+                        'reference_meta_file': "", 
+                        'feature_quant_file': "", 
+                        'feature_meta_file': "" , 
+                        'feature_file': "", 
+                        'train_quant_file': "", 
+                        'train_meta_file': "", 
+                        'validate_quant_file': "", 
+                        'validate_meta_file': "", 
+                        'model_file': "", 
+                        'experimental_quant_file': "" }
+  
+    def test_input_files_individual_feature_train_paths_identical(self):
+        self.configs['input_files'] = "individual"
+        self.configs['feature_quant_file'] = "pretend/this/is/a/path"
+        self.configs['feature_meta_file'] = "pretend/this/is/a/path"
+        self.configs['train_quant_file'] = "pretend/this/is/a/path"
+        self.configs['train_meta_file'] = "pretend/this/is/a/path"
+
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_files(self.configs)
+
+        self.assertEqual(e.exception.code, 1)
+
+    # def test_input_files_individual_feature_validate_paths_identical(self):
+    #     pass
+
+    # def test_input_files_individual_train_validate_paths_identical(self):
+    #     pass
+
+    # def test_input_files_individual_all_paths_identical(self):
+    #     pass
         
 
-# TODO: Test check_configurations_feature_selection()
 class CheckConfigurationsFeatureSelection(unittest.TestCase):
 
     def setUp(self):
@@ -340,6 +372,23 @@ class CheckConfigurationsFeatureSelection(unittest.TestCase):
                         'disjoint': False, 
                         'mutual_information': True, 
                         'mutual_information_cutoff': 0.7 }
+        
+    def test_find_features_false(self):
+        self.configs = {'find_features': False, 
+                        'k_rules': "15", 
+                        'missingness_cutoff': True, 
+                        'disjoint': 1.0, 
+                        'mutual_information': 0.0, 
+                        'mutual_information_cutoff': False }
+        
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertDictEqual(self.configs, {'find_features': False, 
+                                            'k_rules': "15", 
+                                            'missingness_cutoff': True, 
+                                            'disjoint': 1.0, 
+                                            'mutual_information': 0.0, 
+                                            'mutual_information_cutoff': False })
         
     def test_k_rules_string(self):
         self.configs['k_rules'] = "15"
