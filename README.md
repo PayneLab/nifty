@@ -8,6 +8,8 @@ Run this program with the following command line
 > python main.py -q [quant table file] -m [meta data containing sample labels]
 
 
+Training the model follows the following logic:
+![NIFty train model flowchart](images/Pipeline_flow_train.png)
 
-![NIFty train model flowchart](images/Pipeline flow(1).png)
-![NIFty apply model flowchart](images/Pipeline flow(2).png)
+Applying the model to experimental data follows the following logic:
+![NIFty run model flowchart](images/Pipeline_flow_run.png)
