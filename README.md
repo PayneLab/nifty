@@ -9,4 +9,5 @@ Run this program with the following command line
 
 
 
-![Switchbox Overview drawio](https://github.com/user-attachments/assets/6368d215-9d6a-4e9e-b1d1-daa8013c8668)
+![NIFty train model flowchart](images/Pipeline flow(1).png)
+![NIFty apply model flowchart](images/Pipeline flow(2).png)
