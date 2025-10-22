@@ -39,9 +39,9 @@ mutual_information_cutoff = 0.7  # optional, default is 0.7
 
 # train model settings
 impute_NA_missing = true  # optional, default is true
-
+cross_val = 5
+model = "" # user must input either "RF" or "SVM"
+autotune_hyperparameters = "" # if blank, no autotune will be done. User inputs either "random" or "grid"
 
 # apply model settings
-
-
 
