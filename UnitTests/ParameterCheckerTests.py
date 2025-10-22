@@ -188,7 +188,7 @@ class TestCheckConfigurationsProjectSettings(unittest.TestCase):
                         'input_files': 'reference'}
 
     @patch('sys.exit')
-    def test_find_features_not_bool(self, mock_exit):
+    def test_find_features_string(self, mock_exit):
         self.configs['find_features'] = "not a bool"
 
         self.checker.check_configurations_project_settings(configs=self.configs)
@@ -196,7 +196,7 @@ class TestCheckConfigurationsProjectSettings(unittest.TestCase):
         mock_exit.assert_called_once_with(1)
 
     @patch('sys.exit')
-    def test_find_features_not_bool2(self, mock_exit):
+    def test_find_features_int(self, mock_exit):
         self.configs['find_features'] = 0
 
         self.checker.check_configurations_project_settings(configs=self.configs)
@@ -204,7 +204,7 @@ class TestCheckConfigurationsProjectSettings(unittest.TestCase):
         mock_exit.assert_called_once_with(1)
 
     @patch('sys.exit')
-    def test_train_model_not_bool(self, mock_exit):
+    def test_train_model_string(self, mock_exit):
         self.configs['train_model'] = "not a bool"
 
         self.checker.check_configurations_project_settings(configs=self.configs)
@@ -212,7 +212,7 @@ class TestCheckConfigurationsProjectSettings(unittest.TestCase):
         mock_exit.assert_called_once_with(1)
 
     @patch('sys.exit')
-    def test_train_model_not_bool2(self, mock_exit):
+    def test_train_model_int(self, mock_exit):
         self.configs['train_model'] = 1
 
         self.checker.check_configurations_project_settings(configs=self.configs)
@@ -220,7 +220,7 @@ class TestCheckConfigurationsProjectSettings(unittest.TestCase):
         mock_exit.assert_called_once_with(1)
 
     @patch('sys.exit')
-    def test_apply_model_not_bool(self, mock_exit):
+    def test_apply_model_string(self, mock_exit):
         self.configs['apply_model'] = "not a bool"
 
         self.checker.check_configurations_project_settings(configs=self.configs)
@@ -228,7 +228,7 @@ class TestCheckConfigurationsProjectSettings(unittest.TestCase):
         mock_exit.assert_called_once_with(1)
 
     @patch('sys.exit')
-    def test_apply_model_not_bool2(self, mock_exit):
+    def test_apply_model_int(self, mock_exit):
         self.configs['apply_model'] = 2
 
         self.checker.check_configurations_project_settings(configs=self.configs)
@@ -264,35 +264,56 @@ class TestCheckConfigurationsProjectSettings(unittest.TestCase):
 
         self.assertEqual(self.configs['seed'], 100)
 
-    def test_bad_seed(self):
+    def test_seed_bad_string(self):
         self.configs['seed'] = "bad seed"
 
         self.checker.check_configurations_project_settings(configs=self.configs)
 
         self.assertEqual(self.configs['seed'], None)
 
-    def test_bad_seed2(self):
+    def test_seed_float(self):
         self.configs['seed'] = 100.0
 
         self.checker.check_configurations_project_settings(configs=self.configs)
 
         self.assertEqual(self.configs['seed'], None)
 
+    def test_seed_bool(self):
+        self.configs['seed'] = False
+
+        self.checker.check_configurations_project_settings(configs=self.configs)
+
+        self.assertEqual(self.configs['seed'], None)
+
     @patch('sys.exit')
-    def test_bad_input_files(self, mock_exit):
-        self.configs['input_files'] = "bas string"
+    def test_input_files_bad_string(self, mock_exit):
+        self.configs['input_files'] = "bad string"
 
         self.checker.check_configurations_project_settings(configs=self.configs)
 
         mock_exit.assert_called_once_with(1)
 
     @patch('sys.exit')
-    def test_bad_input_files(self, mock_exit):
+    def test_input_files_int(self, mock_exit):
         self.configs['input_files'] = 100
 
         self.checker.check_configurations_project_settings(configs=self.configs)
 
         mock_exit.assert_called_once_with(1)
+
+    def test_input_files_reference(self):
+        self.configs['input_files'] = "reference"
+
+        self.checker.check_configurations_project_settings(configs=self.configs)
+
+        self.assertEqual(self.configs['input_files'], "reference")
+
+    def test_input_files_individual(self):
+        self.configs['input_files'] = "individual"
+
+        self.checker.check_configurations_project_settings(configs=self.configs)
+
+        self.assertEqual(self.configs['input_files'], "individual")
 
 
 # TODO: Test check_configurations_files()
@@ -314,9 +335,284 @@ class CheckConfigurationsFeatureSelection(unittest.TestCase):
         self.checker = ParameterChecker()
 
         self.configs = {'find_features': True, 
-                        'train_model': True, 
-                        'apply_model': True, 
-                        'input_files': 'reference'}
+                        'k_rules': 15, 
+                        'missingness_cutoff': 0.5, 
+                        'disjoint': False, 
+                        'mutual_information': True, 
+                        'mutual_information_cutoff': 0.7 }
+        
+    def test_k_rules_string(self):
+        self.configs['k_rules'] = "15"
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['k_rules'], 15)
+
+    def test_k_rules_bool(self):
+        self.configs['k_rules'] = True
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['k_rules'], 15)
+
+    def test_k_rules_float(self):
+        self.configs['k_rules'] = 50.0
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['k_rules'], 15)
+
+    def test_k_rules_negative(self):
+        self.configs['k_rules'] = -15
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['k_rules'], 15)
+
+    def test_k_rules_greater_than_max(self):
+        self.configs['k_rules'] = 100
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['k_rules'], 15)
+
+    def test_k_rules_0(self):
+        self.configs['k_rules'] = 0
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['k_rules'], 15)
+
+    def test_k_rules_1(self):
+        self.configs['k_rules'] = 1
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['k_rules'], 1)
+
+    def test_k_rules_50(self):
+        self.configs['k_rules'] = 50
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['k_rules'], 50)
+
+    def test_k_rules_15(self):
+        self.configs['k_rules'] = 15
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['k_rules'], 15)
+
+    def test_missingness_cutoff_string(self):
+        self.configs['missingness_cutoff'] = "0.5"
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['missingness_cutoff'], 0.5)
+
+    def test_missingness_cutoff_bool(self):
+        self.configs['missingness_cutoff'] = True
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['missingness_cutoff'], 0.5)
+
+    def test_missingness_cutoff_int(self):
+        self.configs['missingness_cutoff'] = 1
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['missingness_cutoff'], 1)
+
+    def test_missingness_cutoff_float(self):
+        self.configs['missingness_cutoff'] = 0.8
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['missingness_cutoff'], 0.8)
+
+    def test_missingness_cutoff_negative(self):
+        self.configs['missingness_cutoff'] = -0.5
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['missingness_cutoff'], 0.5)
+
+    def test_missingness_cutoff_greater_than_max(self):
+        self.configs['missingness_cutoff'] = 15
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['missingness_cutoff'], 0.5)
+
+    def test_missingness_cutoff_0(self):
+        self.configs['missingness_cutoff'] = 0.0
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['missingness_cutoff'], 0)
+
+    def test_missingness_cutoff_1(self):
+        self.configs['missingness_cutoff'] = 1.0
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['missingness_cutoff'], 1)
+
+    def test_missingness_cutoff_03(self):
+        self.configs['missingness_cutoff'] = 0.3
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['missingness_cutoff'], 0.3)
+
+    def test_missingness_cutoff_05(self):
+        self.configs['missingness_cutoff'] = 0.5
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['missingness_cutoff'], 0.5)
+
+    def test_disjoint_string(self):
+        self.configs['disjoint'] = "True"
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['disjoint'], False)
+
+    def test_disjoint_float(self):
+        self.configs['disjoint'] = 0.0
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['disjoint'], False)
+
+    def test_disjoint_int(self):
+        self.configs['disjoint'] = 1
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['disjoint'], False)
+
+    def test_disjoint_true(self):
+        self.configs['disjoint'] = True
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['disjoint'], True)
+
+    def test_disjoint_false(self):
+        self.configs['disjoint'] = False
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['disjoint'], False)
+
+    def test_mutual_information_string(self):
+        self.configs['mutual_information'] = "False"
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information'], True)
+
+    def test_mutual_information_float(self):
+        self.configs['mutual_information'] = 0.0
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information'], True)
+
+    def test_mutual_information_int(self):
+        self.configs['mutual_information'] = 1
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information'], True)
+
+    def test_mutual_information_true(self):
+        self.configs['mutual_information'] = True
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information'], True)
+
+    def test_mutual_information_false(self):
+        self.configs['mutual_information'] = False
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information'], False)
+
+    def test_mutual_information_cutoff_string(self):
+        self.configs['mutual_information_cutoff'] = "0.5"
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information_cutoff'], 0.7)
+
+    def test_mutual_information_cutoff_bool(self):
+        self.configs['mutual_information_cutoff'] = True
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information_cutoff'], 0.7)
+
+    def test_mutual_information_cutoff_int(self):
+        self.configs['mutual_information_cutoff'] = 1
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information_cutoff'], 1)
+
+    def test_mutual_information_cutoff_float(self):
+        self.configs['mutual_information_cutoff'] = 0.8
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information_cutoff'], 0.8)
+
+    def test_mutual_information_cutoff_negative(self):
+        self.configs['mutual_information_cutoff'] = -0.5
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information_cutoff'], 0.7)
+
+    def test_mutual_information_cutoff_greater_than_max(self):
+        self.configs['mutual_information_cutoff'] = 15
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information_cutoff'], 0.7)
+
+    def test_mutual_information_cutoff_0(self):
+        self.configs['mutual_information_cutoff'] = 0.0
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information_cutoff'], 0)
+
+    def test_mutual_information_cutoff_1(self):
+        self.configs['mutual_information_cutoff'] = 1.0
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information_cutoff'], 1)
+
+    def test_mutual_information_cutoff_05(self):
+        self.configs['mutual_information_cutoff'] = 0.5
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information_cutoff'], 0.5)
+
+    def test_mutual_information_cutoff_07(self):
+        self.configs['mutual_information_cutoff'] = 0.7
+
+        self.checker.check_configurations_feature_selection(self.configs)
+
+        self.assertEqual(self.configs['mutual_information_cutoff'], 0.7)
 
 
 # TODO: Test check_configurations_model_training()
