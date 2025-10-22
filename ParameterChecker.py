@@ -299,7 +299,7 @@ class ParameterChecker:
                 configs['k_rules'] = 15
 
             if not isinstance(configs['missingness_cutoff'], (int, float, complex)) or not (0.0 <= configs['missingness_cutoff'] <= 1.0):
-                print(f"{Colors.WARNING}WARNING: 'missingness_cutoff' must be between 0.0 and 1.0. Changing 'missingness_cutoff' to 0.5.{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.WARNING}WARNING: 'missingness_cutoff' must be a number between 0.0 and 1.0. Changing 'missingness_cutoff' to 0.5.{Colors.END}", file=sys.stderr, flush=True)
                 configs['missingness_cutoff'] = 0.5
 
             if not isinstance(configs['disjoint'], bool):
@@ -315,7 +315,7 @@ class ParameterChecker:
                 print(f"{Colors.WARNING}WARNING: Mutual information filtering disabled.{Colors.END}", file=sys.stderr, flush=True)
 
             if not isinstance(configs['mutual_information_cutoff'], (int, float, complex)) or not (0 <= configs['mutual_information_cutoff'] <= 1):
-                print(f"{Colors.WARNING}WARNING: 'mutual_information_cutoff' must be between 0.0 and 1.0. Changing 'mutual_information_cutoff' to 0.7.{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.WARNING}WARNING: 'mutual_information_cutoff' must be a number between 0.0 and 1.0. Changing 'mutual_information_cutoff' to 0.7.{Colors.END}", file=sys.stderr, flush=True)
                 configs['mutual_information_cutoff'] = 0.7
 
     def check_configurations_model_training(self, configs):
