@@ -93,7 +93,7 @@ class ParameterChecker:
         # seed must be "random" or int
         if configs['seed'] == "random":
             configs['seed'] = None
-        elif not isinstance(configs['seed'], int):
+        elif isinstance(configs['seed'], bool) or not isinstance(configs['seed'], int):
             print(f"{Colors.WARNING}WARNING: 'seed' {configs['seed']} is not type 'int'. Changing 'seed' to 'random'.{Colors.END}", file=sys.stderr, flush=True)
             configs['seed'] = None
         else:
@@ -294,11 +294,11 @@ class ParameterChecker:
         # check find features settings
         if configs['find_features']:
             print(" - CHECKING FEATURE SELECTION SETTINGS", file=sys.stderr, flush=True)
-            if not isinstance(configs['k_rules'], int) or not (0 < configs['k_rules'] <= 50):
+            if isinstance(configs['k_rules'], bool) or not isinstance(configs['k_rules'], int) or not (0 < configs['k_rules'] <= 50):
                 print(f"{Colors.WARNING}WARNING: 'k_rules' must be a positive integer between 1 and 50. Changing 'k_rules' to 15.{Colors.END}", file=sys.stderr, flush=True)
                 configs['k_rules'] = 15
 
-            if not isinstance(configs['missingness_cutoff'], (int, float, complex)) or not (0.0 <= configs['missingness_cutoff'] <= 1.0):
+            if isinstance(configs['missingness_cutoff'], bool) or not isinstance(configs['missingness_cutoff'], (int, float, complex)) or not (0.0 <= configs['missingness_cutoff'] <= 1.0):
                 print(f"{Colors.WARNING}WARNING: 'missingness_cutoff' must be a number between 0.0 and 1.0. Changing 'missingness_cutoff' to 0.5.{Colors.END}", file=sys.stderr, flush=True)
                 configs['missingness_cutoff'] = 0.5
 
@@ -314,7 +314,7 @@ class ParameterChecker:
             if not configs['mutual_information']:
                 print(f"{Colors.WARNING}WARNING: Mutual information filtering disabled.{Colors.END}", file=sys.stderr, flush=True)
 
-            if not isinstance(configs['mutual_information_cutoff'], (int, float, complex)) or not (0 <= configs['mutual_information_cutoff'] <= 1):
+            if isinstance(configs['mutual_information_cutoff'], bool) or not isinstance(configs['mutual_information_cutoff'], (int, float, complex)) or not (0 <= configs['mutual_information_cutoff'] <= 1):
                 print(f"{Colors.WARNING}WARNING: 'mutual_information_cutoff' must be a number between 0.0 and 1.0. Changing 'mutual_information_cutoff' to 0.7.{Colors.END}", file=sys.stderr, flush=True)
                 configs['mutual_information_cutoff'] = 0.7
 
