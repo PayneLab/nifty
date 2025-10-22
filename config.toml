@@ -44,4 +44,5 @@ model = "" # user must input either "RF" or "SVM"
 autotune_hyperparameters = "" # if blank, no autotune will be done. User inputs either "random" or "grid"
 
 # apply model settings
-
+verbose = False 
+decision_mode = "auto" # user can choose between "predict", "predict_proba", or "decision_function". "auto" picks best option.
