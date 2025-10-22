@@ -9,4 +9,4 @@ Run this program with the following command line
 
 
 
-![Switchbox Overview drawio](https://github.com/user-attachments/assets/6368d215-9d6a-4e9e-b1d1-daa8013c8668)
+![NIFTY flow](https://github.com/user-attachments/assets/90dc7d24-a997-4850-92d9-b86d8bbfaad7)
