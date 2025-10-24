@@ -351,14 +351,262 @@ class CheckConfigurationsFiles(unittest.TestCase):
 
         self.assertEqual(e.exception.code, 1)
 
-    # def test_input_files_individual_feature_validate_paths_identical(self):
-    #     pass
+    def test_input_files_individual_feature_validate_paths_identical(self):
+        self.configs['input_files'] = "individual"
+        self.configs['feature_quant_file'] = "pretend/this/is/a/path"
+        self.configs['feature_meta_file'] = "pretend/this/is/a/path"
+        self.configs['validate_quant_file'] = "pretend/this/is/a/path"
+        self.configs['validate_meta_file'] = "pretend/this/is/a/path"
 
-    # def test_input_files_individual_train_validate_paths_identical(self):
-    #     pass
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_files(self.configs)
 
-    # def test_input_files_individual_all_paths_identical(self):
-    #     pass
+        self.assertEqual(e.exception.code, 1)
+
+    def test_input_files_individual_train_validate_paths_identical(self):
+        self.configs['input_files'] = "individual"
+        self.configs['train_quant_file'] = "pretend/this/is/a/path"
+        self.configs['train_meta_file'] = "pretend/this/is/a/path"
+        self.configs['validate_quant_file'] = "pretend/this/is/a/path"
+        self.configs['validate_meta_file'] = "pretend/this/is/a/path"
+
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_files(self.configs)
+
+        self.assertEqual(e.exception.code, 1)
+
+    def test_input_files_individual_all_paths_identical(self):
+        self.configs['input_files'] = "individual"
+        self.configs['feature_quant_file'] = "pretend/this/is/a/path"
+        self.configs['feature_meta_file'] = "pretend/this/is/a/path"
+        self.configs['train_quant_file'] = "pretend/this/is/a/path"
+        self.configs['train_meta_file'] = "pretend/this/is/a/path"
+        self.configs['validate_quant_file'] = "pretend/this/is/a/path"
+        self.configs['validate_meta_file'] = "pretend/this/is/a/path"
+
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_files(self.configs)
+
+        self.assertEqual(e.exception.code, 1)
+
+    def test_find_features_input_files_reference(self):
+        self.configs['find_features'] = True
+
+        with TemporaryDirectory() as tmpdir:
+            reference_quant_path = os.path.join(tmpdir, "reference_quant.tsv")
+            reference_meta_path = os.path.join(tmpdir, "reference_meta.tsv")
+
+            with open(reference_quant_path, "w") as quant:
+                quant.write("sample_id\tProtein1\tProtein2\tProtein3\n")
+                quant.write("samp1\t1\t0\t1000\n")
+            
+            with open(reference_meta_path, "w") as meta:
+                meta.write("sample_id\tclassification_label\n")
+                meta.write("samp1\tH\n")
+
+            self.configs['reference_quant_file'] = reference_quant_path
+            self.configs['reference_meta_file'] = reference_meta_path
+
+            self.checker.check_configurations_files(self.configs)
+
+            self.assertIn('split_for_FS', self.configs)
+            self.assertIn('split_for_train', self.configs)
+            self.assertIn('split_for_validate', self.configs)
+
+            self.assertEqual(self.configs['split_for_FS'], True)
+            self.assertEqual(self.configs['split_for_train'], False)
+            self.assertEqual(self.configs['split_for_validate'], False)
+
+    def test_find_features_input_files_individual_bad_quant_path(self):
+        self.configs['find_features'] = True
+        self.configs['input_files'] = "individual"
+
+        with TemporaryDirectory() as tmpdir:
+            feature_quant_path = os.path.join(tmpdir, "reference_quant.tsv")
+            feature_meta_path = os.path.join(tmpdir, "reference_meta.tsv")
+
+            with open(feature_quant_path, "w") as quant:
+                quant.write("sample_id\tProtein1\tProtein2\tProtein3\n")
+                quant.write("samp1\t1\t0\t1000\n")
+            
+            with open(feature_meta_path, "w") as meta:
+                meta.write("sample_id\tclassification_label\n")
+                meta.write("samp1\tH\n")
+
+            self.configs['feature_meta_file'] = feature_meta_path
+
+            with self.assertRaises(SystemExit) as e:
+                self.checker.check_configurations_files(self.configs)
+
+            self.assertEqual(e.exception.code, 1)
+
+    def test_find_features_input_files_individual_bad_meta_path(self):
+        self.configs['find_features'] = True
+        self.configs['input_files'] = "individual"
+
+        with TemporaryDirectory() as tmpdir:
+            feature_quant_path = os.path.join(tmpdir, "reference_quant.tsv")
+            feature_meta_path = os.path.join(tmpdir, "reference_meta.tsv")
+
+            with open(feature_quant_path, "w") as quant:
+                quant.write("sample_id\tProtein1\tProtein2\tProtein3\n")
+                quant.write("samp1\t1\t0\t1000\n")
+            
+            with open(feature_meta_path, "w") as meta:
+                meta.write("sample_id\tclassification_label\n")
+                meta.write("samp1\tH\n")
+
+            self.configs['feature_quant_file'] = feature_quant_path
+
+            with self.assertRaises(SystemExit) as e:
+                self.checker.check_configurations_files(self.configs)
+
+            self.assertEqual(e.exception.code, 1)
+
+    def test_find_features_input_files_individual_bad_quant_file_extension(self):
+        self.configs['find_features'] = True
+        self.configs['input_files'] = "individual"
+
+        with TemporaryDirectory() as tmpdir:
+            feature_quant_path = os.path.join(tmpdir, "reference_quant")
+            feature_meta_path = os.path.join(tmpdir, "reference_meta.tsv")
+
+            with open(feature_quant_path, "w") as quant:
+                quant.write("sample_id\tProtein1\tProtein2\tProtein3\n")
+                quant.write("samp1\t1\t0\t1000\n")
+            
+            with open(feature_meta_path, "w") as meta:
+                meta.write("sample_id\tclassification_label\n")
+                meta.write("samp1\tH\n")
+
+            self.configs['feature_quant_file'] = feature_quant_path
+            self.configs['feature_meta_file'] = feature_meta_path
+
+            with self.assertRaises(SystemExit) as e:
+                self.checker.check_configurations_files(self.configs)
+
+            self.assertEqual(e.exception.code, 1)
+
+    def test_find_features_input_files_individual_bad_meta_file_extension(self):
+        self.configs['find_features'] = True
+        self.configs['input_files'] = "individual"
+
+        with TemporaryDirectory() as tmpdir:
+            feature_quant_path = os.path.join(tmpdir, "reference_quant.tsv")
+            feature_meta_path = os.path.join(tmpdir, "reference_meta")
+
+            with open(feature_quant_path, "w") as quant:
+                quant.write("sample_id\tProtein1\tProtein2\tProtein3\n")
+                quant.write("samp1\t1\t0\t1000\n")
+            
+            with open(feature_meta_path, "w") as meta:
+                meta.write("sample_id\tclassification_label\n")
+                meta.write("samp1\tH\n")
+
+            self.configs['feature_quant_file'] = feature_quant_path
+            self.configs['feature_meta_file'] = feature_meta_path
+
+            with self.assertRaises(SystemExit) as e:
+                self.checker.check_configurations_files(self.configs)
+
+            self.assertEqual(e.exception.code, 1)
+
+    def test_find_features_input_files_individual_bad_quant_file_contents(self):
+        self.configs['find_features'] = True
+        self.configs['input_files'] = "individual"
+
+        with TemporaryDirectory() as tmpdir:
+            feature_quant_path = os.path.join(tmpdir, "reference_quant.tsv")
+            feature_meta_path = os.path.join(tmpdir, "reference_meta.tsv")
+
+            with open(feature_quant_path, "w") as quant:
+                quant.write("sample_id\tProtein1\tProtein2\tProtein3\n")
+                quant.write("samp1\t1\t0\t1000\n")
+                quant.write("samp2\t1\t0\t1000\t40\n")
+            
+            with open(feature_meta_path, "w") as meta:
+                meta.write("sample_id\tclassification_label\n")
+                meta.write("samp1\tH\n")
+
+            self.configs['feature_quant_file'] = feature_quant_path
+            self.configs['feature_meta_file'] = feature_meta_path
+
+            with self.assertRaises(SystemExit) as e:
+                self.checker.check_configurations_files(self.configs)
+
+            self.assertEqual(e.exception.code, 1)
+
+    def test_find_features_input_files_individual_bad_meta_file_contents(self):
+        self.configs['find_features'] = True
+        self.configs['input_files'] = "individual"
+
+        with TemporaryDirectory() as tmpdir:
+            feature_quant_path = os.path.join(tmpdir, "reference_quant.tsv")
+            feature_meta_path = os.path.join(tmpdir, "reference_meta.tsv")
+
+            with open(feature_quant_path, "w") as quant:
+                quant.write("sample_id\tProtein1\tProtein2\tProtein3\n")
+                quant.write("samp1\t1\t0\t1000\n")
+            
+            with open(feature_meta_path, "w") as meta:
+                meta.write("sample_id\tclassification_label\n")
+                meta.write("samp1\tH\n")
+                meta.write("samp2\tH\tH\n")
+
+            self.configs['feature_quant_file'] = feature_quant_path
+            self.configs['feature_meta_file'] = feature_meta_path
+
+            with self.assertRaises(SystemExit) as e:
+                self.checker.check_configurations_files(self.configs)
+
+            self.assertEqual(e.exception.code, 1)
+
+    def test_find_features_false_bad_feature_file_path(self):
+        self.configs['input_files'] = "individual"
+
+        with self.assertRaises(SystemExit) as e:
+            self.checker.check_configurations_files(self.configs)
+
+        self.assertEqual(e.exception.code, 1)
+
+    def test_find_features_false_bad_feature_file_extension(self):
+        self.configs['input_files'] = "individual"
+
+        with TemporaryDirectory() as tmpdir:
+            feature_file_path = os.path.join(tmpdir, "feature_file")
+
+            with open(feature_file_path, "w") as feat:
+                feat.write("Protein1\tProtein2\n")
+                feat.write("XXXX\tYYYY\n")
+
+            self.configs['feature_file'] = feature_file_path
+
+            with self.assertRaises(SystemExit) as e:
+                self.checker.check_configurations_files(self.configs)
+
+            self.assertEqual(e.exception.code, 1)
+
+    def test_find_features_false_bad_feature_file_contents(self):
+        self.configs['input_files'] = "individual"
+
+        with TemporaryDirectory() as tmpdir:
+            feature_file_path = os.path.join(tmpdir, "feature_file.tsv")
+
+            with open(feature_file_path, "w") as feat:
+                feat.write("Protein1\tProtein2\n")
+                feat.write("XXXX\tYYYY\n")
+                feat.write("AAAA\tBBBB\tCCCC\n")
+
+            self.configs['feature_file'] = feature_file_path
+
+            with self.assertRaises(SystemExit) as e:
+                self.checker.check_configurations_files(self.configs)
+
+            self.assertEqual(e.exception.code, 1)
+
+    ## TODO: train_model tests
+
+    ## TODO: apply_model tests
         
 
 class CheckConfigurationsFeatureSelection(unittest.TestCase):
