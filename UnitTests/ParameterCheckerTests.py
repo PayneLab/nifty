@@ -317,7 +317,7 @@ class TestCheckConfigurationsProjectSettings(unittest.TestCase):
 
 
 # TODO: Test check_configurations_files()
-class CheckConfigurationsFiles(unittest.TestCase):
+class TestCheckConfigurationsFiles(unittest.TestCase):
 
     def setUp(self):
         self.checker = ParameterChecker()
@@ -913,7 +913,7 @@ class CheckConfigurationsFeatureSelection(unittest.TestCase):
 
 
 # TODO: Test check_configurations_model_training()
-class CheckConfigurationsModelTraining(unittest.TestCase):
+class TestCheckConfigurationsModelTraining(unittest.TestCase):
 
     def setUp(self):
         self.checker = ParameterChecker()
@@ -925,7 +925,7 @@ class CheckConfigurationsModelTraining(unittest.TestCase):
         
 
 # TODO: Test check_configurations_experimental_classification()
-class CheckConfigurationsExperimentalClassification(unittest.TestCase):
+class TestCheckConfigurationsExperimentalClassification(unittest.TestCase):
 
     def setUp(self):
         self.checker = ParameterChecker()
@@ -934,6 +934,15 @@ class CheckConfigurationsExperimentalClassification(unittest.TestCase):
                         'train_model': True, 
                         'apply_model': True, 
                         'input_files': 'reference'}
+        
+
+# TODO: Test run_parameter_checker()
+class TestRunParameterChecker(unittest.TestCase):
+
+    def setUp(self):
+        self.checker = ParameterChecker()
+
+        self.configs = {}
 
 
 if __name__ == "__main__":
