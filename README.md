@@ -1,15 +1,20 @@
-# NIFTY
+# NIFty
 Never Impute Features (thank you).
 
-NIFTY is a python program for feature generation, feature scoring and feature selection. The primary application is large molecular data, like proteomics. We assume input to be a table with samples as the columns and protein (or other data) as the rows. We also require an input file that has the label (class) for each sample. The output from our program is the list of k top features that can be used to train a ML classifier to annotate samples. 
+NIFty is a python program for feature selection (including generation and scoring), model generation, and experimental classification that does not require missing-value imputation, avoids common circular analysis pitfalls by default, and overcomes batch effects. 
+The primary application is large molecular data, like proteomics. 
+We assume input to be two tables: (1) a table with proteins (or other data) as the columns and samples as the rows, and (2) a table that has the label (class) for each sample. 
+The output from our program depends on which functionalty the user would like to run. 
+In the 'find_features' mode, the output is a list of the k top features that can be used to train a machine learning classifier to annotate samples. 
+In the 'train_model' mode, the output is a trained machine learning model on the selected features. 
+In the 'apply_model' mode, the output is a list of sample classifications from applying the trained model on experimental, unlabeled data.
 The important thing is that we never impute. We can deal with null values.
 
-Run this program with the following command line
-> python main.py -q [quant table file] -m [meta data containing sample labels]
+Run this program with the following command on the commandline (assuming config.toml exists in the same directory):
+> python nifty.py
 
+Run this program with the following command on the commandline (with a custom config filepath):
+> python nifty.py -c <config/file/path>
 
-Training the model follows the following logic:
-![NIFty train model flowchart](images/Pipeline_flow_train.png)
-
-Applying the model to experimental data follows the following logic:
-![NIFty run model flowchart](images/Pipeline_flow_run.png)
+The codebase functions as follows:
+![NIFty Flowchart](images/Pipeline_flow.png)
