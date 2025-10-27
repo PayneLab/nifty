@@ -47,7 +47,8 @@ class ModelGenerator:
         train_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['train_quant_table'])
         validate_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['validate_quant_table'])
 
-        # TODO: turn binary dict into df or matrix for model training (depending on what the format needs to be for scikit-learn)
+        train_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(train_bool_dict)
+        validate_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(validate_bool_dict)
 
         # TODO: train model, 
         #       validate model

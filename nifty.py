@@ -6,6 +6,7 @@ from DataStructureChecker import DataStructureChecker
 from DataSplitter import DataSplitter
 from FeatureSelector import FeatureSelector
 from ModelGenerator import ModelGenerator
+from ExperimentalClassifier import ExperimentalClassifier
 from Colors import Colors
 
 
@@ -33,8 +34,8 @@ def main():
         print(f"{Colors.HEADER}---SPLITTING REFERENCE DATA---{Colors.END}", file=sys.stderr, flush=True)
         
         print("CHECKING REFERENCE TABLES", file=sys.stderr, flush=True)
-        data_table_checker = DataStructureChecker()
-        configs['reference_quant_table'], configs['reference_meta_table'] = data_table_checker.check_paired_quant_and_meta_tables(configs=configs, 
+        data_structure_checker = DataStructureChecker()
+        configs['reference_quant_table'], configs['reference_meta_table'] = data_structure_checker.check_paired_quant_and_meta_tables(configs=configs, 
                                                                                                                                   quant_df=configs['reference_quant_table'], 
                                                                                                                                   meta_df=configs['reference_meta_table'], 
                                                                                                                                   min_samples=MIN_SAMPLES_VALIDATE)  # TODO: is this the min we want here?
@@ -50,12 +51,12 @@ def main():
         print(f"{Colors.HEADER}---FINDING FEATURES---{Colors.END}", file=sys.stderr, flush=True)
 
         print("CHECKING FEATURE TABLES", file=sys.stderr, flush=True)
-        data_table_checker = DataStructureChecker()
-        configs['feature_quant_table'], configs['feature_meta_table'] = data_table_checker.check_paired_quant_and_meta_tables(configs=configs, 
+        data_structure_checker = DataStructureChecker()
+        configs['feature_quant_table'], configs['feature_meta_table'] = data_structure_checker.check_paired_quant_and_meta_tables(configs=configs, 
                                                                                         quant_df=configs['feature_quant_table'], 
                                                                                         meta_df=configs['feature_meta_table'], 
                                                                                         min_samples=MIN_SAMPLES_FEATURES)
-        configs['filtered_feature_quant_table'] = data_table_checker.filter_quant_table(configs=configs, 
+        configs['filtered_feature_quant_table'] = data_structure_checker.filter_quant_table(configs=configs, 
                                                                                         quant_df=configs['feature_quant_table'], 
                                                                                         meta_df=configs['feature_meta_table'])
 
@@ -75,20 +76,20 @@ def main():
         print(f"{Colors.HEADER}---TRAINING MODEL---{Colors.END}", file=sys.stderr, flush=True)
 
         print("CHECKING TRAIN TABLES", file=sys.stderr, flush=True)
-        data_table_checker = DataStructureChecker()
-        configs['train_quant_table'], configs['train_meta_table'] = data_table_checker.check_paired_quant_and_meta_tables(configs=configs, 
+        data_structure_checker = DataStructureChecker()
+        configs['train_quant_table'], configs['train_meta_table'] = data_structure_checker.check_paired_quant_and_meta_tables(configs=configs, 
                                                                                                                           quant_df=configs['train_quant_table'], 
                                                                                                                           meta_df=configs['train_meta_table'], 
                                                                                                                           min_samples=MIN_SAMPLES_TRAIN)
         
         print("CHECKING VALIDATE TABLES", file=sys.stderr, flush=True)
-        configs['validate_quant_table'], configs['validate_meta_table'] = data_table_checker.check_paired_quant_and_meta_tables(configs=configs, 
+        configs['validate_quant_table'], configs['validate_meta_table'] = data_structure_checker.check_paired_quant_and_meta_tables(configs=configs, 
                                                                                                                                  quant_df=configs['validate_quant_table'], 
                                                                                                                                  meta_df=configs['validate_meta_table'], 
                                                                                                                                  min_samples=MIN_SAMPLES_VALIDATE)
         
         print("CHECKING FEATURE TABLE", file=sys.stderr, flush=True)
-        data_table_checker.check_feature_table(feature_df=configs['feature_table'])
+        data_structure_checker.check_feature_table(feature_df=configs['feature_table'])
 
         model_generator = ModelGenerator()
         configs['model'] = model_generator.run_model_generator(configs=configs)
@@ -106,20 +107,18 @@ def main():
         print(f"{Colors.HEADER}---APPLYING MODEL---{Colors.END}", file=sys.stderr, flush=True)
 
         print("CHECKING EXPERIMENTAL TABLE", file=sys.stderr, flush=True)
-        data_table_checker = DataStructureChecker()
-        configs['experimental_quant_file'] = data_table_checker.check_quant_table(configs=configs, 
+        data_structure_checker = DataStructureChecker()
+        configs['experimental_quant_file'] = data_structure_checker.check_quant_table(configs=configs, 
                                                                                   quant_df=configs['experimental_quant_file'])   
         
         print("CHECKING FEATURE TABLE", file=sys.stderr, flush=True)
-        data_table_checker.check_feature_table(feature_df=configs['feature_table'])
+        data_structure_checker.check_feature_table(feature_df=configs['feature_table'])
 
-        # TODO: check model (DataStructureChecker)
+        print("CHECKING MODEL", file=sys.stderr, flush=True)
+        data_structure_checker.check_model(configs['model'])
 
-        # TODO: fill in missing proteins with NULL (Data Transformer)
-
-        # TODO: transform train/test dataset and validate dataset (DataTransformer)
-
-        # TODO: predict classes and save predictions to "predicted_classes.tsv" in the specified output dir (Experimental Classifier)
+        experimental_classifier = ExperimentalClassifier()
+        configs['experimental_classification'] = experimental_classifier.run_experimental_classifier(configs)
 
         apply_model_end = time.time()
         apply_model_time = (apply_model_end - train_model_end) / 60

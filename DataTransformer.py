@@ -85,3 +85,7 @@ class DataTransformer:
             raise SystemExit(1)
         
         return quant_df
+    
+    def prep_vectorized_pairs_for_scikitlearn(self, bool_dict):
+        # TODO - takes bool_dict from vectorize pairs output and turns it into what it needs to be turned into for ML
+        pass
