@@ -2,8 +2,6 @@ import sys
 import os
 
 import unittest
-from unittest.mock import patch
-from pathlib import Path
 from tempfile import TemporaryDirectory
 import pandas as pd
 import pickle
