@@ -605,6 +605,39 @@ class TestCheckConfigurationsFiles(unittest.TestCase):
             self.assertEqual(e.exception.code, 1)
 
     ## TODO: train_model tests
+    def test_train_model_input_files_reference(self):
+        self.configs['train_model'] = True
+
+        with TemporaryDirectory() as tmpdir:
+            reference_quant_path = os.path.join(tmpdir, "reference_quant.tsv")
+            reference_meta_path = os.path.join(tmpdir, "reference_meta.tsv")
+            feature_file_path = os.path.join(tmpdir, "feature_file.tsv")
+            
+            with open(reference_quant_path, "w") as quant:
+                quant.write("sample_id\tProtein1\tProtein2\tProtein3\n")
+                quant.write("samp1\t1\t0\t1000\n")
+            
+            with open(reference_meta_path, "w") as meta:
+                meta.write("sample_id\tclassification_label\n")
+                meta.write("samp1\tH\n")
+
+            with open(feature_file_path, "w") as feat:
+                feat.write("Protein1\tProtein2\n")
+                feat.write("XXXX\tYYYY\n")
+
+            self.configs['reference_quant_file'] = reference_quant_path
+            self.configs['reference_meta_file'] = reference_meta_path
+            self.configs['feature_file'] = feature_file_path
+
+            self.checker.check_configurations_files(self.configs)
+
+            self.assertIn('split_for_FS', self.configs)
+            self.assertIn('split_for_train', self.configs)
+            self.assertIn('split_for_validate', self.configs)
+
+            self.assertEqual(self.configs['split_for_FS'], False)
+            self.assertEqual(self.configs['split_for_train'], True)
+            self.assertEqual(self.configs['split_for_validate'], True)
 
     ## TODO: apply_model tests
         
