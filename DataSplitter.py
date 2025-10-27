@@ -24,12 +24,12 @@ class DataSplitter:
                 split_dfs += (quant_1, meta_1, quant_2, meta_2)
             elif len(proportions) == 3:
                 if seed is not None:
-                    quant_1, quant_rest, meta_1, meta_rest = train_test_split(quant_df, meta_df, test_size=(1-proportions[0]), stratify=meta_df['classification_label'], random_state=seed)
+                    quant_1, quant_rest, meta_1, meta_rest = train_test_split(quant_df, meta_df, test_size=(round(1-proportions[0], 2)), stratify=meta_df['classification_label'], random_state=seed)
 
                     val_ratio = proportions[2] / (proportions[1] + proportions[2])
                     quant_2, quant_3, meta_2, meta_3 = train_test_split(quant_rest, meta_rest, test_size=val_ratio, stratify=meta_rest['classification_label'], random_state=seed)
                 else:
-                    quant_1, quant_rest, meta_1, meta_rest = train_test_split(quant_df, meta_df, test_size=(1-proportions[0]), stratify=meta_df['classification_label'])
+                    quant_1, quant_rest, meta_1, meta_rest = train_test_split(quant_df, meta_df, test_size=(round(1-proportions[0], 2)), stratify=meta_df['classification_label'])
 
                     val_ratio = proportions[2] / (proportions[1] + proportions[2])
                     quant_2, quant_3, meta_2, meta_3 = train_test_split(quant_rest, meta_rest, test_size=val_ratio, stratify=meta_rest['classification_label'])
