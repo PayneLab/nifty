@@ -17,9 +17,9 @@ class DataSplitter:
 
             if len(proportions) == 2:
                 if seed is not None:
-                    quant_1, meta_1, quant_2, meta_2 = train_test_split(quant_df, meta_df, test_size=(1 - proportions[0]), stratify=meta_df['classification_label'], random_state=seed)
+                    quant_1, quant_2, meta_1, meta_2 = train_test_split(quant_df, meta_df, test_size=(proportions[1]), stratify=meta_df['classification_label'], random_state=seed)
                 else:
-                    quant_1, meta_1, quant_2, meta_2 = train_test_split(quant_df, meta_df, test_size=(1 - proportions[0]), stratify=meta_df['classification_label'])
+                    quant_1, quant_2, meta_1, meta_2= train_test_split(quant_df, meta_df, test_size=(proportions[1]), stratify=meta_df['classification_label'])
 
                 split_dfs += (quant_1, meta_1, quant_2, meta_2)
             elif len(proportions) == 3:
