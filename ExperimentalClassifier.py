@@ -20,7 +20,7 @@ class ExperimentalClassifier:
 
     def save_predictions(self, predictions_df, output_file_path):
         predictions_df.to_csv(output_file_path, index=True, sep='\t')
-        print(f"{Colors.INFO}INFO: Predictions saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
+        print(f"{Colors.INFO}INFO: Classifications saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
     def run_experimental_classifier(self, configs):
         data_transformer = DataTransformer()
