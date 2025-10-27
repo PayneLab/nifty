@@ -40,11 +40,11 @@ mutual_information_cutoff = 0.7  # optional, default is 0.7
 # train model settings
 impute_NA_missing = true  # optional, default is true
 cross_val = 5
-model = "" # user must input either "RF" or "SVM"
-autotune_hyperparameters = "" # if blank, no autotune will be done. User inputs either "random" or "grid"
-
+model_type = "RF"  # optional, default is "RF"
+autotune_hyperparameters = ""  # if blank, no autotune will be done. User inputs either "random" or "grid"
+autotune_n_iter = 20  # optional, default is 20 for random search
+verbose = false
 
 
 # apply model settings
-verbose = False 
-decision_mode = "auto" # user can choose between "predict", "predict_proba", or "decision_function". "auto" picks best option.
+prediction_output_format = "classes" # can be class or probabilities, default is classes

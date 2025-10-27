@@ -321,17 +321,44 @@ class ParameterChecker:
 
     def check_configurations_model_training(self, configs):
         # check train model settings
-        # TODO
         if configs['train_model']:
             print(" - CHECKING MODEL TRAINING SETTINGS", file=sys.stderr, flush=True)
-            pass
+            if not isinstance(configs['impute_missing'], bool):
+                print(f"{Colors.WARNING}WARNING: 'impute_missing' must be a boolean. Type of 'impute_missing' is: {type(configs['impute_missing'])}. Changing 'impute_missing' to True.{Colors.END}", file=sys.stderr, flush=True)
+                configs['impute_missing'] = True
+
+            if isinstance(configs['cross_val'], bool) or not isinstance(configs['cross_val'], int) or configs['coss_val'] <= 0:
+                print(f"{Colors.WARNING}WARNING: 'cross_val' must be a positive integer. Changing 'cross_val' to 5.{Colors.END}", file=sys.stderr, flush=True)
+                configs['cross_val'] = 5
+
+            if configs['model_type'] not in ['RF', 'SVM']:
+                print(f"{Colors.WARNING}WARNING: 'model_type' must be one of ('RF', 'SVM'). Got {configs['model_type']}. Changing 'model_type' to 'RF'.{Colors.END}", file=sys.stderr, flush=True)
+                configs['model'] = 'RF'
+
+            if configs['autotune_hyperparameters'] not in ['', 'random', 'grid']:
+                print(f"{Colors.WARNING}WARNING: 'autotune_hyperparameters' must be one of ('', 'random', 'grid'). Got {configs['autotune_hyperparameters']}. Changing 'autotune_hyperparameters' to '' (no auto tune).{Colors.END}", file=sys.stderr, flush=True)
+                configs['autotune_hyperparameters'] = ''
+
+            if configs['autotune_hyperparameters'] in ['random', 'grid']:
+                print(f"{Colors.WARNING}WARNING: Auto-tuning hyperparameters will increase computational complexity and runtime.{Colors.END}",file=sys.stderr, flush=True)
+
+            if isinstance(configs['autotune_n_iter'], bool) or not isinstance(configs['autotune_n_iter'], int) or configs['k_rules'] <= 0:
+                print(f"{Colors.WARNING}WARNING: 'autotune_n_iter' must be a positive integer. Changing 'autotune_n_iter' to 20.{Colors.END}", file=sys.stderr, flush=True)
+                configs['autotune_n_iter'] = 20
+
+            if not isinstance(configs['verbose'], bool):
+                print(f"{Colors.WARNING}WARNING: 'verbose' must be a boolean. Type of 'verbose' is: {type(configs['verbose'])}. Changing 'verbose' to False.{Colors.END}", file=sys.stderr, flush=True)
+                configs['verbose'] = False
 
     def check_configurations_experimental_classification(self, configs):
-        # check apply model settings
-        # TODO
+        # check apply model settings.
         if configs['apply_model']:
             print(" - CHECKING EXPERIMENTAL CLASSIFICATION SETTINGS", file=sys.stderr, flush=True)
-            pass
+
+            if configs['prediction_output_format'] not in ['classes', 'probabilities']:
+                print(f"{Colors.WARNING}WARNING: 'prediction_output_format' must be one of ('classes', 'probabilities'). Got {configs['prediction_output_format']}. Changing 'prediction_output_format' to 'classes'.{Colors.END}", file=sys.stderr, flush=True)
+                configs['prediction_output_format'] = 'classes'
+
 
     def run_paramater_checker(self):
         print("PARSING PARAMETERS", file=sys.stderr, flush=True)
