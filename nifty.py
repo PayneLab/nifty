@@ -122,7 +122,7 @@ def main():
 
         apply_model_end = time.time()
         apply_model_time = (apply_model_end - train_model_end) / 60
-        print(f"{Colors.INFO}INFO: Classes predicted in {apply_model_time:.2f} minutes.", file=sys.stderr, flush=True)
+        print(f"{Colors.INFO}INFO: Samples classified in {apply_model_time:.2f} minutes.", file=sys.stderr, flush=True)
         
 
     end_time = time.time()
