@@ -28,8 +28,8 @@ class ModelGenerator:
             pickle.dump(model, f)
         print(f"{Colors.INFO}INFO: Model saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
-    def save_performance_metrics(self, metrics, output_file_path):
-        # TODO
+    def save_model_information(self, metrics, output_file_path):
+        # TODO: saves performance metrics and hyperparameter info to a file
         print(f"{Colors.INFO}INFO: Model performance metrics saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
     def run_model_generator(self, configs):
@@ -59,8 +59,8 @@ class ModelGenerator:
         self.save_model(model=model, output_file_path=model_output_path)
 
         # Save train/validate information to "model_performance_metrics.???" in the specified output dir
-        print("SAVING MODEL PERFORMANCE METRICS", file=sys.stderr, flush=True)
-        metrics_output_path = os.path.join(configs['output_dir'], "model_performance_metrics.txt")  # TODO: fix file extension when function is written
-        self.save_performance_metrics(metrics=performance_metrics, output_file_path=metrics_output_path)
+        print("SAVING MODEL INFORMTAION", file=sys.stderr, flush=True)
+        metrics_output_path = os.path.join(configs['output_dir'], "model_information.txt")  # TODO: fix file extension when function is written
+        self.save_model_information(metrics=model_information, output_file_path=metrics_output_path)
         
-        return model, performance_metrics
+        return model, model_information
