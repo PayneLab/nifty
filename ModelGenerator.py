@@ -63,4 +63,4 @@ class ModelGenerator:
         metrics_output_path = os.path.join(configs['output_dir'], "model_performance_metrics.txt")  # TODO: fix file extension when function is written
         self.save_performance_metrics(metrics=performance_metrics, output_file_path=metrics_output_path)
         
-        return model
+        return model, performance_metrics

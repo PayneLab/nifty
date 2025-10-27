@@ -92,7 +92,7 @@ def main():
         data_structure_checker.check_feature_table(feature_df=configs['feature_table'])
 
         model_generator = ModelGenerator()
-        configs['model'] = model_generator.run_model_generator(configs=configs)
+        configs['model'], configs['model_performance+metrics'] = model_generator.run_model_generator(configs=configs)
 
         train_model_end = time.time()
         train_model_time = (train_model_end - find_feature_end) / 60
