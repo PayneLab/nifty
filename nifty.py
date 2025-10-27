@@ -125,7 +125,6 @@ def main():
         print(f"{Colors.INFO}INFO: Classes predicted in {apply_model_time:.2f} minutes.", file=sys.stderr, flush=True)
         
 
-    
     end_time = time.time()
     total_time = (end_time - start_time) / 60
     print("", file=sys.stderr, flush=True)

@@ -14,11 +14,12 @@ class ExperimentalClassifier:
 
     def format_predictions(self):
         # TODO: write a function that takes the predicted classes and formats them like a meta_df 
-        #       (sample_id index, classification_label column with the classifications)
+        #       (sample_id as index, classification_label column with the classifications)
         pass
 
-    def save_predictions(self, predictions_df):
-        pass
+    def save_predictions(self, predictions_df, output_file_path):
+        predictions_df.to_csv(output_file_path, index=True, sep='\t')
+        print(f"{Colors.INFO}INFO: Predictions saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
     def run_experimental_classifier(self, configs):
         data_transformer = DataTransformer()
@@ -32,5 +33,11 @@ class ExperimentalClassifier:
 
         # TODO: predict classes
 
+        # TODO: format predictions
+
         # TODO: save predictions to "predicted_classes.tsv" in the specified output dir (Experimental Classifier)
-        pass
+        print("SAVING MODEL", file=sys.stderr, flush=True)
+        predictions_output_path = os.path.join(configs['output_dir'], "predicted_classes.tsv")
+        self.save_predictions(formatted_predictions, predictions_output_path)
+        
+        return formatted_predictions
