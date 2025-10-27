@@ -9,10 +9,11 @@ class ExperimentalClassifier:
     def __init__(self):
         pass
 
-    def predict_classes(self):
-        pass
+    def predict_classes(self, model, experimental_data):
+        predictions = model.predict(experimental_data)
+        return predictions
 
-    def format_predictions(self):
+    def format_predictions(self, predictions):
         # TODO: write a function that takes the predicted classes and formats them like a meta_df 
         #       (sample_id as index, classification_label column with the classifications)
         pass
@@ -28,15 +29,15 @@ class ExperimentalClassifier:
 
         print("TRANSFORMING DATA", file=sys.stderr, flush=True)
         experimental_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['experimental_quant_table'])
-
         experimental_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(experimental_bool_dict)
 
-        # TODO: predict classes
+        print("CLASSIFYING SAMPLES", file=sys.stderr, flush=True)
+        predictions = self.predict_classes(configs['model'], experimental_matrix)
 
+        print("SAVING CLASSIFICATIONS", file=sys.stderr, flush=True)
         # TODO: format predictions
+        formatted_predictions = self.format_predictions(predictions)
 
-        # TODO: save predictions to "predicted_classes.tsv" in the specified output dir (Experimental Classifier)
-        print("SAVING MODEL", file=sys.stderr, flush=True)
         predictions_output_path = os.path.join(configs['output_dir'], "predicted_classes.tsv")
         self.save_predictions(formatted_predictions, predictions_output_path)
         
