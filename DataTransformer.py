@@ -18,7 +18,7 @@ class DataTransformer:
             bool_dict[pair] = bool_vector
         return bool_dict
 
-    def vectorize_pair(self, pair: list, quant_df) -> np.ndarray:
+    def vectorize_pair(self, pair: tuple, quant_df) -> np.ndarray:
         '''Gets all values for two proteins of a pair, compares them and returns a boolean vector'''
         prot1_values = quant_df[pair[0]].to_numpy(copy=True)
         prot2_values = quant_df[pair[1]].to_numpy(copy=True)
