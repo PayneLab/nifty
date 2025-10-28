@@ -42,6 +42,7 @@ class TestSplitTable(unittest.TestCase):
         self.reference_quant_imbalanced.set_index('sample_id', inplace=True)
         self.reference_meta_imbalanced.set_index('sample_id', inplace=True)
 
+    # test balanced classes
     def test_2_proportions_balanced_classes_07_03_split(self):
         quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.7, 0.3), None)
 
@@ -234,6 +235,7 @@ class TestSplitTable(unittest.TestCase):
         num_rows_D = len(meta2[meta2['classification_label'] == 'D'])
         self.assertAlmostEqual((num_rows_H / num_rows_D), (2 / 8), places=2)
 
+    # test bad input values
     def test_1_proportion(self):
         with self.assertRaises(SystemExit) as e:
             self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (1.0,), None)
@@ -245,6 +247,77 @@ class TestSplitTable(unittest.TestCase):
             self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.25, 0.25, 0.25, 0.25), None)
 
         self.assertEqual(e.exception.code, 1)
+
+    # TODO: test fixed seed
+    def test_random_seed(self):
+        quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.3, 0.7), None)
+        quant3, meta3, quant4, meta4 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.3, 0.7), None)
+        
+        indexes1 = quant1.index.tolist()
+        indexes2 = quant2.index.tolist()
+        indexes3 = quant3.index.tolist()
+        indexes4 = quant4.index.tolist()
+
+        self.assertNotEqual(indexes1, indexes3)
+        self.assertNotEqual(indexes2, indexes4)
+
+    def test_seed_42(self):
+        # 42, 42 should be exactly the same
+        quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.8, 0.2), 42)
+        quant3, meta3, quant4, meta4 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.8, 0.2), 42)
+        
+        indexes1 = quant1.index.tolist()
+        indexes2 = quant2.index.tolist()
+        indexes3 = quant3.index.tolist()
+        indexes4 = quant4.index.tolist()
+
+        self.assertEqual(indexes1, indexes3)
+        self.assertEqual(indexes2, indexes4)
+
+    def test_seed_100(self):
+        # 100, 100 should be exactly the same
+        quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.4, 0.6), 100)
+        quant3, meta3, quant4, meta4 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.4, 0.6), 100)
+        
+        indexes1 = quant1.index.tolist()
+        indexes2 = quant2.index.tolist()
+        indexes3 = quant3.index.tolist()
+        indexes4 = quant4.index.tolist()
+
+        self.assertEqual(indexes1, indexes3)
+        self.assertEqual(indexes2, indexes4)
+
+    def test_fixed_seeds(self):
+        # 50, 50 should be exactly the same
+        # 75, 75 should be exactly the same
+        # 50, 75 should be different
+        quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.2, 0.8), 50)
+        quant3, meta3, quant4, meta4 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.2, 0.8), 50)
+        
+        indexes1 = quant1.index.tolist()
+        indexes2 = quant2.index.tolist()
+        indexes3 = quant3.index.tolist()
+        indexes4 = quant4.index.tolist()
+
+        self.assertEqual(indexes1, indexes3)
+        self.assertEqual(indexes2, indexes4)
+
+
+        quant5, meta5, quant6, meta6 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.2, 0.8), 75)
+        quant7, meta7, quant8, meta8 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.2, 0.8), 75)
+        
+        indexes5 = quant5.index.tolist()
+        indexes6 = quant6.index.tolist()
+        indexes7 = quant7.index.tolist()
+        indexes8 = quant8.index.tolist()
+
+        self.assertEqual(indexes5, indexes7)
+        self.assertEqual(indexes6, indexes8)
+
+        self.assertNotEqual(indexes1, indexes5)
+        self.assertNotEqual(indexes2, indexes6)
+        self.assertNotEqual(indexes3, indexes7)
+        self.assertNotEqual(indexes4, indexes8)
 
 
 if __name__ == "__main__":
