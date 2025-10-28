@@ -290,7 +290,7 @@ class TestEvaluateRules(unittest.TestCase):
         """Wrapper should return true_scores dict, summary_df, and filtered_df with correct structure."""
         with TemporaryDirectory() as tmpdir:
             output_path = os.path.join(tmpdir)
-            configs = {'k': 1, 'mi': True, 'mic': 0.7, 'd': False, 'output_dir': output_path}
+            configs = {'k_rules': 1, 'mutual_information': True, 'mutual_information_cutoff': 0.7, 'disjoint': False, 'output_dir': output_path}
             
             true_scores, summary_df, filtered_df = self.evaluator.run_rule_evaluator(
                 configs, 
@@ -317,7 +317,7 @@ class TestEvaluateRules(unittest.TestCase):
         with TemporaryDirectory() as tmpdir:
             output_path = os.path.join(tmpdir)
 
-            configs = {'k': 1, 'mi': True, 'mic': 0.7, 'd': False, 'output_dir': output_path}
+            configs = {'k_rules': 1, 'mutual_information': True, 'mutual_information_cutoff': 0.7, 'disjoint': False, 'output_dir': output_path}
 
             _, _, filtered_df = self.evaluator.run_rule_evaluator(
                 configs, 
