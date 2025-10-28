@@ -345,7 +345,7 @@ class ParameterChecker:
             if configs['autotune_hyperparameters'] in ['random', 'grid']:
                 print(f"{Colors.WARNING}WARNING: Auto-tuning hyperparameters will increase computational complexity and runtime.{Colors.END}",file=sys.stderr, flush=True)
 
-            if isinstance(configs['autotune_n_iter'], bool) or not isinstance(configs['autotune_n_iter'], int) or not (0 < configs['autotune_n_iter'] <= 100):
+            if isinstance(configs['autotune_n_iter'], bool) or not isinstance(configs['autotune_n_iter'], int) or not (0 < configs['autotune_n_iter'] <= 100):  # TODO decide if this is a good max
                 print(f"{Colors.WARNING}WARNING: 'autotune_n_iter' must be a positive integer. Changing 'autotune_n_iter' to 20.{Colors.END}", file=sys.stderr, flush=True)
                 configs['autotune_n_iter'] = 20
 
