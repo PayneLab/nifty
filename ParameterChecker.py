@@ -355,9 +355,9 @@ class ParameterChecker:
         if configs['apply_model']:
             print(" - CHECKING EXPERIMENTAL CLASSIFICATION SETTINGS", file=sys.stderr, flush=True)
 
-            if configs['prediction_output_format'] not in ['classes', 'probabilities']:
-                print(f"{Colors.WARNING}WARNING: 'prediction_output_format' must be one of ('classes', 'probabilities'). Got {configs['prediction_output_format']}. Changing 'prediction_output_format' to 'classes'.{Colors.END}", file=sys.stderr, flush=True)
-                configs['prediction_output_format'] = 'classes'
+            if configs['prediction_format'] not in ['classes', 'probabilities']:
+                print(f"{Colors.WARNING}WARNING: 'prediction_format' must be one of ('classes', 'probabilities'). Got {configs['prediction_format']}. Changing 'prediction_format' to 'classes'.{Colors.END}", file=sys.stderr, flush=True)
+                configs['prediction_format'] = 'classes'
 
 
     def run_paramater_checker(self):

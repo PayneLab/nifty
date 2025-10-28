@@ -47,4 +47,4 @@ verbose = false
 
 
 # apply model settings
-prediction_output_format = "classes" # can be class or probabilities, default is classes
+prediction_format = "classes"  # can be 'classes' or 'probabilities', default is 'classes'
