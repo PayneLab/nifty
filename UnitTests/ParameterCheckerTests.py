@@ -943,7 +943,6 @@ class CheckConfigurationsFeatureSelection(unittest.TestCase):
         self.assertEqual(self.configs['mutual_information_cutoff'], 0.7)
 
 
-# TODO: Test check_configurations_model_training()
 class TestCheckConfigurationsModelTraining(unittest.TestCase):
 
     def setUp(self):
