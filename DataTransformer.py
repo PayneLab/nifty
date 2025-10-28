@@ -56,7 +56,7 @@ class DataTransformer:
         proteins.update(feature_df['Protein1'])
         proteins.update(feature_df['Protein2'])
 
-        updated_feature_df = feature_df
+        updated_feature_df = feature_df.copy()
 
         for protein in proteins:
             if protein not in quant_df.columns:
