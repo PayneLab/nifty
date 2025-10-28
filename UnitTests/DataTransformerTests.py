@@ -74,7 +74,6 @@ class TestTransformDf(unittest.TestCase):
         self.transformer = DataTransformer()
 
 
-# TODO
 class TestFilterRules(unittest.TestCase):
 
     def setUp(self):
@@ -146,6 +145,84 @@ class TestAddMissingProteins(unittest.TestCase):
 
     def setUp(self):
         self.transformer = DataTransformer()
+
+        self.quant_df = pd.DataFrame({
+            'sample_id': ['samp1', 'samp2', 'samp3', 'samp4', 'samp5'], 
+            'AAAAA': [0.7328, np.nan, 0.4481, np.nan, 0.9125], 
+            'BBBBB': [np.nan, 0.1839, np.nan, 0.5921, 0.0197], 
+            'CCCCC': [0.7416, 0.2604, np.nan, 0.4973, np.nan], 
+            'DDDDD': [np.nan, np.nan, 0.8231, 0.3795, 0.0028], 
+            'EEEEE': [0.5267, np.nan, 0.9089, 0.1442, np.nan], 
+            'FFFFF': [np.nan, 0.6834, 0.1978, np.nan, 0.9536] 
+        })
+        self.quant_df.set_index('sample_id', inplace=True)
+
+        self.feature_df = pd.DataFrame({
+            'Protein1': ['AAAAA', 'BBBBB', 'CCCCC'],
+            'Protein2': ['DDDDD', 'EEEEE', 'FFFFF'] 
+        })
+
+    def test_all_proteins_present(self):
+        updated_quant_df = self.transformer.add_missing_proteins(self.feature_df, self.quant_df)
+
+        self.assertTrue(self.quant_df.equals(updated_quant_df))
+
+    def test_some_proteins_absent_Protein1(self):
+        self.quant_df.drop('AAAAA', axis=1, inplace=True)
+
+        updated_quant_df = self.transformer.add_missing_proteins(self.feature_df, self.quant_df)
+
+        self.assertFalse(self.quant_df.equals(updated_quant_df))
+        self.assertEqual(sorted(updated_quant_df.columns.tolist()), ['AAAAA', 'BBBBB', 'CCCCC', 'DDDDD', 'EEEEE', 'FFFFF'])
+        self.assertTrue(updated_quant_df['AAAAA'].isna().all())
+        np.testing.assert_allclose(self.quant_df['BBBBB'].tolist(), updated_quant_df['BBBBB'].tolist(), equal_nan=True)
+        np.testing.assert_allclose(self.quant_df['CCCCC'].tolist(), updated_quant_df['CCCCC'].tolist(), equal_nan=True)
+        np.testing.assert_allclose(self.quant_df['DDDDD'].tolist(), updated_quant_df['DDDDD'].tolist(), equal_nan=True)
+        np.testing.assert_allclose(self.quant_df['EEEEE'].tolist(), updated_quant_df['EEEEE'].tolist(), equal_nan=True)
+        np.testing.assert_allclose(self.quant_df['FFFFF'].tolist(), updated_quant_df['FFFFF'].tolist(), equal_nan=True)
+
+    def test_some_proteins_absent_Protein2(self):
+        self.quant_df.drop('EEEEE', axis=1, inplace=True)
+        self.quant_df.drop('FFFFF', axis=1, inplace=True)
+
+        updated_quant_df = self.transformer.add_missing_proteins(self.feature_df, self.quant_df)
+
+        self.assertFalse(self.quant_df.equals(updated_quant_df))
+        self.assertEqual(sorted(updated_quant_df.columns.tolist()), ['AAAAA', 'BBBBB', 'CCCCC', 'DDDDD', 'EEEEE', 'FFFFF'])
+        self.assertTrue(updated_quant_df['EEEEE'].isna().all())
+        self.assertTrue(updated_quant_df['FFFFF'].isna().all())
+        np.testing.assert_allclose(self.quant_df['AAAAA'].tolist(), updated_quant_df['AAAAA'].tolist(), equal_nan=True)
+        np.testing.assert_allclose(self.quant_df['BBBBB'].tolist(), updated_quant_df['BBBBB'].tolist(), equal_nan=True)
+        np.testing.assert_allclose(self.quant_df['CCCCC'].tolist(), updated_quant_df['CCCCC'].tolist(), equal_nan=True)
+        np.testing.assert_allclose(self.quant_df['DDDDD'].tolist(), updated_quant_df['DDDDD'].tolist(), equal_nan=True)
+
+    def test_some_proteins_absent_both(self):
+        self.quant_df.drop('AAAAA', axis=1, inplace=True)
+        self.quant_df.drop('FFFFF', axis=1, inplace=True)
+
+        updated_quant_df = self.transformer.add_missing_proteins(self.feature_df, self.quant_df)
+
+        self.assertFalse(self.quant_df.equals(updated_quant_df))
+        self.assertEqual(sorted(updated_quant_df.columns.tolist()), ['AAAAA', 'BBBBB', 'CCCCC', 'DDDDD', 'EEEEE', 'FFFFF'])
+        self.assertTrue(updated_quant_df['AAAAA'].isna().all())
+        self.assertTrue(updated_quant_df['FFFFF'].isna().all())
+        np.testing.assert_allclose(self.quant_df['BBBBB'].tolist(), updated_quant_df['BBBBB'].tolist(), equal_nan=True)
+        np.testing.assert_allclose(self.quant_df['CCCCC'].tolist(), updated_quant_df['CCCCC'].tolist(), equal_nan=True)
+        np.testing.assert_allclose(self.quant_df['DDDDD'].tolist(), updated_quant_df['DDDDD'].tolist(), equal_nan=True)
+        np.testing.assert_allclose(self.quant_df['EEEEE'].tolist(), updated_quant_df['EEEEE'].tolist(), equal_nan=True)
+
+    def test_all_proteins_absent(self):
+        self.quant_df.drop('AAAAA', axis=1, inplace=True)
+        self.quant_df.drop('BBBBB', axis=1, inplace=True)
+        self.quant_df.drop('CCCCC', axis=1, inplace=True)
+        self.quant_df.drop('DDDDD', axis=1, inplace=True)
+        self.quant_df.drop('EEEEE', axis=1, inplace=True)
+        self.quant_df.drop('FFFFF', axis=1, inplace=True)
+
+        with self.assertRaises(SystemExit) as e:
+            self.transformer.add_missing_proteins(self.feature_df, self.quant_df)
+
+        self.assertEqual(e.exception.code, 1)
 
 
 # TODO
