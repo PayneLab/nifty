@@ -52,9 +52,9 @@ class DataTransformer:
         return vectorized_pairs
 
     def filter_rules(self, feature_df, quant_df):
-        proteins = {}
-        proteins.update(feature_df['Protein1'])
-        proteins.update(feature_df['Protein2'])
+        proteins = set()
+        proteins.update(feature_df['Protein1'].tolist())
+        proteins.update(feature_df['Protein2'].tolist())
 
         updated_feature_df = feature_df.copy()
 
