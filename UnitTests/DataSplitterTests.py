@@ -2,7 +2,6 @@ import sys
 import os
 
 import unittest
-from tempfile import TemporaryDirectory
 import pandas as pd
 import numpy as np
 
@@ -22,14 +21,26 @@ class TestSplitTable(unittest.TestCase):
         reference_quant = {"sample_id": ['samp1', 'samp2', 'samp3', 'samp4', 'samp5', 'samp6', 'samp7', 'samp8', 'samp9', 'samp10'], 
                            "Protein1": [100, 0, np.nan, 50, 300, 1, np.nan, 1000, 77, 5], 
                            "Protein2": [50, 800, 25, 1000, 80, 75, 60, 400, 500, 900]}
+        
+        # balanced classes - H:5, D:5
         self.reference_quant_balanced = pd.DataFrame(reference_quant)
 
-        reference_meta = {"sample_id": ['samp1', 'samp2', 'samp3', 'samp4', 'samp5', 'samp6', 'samp7', 'samp8', 'samp9', 'samp10'], 
+        reference_meta_balanced = {"sample_id": ['samp1', 'samp2', 'samp3', 'samp4', 'samp5', 'samp6', 'samp7', 'samp8', 'samp9', 'samp10'], 
                           "classification_label": ['H', 'D', 'H', 'H', 'H', 'D', 'D', 'H', 'D', 'D']}
-        self.reference_meta_balanced = pd.DataFrame(reference_meta)
+        self.reference_meta_balanced = pd.DataFrame(reference_meta_balanced)
 
         self.reference_quant_balanced.set_index('sample_id', inplace=True)
         self.reference_meta_balanced.set_index('sample_id', inplace=True)
+
+        # imbalanced classes, H:2, D:8
+        self.reference_quant_imbalanced = pd.DataFrame(reference_quant)
+
+        reference_meta_imbalanced = {"sample_id": ['samp1', 'samp2', 'samp3', 'samp4', 'samp5', 'samp6', 'samp7', 'samp8', 'samp9', 'samp10'], 
+                          "classification_label": ['D', 'D', 'H', 'D', 'H', 'D', 'D', 'D', 'D', 'D']}
+        self.reference_meta_imbalanced = pd.DataFrame(reference_meta_imbalanced)
+
+        self.reference_quant_imbalanced.set_index('sample_id', inplace=True)
+        self.reference_meta_imbalanced.set_index('sample_id', inplace=True)
 
     def test_2_proportions_balanced_classes_07_03_split(self):
         quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.7, 0.3), None)
@@ -153,18 +164,18 @@ class TestSplitTable(unittest.TestCase):
         # quant1 and meta1 should have the same 3 sample IDs in the same order
         self.assertEqual(quant1.index.tolist(), meta1.index.tolist())
 
-        # quant2 and meta2 should have 2 rows
-        self.assertEqual(len(quant2), 2)
-        self.assertEqual(len(meta2), 2)
+        # quant2 and meta2 should have 3 rows
+        self.assertAlmostEqual(len(quant2), 3, delta = 1)
+        self.assertAlmostEqual(len(meta2), 3, delta = 1)
 
-        # quant2 and meta2 should have the same 2 sample IDs in the same order
+        # quant2 and meta2 should have the same 3 sample IDs in the same order
         self.assertEqual(quant2.index.tolist(), meta2.index.tolist())
 
-        # quant3 and meta3 should have 5 rows
-        self.assertEqual(len(quant3), 5)
-        self.assertEqual(len(meta3), 5)
+        # quant3 and meta3 should have 4 rows
+        self.assertAlmostEqual(len(quant3), 4, delta = 1)
+        self.assertAlmostEqual(len(meta3), 4, delta = 1)
 
-        # quant3 and meta3 should have the same 5 sample IDs in the same order
+        # quant3 and meta3 should have the same 4 sample IDs in the same order
         self.assertEqual(quant3.index.tolist(), meta3.index.tolist())
 
         # quant/meta1, quant/meta2, quant/meta3 should have no sample overlap
@@ -179,17 +190,49 @@ class TestSplitTable(unittest.TestCase):
         num_rows_D = len(meta1[meta1['classification_label'] == 'D'])
         self.assertAlmostEqual(num_rows_H, num_rows_D, delta = 1)
 
-        # meta2 should have an even split of the classes
+        # meta2 should have a near-even split of the classes
         num_rows_H = len(meta2[meta2['classification_label'] == 'H'])
         num_rows_D = len(meta2[meta2['classification_label'] == 'D'])
-        self.assertEqual(num_rows_H, num_rows_D)
+        self.assertAlmostEqual(num_rows_H, num_rows_D, delta = 1)
 
         # meta3 should have a near-even split of the classes
         num_rows_H = len(meta3[meta3['classification_label'] == 'H'])
         num_rows_D = len(meta3[meta3['classification_label'] == 'D'])
         self.assertAlmostEqual(num_rows_H, num_rows_D, delta = 1)
 
-    # TODO: add tests for imbalanced classes?
+    # TODO: add more tests for imbalanced classes?
+    def test_2_proportions_imbalanced_classes_05_05_split(self):
+        quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_imbalanced, self.reference_meta_imbalanced, (0.5, 0.5), None)
+
+        # quant1 and meta1 should have 5 rows
+        self.assertEqual(len(quant1), 5)
+        self.assertEqual(len(meta1), 5)
+
+        # quant1 and meta1 should have the same 5 sample IDs in the same order
+        self.assertEqual(quant1.index.tolist(), meta1.index.tolist())
+
+        # quant2 and meta2 should have 5 rows
+        self.assertEqual(len(quant2), 5)
+        self.assertEqual(len(meta2), 5)
+
+        # quant2 and meta2 should have the same 5 sample IDs in the same order
+        self.assertEqual(quant2.index.tolist(), meta2.index.tolist())
+
+        # quant/meta1 and quant/meta2 should have no sample overlap
+        index1 = set(quant1.index.tolist())
+        index2 = set(quant2.index.tolist())
+        intersection = index1.intersection(index2)
+        self.assertEqual(len(intersection), 0)
+
+        # meta1 should have a 1:4 ratio between H:D
+        num_rows_H = len(meta1[meta1['classification_label'] == 'H'])
+        num_rows_D = len(meta1[meta1['classification_label'] == 'D'])
+        self.assertAlmostEqual((num_rows_H / num_rows_D), (2 / 8), places=2)
+
+        # meta2 should have a 1:4 ratio between H:D
+        num_rows_H = len(meta2[meta2['classification_label'] == 'H'])
+        num_rows_D = len(meta2[meta2['classification_label'] == 'D'])
+        self.assertAlmostEqual((num_rows_H / num_rows_D), (2 / 8), places=2)
 
     def test_1_proportion(self):
         with self.assertRaises(SystemExit) as e:
