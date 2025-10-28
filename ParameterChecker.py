@@ -323,9 +323,9 @@ class ParameterChecker:
         # check train model settings
         if configs['train_model']:
             print(" - CHECKING MODEL TRAINING SETTINGS", file=sys.stderr, flush=True)
-            if not isinstance(configs['impute_missing'], bool):
-                print(f"{Colors.WARNING}WARNING: 'impute_missing' must be a boolean. Type of 'impute_missing' is: {type(configs['impute_missing'])}. Changing 'impute_missing' to True.{Colors.END}", file=sys.stderr, flush=True)
-                configs['impute_missing'] = True
+            if not isinstance(configs['impute_NA_missing'], bool):
+                print(f"{Colors.WARNING}WARNING: 'impute_NA_missing' must be a boolean. Type of 'impute_NA_missing' is: {type(configs['impute_NA_missing'])}. Changing 'impute_NA_missing' to True.{Colors.END}", file=sys.stderr, flush=True)
+                configs['impute_NA_missing'] = True
 
             if isinstance(configs['cross_val'], bool) or not isinstance(configs['cross_val'], int) or configs['coss_val'] <= 0:
                 print(f"{Colors.WARNING}WARNING: 'cross_val' must be a positive integer. Changing 'cross_val' to 5.{Colors.END}", file=sys.stderr, flush=True)
