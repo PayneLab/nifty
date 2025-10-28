@@ -335,9 +335,12 @@ class ParameterChecker:
                 print(f"{Colors.WARNING}WARNING: 'model_type' must be one of ('RF', 'SVM'). Got {configs['model_type']}. Changing 'model_type' to 'RF'.{Colors.END}", file=sys.stderr, flush=True)
                 configs['model_type'] = 'RF'
 
+            if configs['autotune_hyperparameters'] == "":
+                configs['autotune_hyperparameters'] = None
+
             if configs['autotune_hyperparameters'] not in ['', 'random', 'grid']:
                 print(f"{Colors.WARNING}WARNING: 'autotune_hyperparameters' must be one of ('', 'random', 'grid'). Got {configs['autotune_hyperparameters']}. Changing 'autotune_hyperparameters' to '' (no auto-tuning).{Colors.END}", file=sys.stderr, flush=True)
-                configs['autotune_hyperparameters'] = ''
+                configs['autotune_hyperparameters'] = None
 
             if configs['autotune_hyperparameters'] in ['random', 'grid']:
                 print(f"{Colors.WARNING}WARNING: Auto-tuning hyperparameters will increase computational complexity and runtime.{Colors.END}",file=sys.stderr, flush=True)
