@@ -333,16 +333,16 @@ class ParameterChecker:
 
             if configs['model_type'] not in ['RF', 'SVM']:
                 print(f"{Colors.WARNING}WARNING: 'model_type' must be one of ('RF', 'SVM'). Got {configs['model_type']}. Changing 'model_type' to 'RF'.{Colors.END}", file=sys.stderr, flush=True)
-                configs['model'] = 'RF'
+                configs['model_type'] = 'RF'
 
             if configs['autotune_hyperparameters'] not in ['', 'random', 'grid']:
-                print(f"{Colors.WARNING}WARNING: 'autotune_hyperparameters' must be one of ('', 'random', 'grid'). Got {configs['autotune_hyperparameters']}. Changing 'autotune_hyperparameters' to '' (no auto tune).{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.WARNING}WARNING: 'autotune_hyperparameters' must be one of ('', 'random', 'grid'). Got {configs['autotune_hyperparameters']}. Changing 'autotune_hyperparameters' to '' (no auto-tuning).{Colors.END}", file=sys.stderr, flush=True)
                 configs['autotune_hyperparameters'] = ''
 
             if configs['autotune_hyperparameters'] in ['random', 'grid']:
                 print(f"{Colors.WARNING}WARNING: Auto-tuning hyperparameters will increase computational complexity and runtime.{Colors.END}",file=sys.stderr, flush=True)
 
-            if isinstance(configs['autotune_n_iter'], bool) or not isinstance(configs['autotune_n_iter'], int) or configs['k_rules'] <= 0:
+            if isinstance(configs['autotune_n_iter'], bool) or not isinstance(configs['autotune_n_iter'], int) or configs['autotune_n_iter'] <= 0:
                 print(f"{Colors.WARNING}WARNING: 'autotune_n_iter' must be a positive integer. Changing 'autotune_n_iter' to 20.{Colors.END}", file=sys.stderr, flush=True)
                 configs['autotune_n_iter'] = 20
 
@@ -354,11 +354,9 @@ class ParameterChecker:
         # check apply model settings.
         if configs['apply_model']:
             print(" - CHECKING EXPERIMENTAL CLASSIFICATION SETTINGS", file=sys.stderr, flush=True)
-
             if configs['prediction_format'] not in ['classes', 'probabilities']:
                 print(f"{Colors.WARNING}WARNING: 'prediction_format' must be one of ('classes', 'probabilities'). Got {configs['prediction_format']}. Changing 'prediction_format' to 'classes'.{Colors.END}", file=sys.stderr, flush=True)
                 configs['prediction_format'] = 'classes'
-
 
     def run_paramater_checker(self):
         print("PARSING PARAMETERS", file=sys.stderr, flush=True)
