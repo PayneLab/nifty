@@ -327,7 +327,7 @@ class ParameterChecker:
                 print(f"{Colors.WARNING}WARNING: 'impute_NA_missing' must be a boolean. Type of 'impute_NA_missing' is: {type(configs['impute_NA_missing'])}. Changing 'impute_NA_missing' to True.{Colors.END}", file=sys.stderr, flush=True)
                 configs['impute_NA_missing'] = True
 
-            if isinstance(configs['cross_val'], bool) or not isinstance(configs['cross_val'], int) or configs['coss_val'] <= 0:
+            if isinstance(configs['cross_val'], bool) or not isinstance(configs['cross_val'], int) or configs['cross_val'] <= 0:
                 print(f"{Colors.WARNING}WARNING: 'cross_val' must be a positive integer. Changing 'cross_val' to 5.{Colors.END}", file=sys.stderr, flush=True)
                 configs['cross_val'] = 5
 
