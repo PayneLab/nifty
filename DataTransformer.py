@@ -69,14 +69,16 @@ class DataTransformer:
         return updated_feature_df
 
     def add_missing_proteins(self, feature_df, quant_df):
-        proteins = {}
-        proteins.update(feature_df['Protein1'])
-        proteins.update(feature_df['Protein2'])
+        proteins = set()
+        proteins.update(feature_df['Protein1'].tolist())
+        proteins.update(feature_df['Protein2'].tolist())
+
+        updated_quant_df = quant_df.copy()
 
         all_missing = True
         for protein in proteins:
             if protein not in quant_df.columns:
-                quant_df[protein] = np.nan
+                updated_quant_df[protein] = np.nan
             else:
                 all_missing = False
 
@@ -84,7 +86,7 @@ class DataTransformer:
             print(f"{Colors.ERROR}ERROR: All proteins in rules are missing in the quant table.{Colors.END}", file=sys.stderr, flush=True)
             raise SystemExit(1)
         
-        return quant_df
+        return updated_quant_df
     
     def prep_vectorized_pairs_for_scikitlearn(self, bool_dict):
         # TODO - takes bool_dict from vectorize pairs output and turns it into what it needs to be turned into for ML
