@@ -140,7 +140,6 @@ class TestFilterRules(unittest.TestCase):
         self.assertEqual(e.exception.code, 1)
 
 
-# TODO
 class TestAddMissingProteins(unittest.TestCase):
 
     def setUp(self):
