@@ -24,7 +24,7 @@ class TestVectorizePair(unittest.TestCase):
     def setUp(self):
         self.transformer = DataTransformer()
 
-    def test_vectorize_pair_no_na(self):
+    def test_no_na(self):
             df = pd.DataFrame({
                 'P1': [1, 4, 6, 3, 1, 7, 1, 7],
                 'P2': [2, 3, 6, 2, 6, 1, 2, 9]
@@ -33,7 +33,7 @@ class TestVectorizePair(unittest.TestCase):
             result = self.transformer.vectorize_pair(('P1', 'P2'), df)
             np.testing.assert_array_equal(result, expected)
 
-    def test_vectorize_pair_na_protein_1(self):
+    def test_na_protein_1(self):
         df = pd.DataFrame({
             'P1': [np.nan, 4, 6, np.nan],
             'P2': [2, 3, 6, 1]
@@ -42,7 +42,7 @@ class TestVectorizePair(unittest.TestCase):
         result = self.transformer.vectorize_pair(('P1', 'P2'), df)
         np.testing.assert_array_equal(result, expected)
 
-    def test_vectorize_pair_na_protein_2(self):
+    def test_na_protein_2(self):
         df = pd.DataFrame({
             'P1': [1, 4, 6],
             'P2': [2, np.nan, 6]
@@ -51,7 +51,7 @@ class TestVectorizePair(unittest.TestCase):
         result = self.transformer.vectorize_pair(('P1', 'P2'), df)
         np.testing.assert_array_equal(result, expected)
 
-    def test_vectorize_pair_na_in_both(self):
+    def test_na_in_both(self):
         df = pd.DataFrame({
             'P1': [0, 4, 6, 3, np.nan, 7, np.nan, 7],
             'P2': [2, 3, 6, np.nan, 6, np.nan, np.nan, 9]
@@ -60,7 +60,7 @@ class TestVectorizePair(unittest.TestCase):
         result = self.transformer.vectorize_pair(('P1', 'P2'), df)
         np.testing.assert_array_equal(result, expected)
 
-    def test_vectorize_pair_same_proteins(self):
+    def test_same_proteins(self):
         df = pd.DataFrame({'P1': [1, 2, 3, 4]})
         expected = np.array([False, False, False, False])
         result = self.transformer.vectorize_pair(('P1', 'P1'), df)
@@ -79,6 +79,66 @@ class TestFilterRules(unittest.TestCase):
 
     def setUp(self):
         self.transformer = DataTransformer()
+
+        self.quant_df = pd.DataFrame({
+            'sample_id': ['samp1', 'samp2', 'samp3', 'samp4', 'samp5'], 
+            'AAAAA': [0.7328, np.nan, 0.4481, np.nan, 0.9125], 
+            'BBBBB': [np.nan, 0.1839, np.nan, 0.5921, 0.0197], 
+            'CCCCC': [0.7416, 0.2604, np.nan, 0.4973, np.nan], 
+            'DDDDD': [np.nan, np.nan, 0.8231, 0.3795, 0.0028], 
+            'EEEEE': [0.5267, np.nan, 0.9089, 0.1442, np.nan], 
+            'FFFFF': [np.nan, 0.6834, 0.1978, np.nan, 0.9536] 
+        })
+        self.quant_df.set_index('sample_id', inplace=True)
+
+        self.feature_df = pd.DataFrame({
+            'Protein1': ['AAAAA', 'BBBBB', 'CCCCC'],
+            'Protein2': ['DDDDD', 'EEEEE', 'FFFFF'] 
+        })
+
+    def test_all_proteins_present(self):
+        updated_feature_df = self.transformer.filter_rules(self.feature_df, self.quant_df)
+
+        self.assertTrue(self.feature_df.equals(updated_feature_df))
+
+    def test_some_proteins_absent_Protein1(self):
+        self.quant_df.drop('AAAAA', axis=1, inplace=True)
+
+        updated_feature_df = self.transformer.filter_rules(self.feature_df, self.quant_df)
+
+        self.assertFalse(self.feature_df.equals(updated_feature_df))
+        self.assertEqual(updated_feature_df['Protein1'].tolist(), ['BBBBB', 'CCCCC'])
+        self.assertEqual(updated_feature_df['Protein2'].tolist(), ['EEEEE', 'FFFFF'])
+
+    def test_some_proteins_absent_Protein2(self):
+        self.quant_df.drop('EEEEE', axis=1, inplace=True)
+        self.quant_df.drop('FFFFF', axis=1, inplace=True)
+
+        updated_feature_df = self.transformer.filter_rules(self.feature_df, self.quant_df)
+
+        self.assertFalse(self.feature_df.equals(updated_feature_df))
+        self.assertEqual(updated_feature_df['Protein1'].tolist(), ['AAAAA'])
+        self.assertEqual(updated_feature_df['Protein2'].tolist(), ['DDDDD'])
+
+    def test_some_proteins_absent_both(self):
+        self.quant_df.drop('AAAAA', axis=1, inplace=True)
+        self.quant_df.drop('FFFFF', axis=1, inplace=True)
+
+        updated_feature_df = self.transformer.filter_rules(self.feature_df, self.quant_df)
+
+        self.assertFalse(self.feature_df.equals(updated_feature_df))
+        self.assertEqual(updated_feature_df['Protein1'].tolist(), ['BBBBB'])
+        self.assertEqual(updated_feature_df['Protein2'].tolist(), ['EEEEE'])
+
+    def test_all_proteins_absent(self):
+        self.quant_df.drop('AAAAA', axis=1, inplace=True)
+        self.quant_df.drop('EEEEE', axis=1, inplace=True)
+        self.quant_df.drop('FFFFF', axis=1, inplace=True)
+
+        with self.assertRaises(SystemExit) as e:
+            self.transformer.filter_rules(self.feature_df, self.quant_df)
+
+        self.assertEqual(e.exception.code, 1)
 
 
 # TODO
