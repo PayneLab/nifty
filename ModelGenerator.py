@@ -166,7 +166,7 @@ class ModelGenerator:
             pickle.dump(model, f)
         print(f"{Colors.INFO}INFO: Model saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
-    def save_performance_metrics(self, metrics, output_file_path):
+    def save_model_information(self, metrics, output_file_path):
         # TODO: saves performance metrics and hyperparameter info to a file
         # performance metrics include: accuracy, precision, recall (train and validate)
         print(f"{Colors.INFO}INFO: Model performance metrics saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
