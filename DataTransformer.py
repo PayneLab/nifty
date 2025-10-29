@@ -18,7 +18,7 @@ class DataTransformer:
             bool_dict[pair] = bool_vector
         return bool_dict
 
-    def vectorize_pair(self, pair: list, quant_df) -> np.ndarray:
+    def vectorize_pair(self, pair: tuple, quant_df) -> np.ndarray:
         '''Gets all values for two proteins of a pair, compares them and returns a boolean vector'''
         prot1_values = quant_df[pair[0]].to_numpy(copy=True)
         prot2_values = quant_df[pair[1]].to_numpy(copy=True)
@@ -52,11 +52,11 @@ class DataTransformer:
         return vectorized_pairs
 
     def filter_rules(self, feature_df, quant_df):
-        proteins = {}
-        proteins.update(feature_df['Protein1'])
-        proteins.update(feature_df['Protein2'])
+        proteins = set()
+        proteins.update(feature_df['Protein1'].tolist())
+        proteins.update(feature_df['Protein2'].tolist())
 
-        updated_feature_df = feature_df
+        updated_feature_df = feature_df.copy()
 
         for protein in proteins:
             if protein not in quant_df.columns:
@@ -69,14 +69,16 @@ class DataTransformer:
         return updated_feature_df
 
     def add_missing_proteins(self, feature_df, quant_df):
-        proteins = {}
-        proteins.update(feature_df['Protein1'])
-        proteins.update(feature_df['Protein2'])
+        proteins = set()
+        proteins.update(feature_df['Protein1'].tolist())
+        proteins.update(feature_df['Protein2'].tolist())
+
+        updated_quant_df = quant_df.copy()
 
         all_missing = True
         for protein in proteins:
             if protein not in quant_df.columns:
-                quant_df[protein] = np.nan
+                updated_quant_df[protein] = np.nan
             else:
                 all_missing = False
 
@@ -84,7 +86,7 @@ class DataTransformer:
             print(f"{Colors.ERROR}ERROR: All proteins in rules are missing in the quant table.{Colors.END}", file=sys.stderr, flush=True)
             raise SystemExit(1)
         
-        return quant_df
+        return updated_quant_df
     
     def prep_vectorized_pairs_for_scikitlearn(self, bool_dict):
         # Convert dict values (bool arrays) to int arrays

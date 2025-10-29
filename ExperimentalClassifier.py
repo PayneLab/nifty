@@ -9,8 +9,11 @@ class ExperimentalClassifier:
     def __init__(self):
         pass
 
-    def predict_classes(self, model, experimental_data):
-        predictions = model.predict(experimental_data)
+    def predict_classes(self, configs, experimental_data):
+        if configs['prediction_format'] == 'classes':
+            predictions = configs['model'].predict(experimental_data)
+        else:
+            predictions = configs['model'].predict_proba(experimental_data)
         return predictions
 
     def format_predictions(self, predictions):
@@ -32,7 +35,7 @@ class ExperimentalClassifier:
         experimental_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(experimental_bool_dict)
 
         print("CLASSIFYING SAMPLES", file=sys.stderr, flush=True)
-        predictions = self.predict_classes(configs['model'], experimental_matrix)
+        predictions = self.predict_classes(configs, experimental_matrix)
 
         print("SAVING CLASSIFICATIONS", file=sys.stderr, flush=True)
         # TODO: format predictions

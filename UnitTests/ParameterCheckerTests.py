@@ -943,28 +943,349 @@ class CheckConfigurationsFeatureSelection(unittest.TestCase):
         self.assertEqual(self.configs['mutual_information_cutoff'], 0.7)
 
 
-# TODO: Test check_configurations_model_training()
 class TestCheckConfigurationsModelTraining(unittest.TestCase):
 
     def setUp(self):
         self.checker = ParameterChecker()
 
-        self.configs = {'find_features': True, 
-                        'train_model': True, 
-                        'apply_model': True, 
-                        'input_files': 'reference'}
+        self.configs = {'train_model': True,
+                        'impute_NA_missing': True, 
+                        'cross_val': 5, 
+                        'model_type': "RF", 
+                        'autotune_hyperparameters': "", 
+                        'autotune_n_iter': 20, 
+                        'verbose': False}
+        
+    def test_impute_NA_missing_True(self):
+        self.configs['impute_NA_missing'] = True
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['impute_NA_missing'], True)
+
+    def test_impute_NA_missing_False(self):
+        self.configs['impute_NA_missing'] = False
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['impute_NA_missing'], False)
+
+    def test_impute_NA_missing_float(self):
+        self.configs['impute_NA_missing'] = 0.989
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['impute_NA_missing'], True)
+
+    def test_impute_NA_missing_int(self):
+        self.configs['impute_NA_missing'] = 34
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['impute_NA_missing'], True)
+
+    def test_impute_NA_missing_string(self):
+        self.configs['impute_NA_missing'] = 'False'
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['impute_NA_missing'], True)
+
+    def test_cross_val_5(self):
+        self.configs['cross_val'] = 5
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['cross_val'], 5)
+
+    def test_cross_val_10(self):
+        self.configs['cross_val'] = 10
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['cross_val'], 10)
+
+    def test_cross_val_greater_than_max(self):
+        self.configs['cross_val'] = 1000
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['cross_val'], 5)
+
+    def test_cross_val_negative(self):
+        self.configs['cross_val'] = -20
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['cross_val'], 5)
+
+    def test_cross_val_0(self):
+        self.configs['cross_val'] = 0
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['cross_val'], 5)
+
+    def test_cross_val_float(self):
+        self.configs['cross_val'] = 6.0
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['cross_val'], 5)
+
+    def test_cross_val_bool(self):
+        self.configs['cross_val'] = False
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['cross_val'], 5)
+
+    def test_cross_val_string(self):
+        self.configs['cross_val'] = '5'
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['cross_val'], 5)
+
+    def test_model_type_RF(self):
+        self.configs['model_type'] = 'RF'
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['model_type'], 'RF')
+
+    def test_model_type_SVM(self):
+        self.configs['model_type'] = 'SVM'
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['model_type'], 'SVM')
+
+    def test_model_type_bad_string(self):
+        self.configs['model_type'] = 'SMV'
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['model_type'], 'RF')
+
+    def test_model_type_float(self):
+        self.configs['model_type'] = 1.2
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['model_type'], 'RF')
+
+    def test_model_type_int(self):
+        self.configs['model_type'] = 1000
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['model_type'], 'RF')
+
+    def test_model_type_bool(self):
+        self.configs['model_type'] = True
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['model_type'], 'RF')
+
+    def test_autotune_hyperparameters_None(self):
+        self.configs['autotune_hyperparameters'] = ""
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_hyperparameters'], None)
+
+    def test_autotune_hyperparameters_grid(self):
+        self.configs['autotune_hyperparameters'] = "grid"
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_hyperparameters'], "grid")
+
+    def test_autotune_hyperparameters_random(self):
+        self.configs['autotune_hyperparameters'] = "random"
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_hyperparameters'], "random")
+
+    def test_autotune_hyperparameters_int(self):
+        self.configs['autotune_hyperparameters'] = 88
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_hyperparameters'], None)
+
+    def test_autotune_hyperparameters_float(self):
+        self.configs['autotune_hyperparameters'] = 42.0
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_hyperparameters'], None)
+
+    def test_autotune_hyperparameters_bool(self):
+        self.configs['autotune_hyperparameters'] = False
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_hyperparameters'], None)
+
+    def test_autotune_hyperparameters_bad_string(self):
+        self.configs['autotune_hyperparameters'] = "not correct"
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_hyperparameters'], None)
+
+    def test_autotune_n_iter_negative(self):
+        self.configs['autotune_n_iter'] = -25
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_n_iter'], 20)
+
+    def test_autotune_n_iter_greater_than_max(self):
+        self.configs['autotune_n_iter'] = 200
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_n_iter'], 20)
+
+    def test_autotune_n_iter_0(self):
+        self.configs['autotune_n_iter'] = 0
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_n_iter'], 20)
+
+    def test_autotune_n_iter_10(self):
+        self.configs['autotune_n_iter'] = 10
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_n_iter'], 10)
+
+    def test_autotune_n_iter_20(self):
+        self.configs['autotune_n_iter'] = 20
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_n_iter'], 20)
+
+    def test_autotune_n_iter_80(self):
+        self.configs['autotune_n_iter'] = 80
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_n_iter'], 80)
+
+    def test_autotune_n_iter_float(self):
+        self.configs['autotune_n_iter'] = 150.0
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_n_iter'], 20)
+
+    def test_autotune_n_iter_string(self):
+        self.configs['autotune_n_iter'] = "20"
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_n_iter'], 20)
+
+    def test_autotune_n_iter_bool(self):
+        self.configs['autotune_n_iter'] = True
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['autotune_n_iter'], 20)
+
+    def test_verbose_True(self):
+        self.configs['verbose'] = True
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['verbose'], True)
+
+    def test_verbose_False(self):
+        self.configs['verbose'] = False
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['verbose'], False)
+
+    def test_verbose_string(self):
+        self.configs['verbose'] = "True"
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['verbose'], False)
+
+    def test_verbose_int(self):
+        self.configs['verbose'] = 1
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['verbose'], False)
+
+    def test_verbose_float(self):
+        self.configs['verbose'] = 1.0
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['verbose'], False)
         
 
-# TODO: Test check_configurations_experimental_classification()
 class TestCheckConfigurationsExperimentalClassification(unittest.TestCase):
 
     def setUp(self):
         self.checker = ParameterChecker()
 
-        self.configs = {'find_features': True, 
-                        'train_model': True, 
-                        'apply_model': True, 
-                        'input_files': 'reference'}
+        self.configs = {'apply_model': True, 
+                        'prediction_format': 'classes'}
+
+    def test_prediction_format_classes(self):
+        self.configs['prediction_format'] = 'classes'
+
+        self.checker.check_configurations_experimental_classification(self.configs)
+        
+        self.assertEqual(self.configs['prediction_format'], 'classes')
+
+    def test_prediction_format_probabilities(self):
+        self.configs['prediction_format'] = 'probabilities'
+
+        self.checker.check_configurations_experimental_classification(self.configs)
+        
+        self.assertEqual(self.configs['prediction_format'], 'probabilities')
+
+    def test_prediction_format_float(self):
+        self.configs['prediction_format'] = 0.009
+
+        self.checker.check_configurations_experimental_classification(self.configs)
+        
+        self.assertEqual(self.configs['prediction_format'], 'classes')
+
+    def test_prediction_format_int(self):
+        self.configs['prediction_format'] = 57
+
+        self.checker.check_configurations_experimental_classification(self.configs)
+        
+        self.assertEqual(self.configs['prediction_format'], 'classes')
+
+    def test_prediction_format_bool(self):
+        self.configs['prediction_format'] = False
+
+        self.checker.check_configurations_experimental_classification(self.configs)
+        
+        self.assertEqual(self.configs['prediction_format'], 'classes')
+
+    def test_prediction_format_bad_string(self):
+        self.configs['prediction_format'] = 'this is not right'
+
+        self.checker.check_configurations_experimental_classification(self.configs)
+        
+        self.assertEqual(self.configs['prediction_format'], 'classes')
         
 
 # TODO: Test run_parameter_checker()
