@@ -204,11 +204,11 @@ class ModelGenerator:
         self.save_model(model=model, output_file_path=model_output_path)
 
         # Store performance metrics in a dictionary
-        performance_metrics = {'cross_validation_scores': cv_scores,'validation_accuracy': val_accuracy,'validation_precision': val_precision,'validation_recall': val_recall}
+        model_information = {'cross_validation_scores': cv_scores,'validation_accuracy': val_accuracy,'validation_precision': val_precision,'validation_recall': val_recall}
 
         # Save train/validate information to "model_performance_metrics.???" in the specified output dir
-        print("SAVING MODEL PERFORMANCE METRICS", file=sys.stderr, flush=True)
-        metrics_output_path = os.path.join(configs['output_dir'], "model_performance_metrics.txt")  # TODO: fix file extension when function is written
-        self.model_information(metrics=performance_metrics, output_file_path=metrics_output_path)
+        print("SAVING MODEL INFORMATION", file=sys.stderr, flush=True)
+        metrics_output_path = os.path.join(configs['output_dir'], "model_information.txt")  # TODO: fix file extension when function is written
+        self.model_information(metrics=model_information, output_file_path=metrics_output_path)
         
-        return model, performance_metrics
+        return model, model_information
