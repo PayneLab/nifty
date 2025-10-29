@@ -14,10 +14,62 @@ from DataTransformer import DataTransformer
 
 
 # TODO
-class TestVectorizePairs(unittest.TestCase):
+class TestVectorizeAllPairs(unittest.TestCase):
 
     def setUp(self):
         self.transformer = DataTransformer()
+
+        self.pairs = [('P1', 'P2'), 
+                      ('P1', 'P3'), 
+                      ('P2', 'P3')]
+        
+        self.quant_df = pd.DataFrame({
+            'sample_id': ['samp1', 'samp2', 'samp3', 'samp4', 'samp5'], 
+            'P1': [0.7328, np.nan, 0.4481, np.nan, 0.9125], 
+            'P2': [np.nan, 0.1839, np.nan, 0.5921, 0.0197], 
+            'P3': [0.7416, 0.2604, np.nan, 0.4973, np.nan]})
+        
+    def test_3_pairs(self):
+        expected_bool_dict = {('P1', 'P2'): np.array([True, False, True, False, True]), 
+                              ('P1', 'P3'): np.array([False, False, True, False, True]), 
+                              ('P2', 'P3'): np.array([False, False, False, True, True])}
+
+        bool_dict = self.transformer.vectorize_all_pairs(self.pairs, self.quant_df)
+
+        self.assertEqual(expected_bool_dict.keys(), bool_dict.keys())
+        self.assertEqual(self.pairs, list(bool_dict.keys()))
+
+        for pair in self.pairs:
+            np.testing.assert_array_equal(expected_bool_dict[pair], bool_dict[pair])
+
+    def test_2_pairs(self):
+        self.pairs.pop(1)
+
+        expected_bool_dict = {('P1', 'P2'): np.array([True, False, True, False, True]),  
+                              ('P2', 'P3'): np.array([False, False, False, True, True])}
+
+        bool_dict = self.transformer.vectorize_all_pairs(self.pairs, self.quant_df)
+
+        self.assertEqual(expected_bool_dict.keys(), bool_dict.keys())
+        self.assertEqual(self.pairs, list(bool_dict.keys()))
+
+        for pair in self.pairs:
+            np.testing.assert_array_equal(expected_bool_dict[pair], bool_dict[pair])
+
+    def test_1_pair(self):
+        self.pairs.pop(0)
+        self.pairs.pop(0)
+
+        expected_bool_dict = {('P2', 'P3'): np.array([False, False, False, True, True])}
+
+        bool_dict = self.transformer.vectorize_all_pairs(self.pairs, self.quant_df)
+
+        self.assertEqual(expected_bool_dict.keys(), bool_dict.keys())
+        self.assertEqual(self.pairs, list(bool_dict.keys()))
+
+        for pair in self.pairs:
+            np.testing.assert_array_equal(expected_bool_dict[pair], bool_dict[pair])
+
 
 class TestVectorizePair(unittest.TestCase):
      
