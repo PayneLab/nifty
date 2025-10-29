@@ -51,18 +51,18 @@ class TestSplitTable(unittest.TestCase):
         self.assertEqual(len(meta1), 7)
 
         # quant1 and meta1 should have the same 7 sample IDs in the same order
-        self.assertEqual(quant1.index.tolist(), meta1.index.tolist())
+        self.assertEqual(quant1['sample_id'].tolist(), meta1['sample_id'].tolist())
 
         # quant2 and meta2 should have 3 rows
         self.assertEqual(len(quant2), 3)
         self.assertEqual(len(meta2), 3)
 
         # quant2 and meta2 should have the same 3 sample IDs in the same order
-        self.assertEqual(quant2.index.tolist(), meta2.index.tolist())
+        self.assertEqual(quant2['sample_id'].tolist(), meta2['sample_id'].tolist())
 
         # quant/meta1 and quant/meta2 should have no sample overlap
-        index1 = set(quant1.index.tolist())
-        index2 = set(quant2.index.tolist())
+        index1 = set(quant1['sample_id'].tolist())
+        index2 = set(quant2['sample_id'].tolist())
         intersection = index1.intersection(index2)
         self.assertEqual(len(intersection), 0)
 
@@ -84,18 +84,18 @@ class TestSplitTable(unittest.TestCase):
         self.assertEqual(len(meta1), 6)
 
         # quant1 and meta1 should have the same 6 sample IDs in the same order
-        self.assertEqual(quant1.index.tolist(), meta1.index.tolist())
+        self.assertEqual(quant1['sample_id'].tolist(), meta1['sample_id'].tolist())
 
         # quant2 and meta2 should have 4 rows
         self.assertEqual(len(quant2), 4)
         self.assertEqual(len(meta2), 4)
 
         # quant2 and meta2 should have the same 4 sample IDs in the same order
-        self.assertEqual(quant2.index.tolist(), meta2.index.tolist())
+        self.assertEqual(quant2['sample_id'].tolist(), meta2['sample_id'].tolist())
 
         # quant/meta1 and quant/meta2 should have no sample overlap
-        index1 = set(quant1.index.tolist())
-        index2 = set(quant2.index.tolist())
+        index1 = set(quant1['sample_id'].tolist())
+        index2 = set(quant2['sample_id'].tolist())
         intersection = index1.intersection(index2)
         self.assertEqual(len(intersection), 0)
 
@@ -117,26 +117,26 @@ class TestSplitTable(unittest.TestCase):
         self.assertEqual(len(meta1), 2)
 
         # quant1 and meta1 should have the same 2 sample IDs in the same order
-        self.assertEqual(quant1.index.tolist(), meta1.index.tolist())
+        self.assertEqual(quant1['sample_id'].tolist(), meta1['sample_id'].tolist())
 
         # quant2 and meta2 should have 6 rows
         self.assertEqual(len(quant2), 6)
         self.assertEqual(len(meta2), 6)
 
         # quant2 and meta2 should have the same 6 sample IDs in the same order
-        self.assertEqual(quant2.index.tolist(), meta2.index.tolist())
+        self.assertEqual(quant2['sample_id'].tolist(), meta2['sample_id'].tolist())
 
         # quant3 and meta3 should have 2 rows
         self.assertEqual(len(quant3), 2)
         self.assertEqual(len(meta3), 2)
 
         # quant3 and meta3 should have the same 2 sample IDs in the same order
-        self.assertEqual(quant3.index.tolist(), meta3.index.tolist())
+        self.assertEqual(quant3['sample_id'].tolist(), meta3['sample_id'].tolist())
 
         # quant/meta1, quant/meta2, quant/meta3 should have no sample overlap
-        index1 = set(quant1.index.tolist())
-        index2 = set(quant2.index.tolist())
-        index3 = set(quant3.index.tolist())
+        index1 = set(quant1['sample_id'].tolist())
+        index2 = set(quant2['sample_id'].tolist())
+        index3 = set(quant3['sample_id'].tolist())
         intersection = (index1 & index2 & index3)
         self.assertEqual(len(intersection), 0)
 
@@ -163,26 +163,26 @@ class TestSplitTable(unittest.TestCase):
         self.assertEqual(len(meta1), 3)
 
         # quant1 and meta1 should have the same 3 sample IDs in the same order
-        self.assertEqual(quant1.index.tolist(), meta1.index.tolist())
+        self.assertEqual(quant1['sample_id'].tolist(), meta1['sample_id'].tolist())
 
         # quant2 and meta2 should have 3 rows
         self.assertAlmostEqual(len(quant2), 3, delta = 1)
         self.assertAlmostEqual(len(meta2), 3, delta = 1)
 
         # quant2 and meta2 should have the same 3 sample IDs in the same order
-        self.assertEqual(quant2.index.tolist(), meta2.index.tolist())
+        self.assertEqual(quant2['sample_id'].tolist(), meta2['sample_id'].tolist())
 
         # quant3 and meta3 should have 4 rows
         self.assertAlmostEqual(len(quant3), 4, delta = 1)
         self.assertAlmostEqual(len(meta3), 4, delta = 1)
 
         # quant3 and meta3 should have the same 4 sample IDs in the same order
-        self.assertEqual(quant3.index.tolist(), meta3.index.tolist())
+        self.assertEqual(quant3['sample_id'].tolist(), meta3['sample_id'].tolist())
 
         # quant/meta1, quant/meta2, quant/meta3 should have no sample overlap
-        index1 = set(quant1.index.tolist())
-        index2 = set(quant2.index.tolist())
-        index3 = set(quant3.index.tolist())
+        index1 = set(quant1['sample_id'].tolist())
+        index2 = set(quant2['sample_id'].tolist())
+        index3 = set(quant3['sample_id'].tolist())
         intersection = (index1 & index2 & index3)
         self.assertEqual(len(intersection), 0)
 
@@ -210,18 +210,18 @@ class TestSplitTable(unittest.TestCase):
         self.assertEqual(len(meta1), 5)
 
         # quant1 and meta1 should have the same 5 sample IDs in the same order
-        self.assertEqual(quant1.index.tolist(), meta1.index.tolist())
+        self.assertEqual(quant1['sample_id'].tolist(), meta1['sample_id'].tolist())
 
         # quant2 and meta2 should have 5 rows
         self.assertEqual(len(quant2), 5)
         self.assertEqual(len(meta2), 5)
 
         # quant2 and meta2 should have the same 5 sample IDs in the same order
-        self.assertEqual(quant2.index.tolist(), meta2.index.tolist())
+        self.assertEqual(quant2['sample_id'].tolist(), meta2['sample_id'].tolist())
 
         # quant/meta1 and quant/meta2 should have no sample overlap
-        index1 = set(quant1.index.tolist())
-        index2 = set(quant2.index.tolist())
+        index1 = set(quant1['sample_id'].tolist())
+        index2 = set(quant2['sample_id'].tolist())
         intersection = index1.intersection(index2)
         self.assertEqual(len(intersection), 0)
 
@@ -253,10 +253,10 @@ class TestSplitTable(unittest.TestCase):
         quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.3, 0.7), None)
         quant3, meta3, quant4, meta4 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.3, 0.7), None)
         
-        indexes1 = quant1.index.tolist()
-        indexes2 = quant2.index.tolist()
-        indexes3 = quant3.index.tolist()
-        indexes4 = quant4.index.tolist()
+        indexes1 = quant1['sample_id'].tolist()
+        indexes2 = quant2['sample_id'].tolist()
+        indexes3 = quant3['sample_id'].tolist()
+        indexes4 = quant4['sample_id'].tolist()
 
         self.assertNotEqual(indexes1, indexes3)
         self.assertNotEqual(indexes2, indexes4)
@@ -266,10 +266,10 @@ class TestSplitTable(unittest.TestCase):
         quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.8, 0.2), 42)
         quant3, meta3, quant4, meta4 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.8, 0.2), 42)
         
-        indexes1 = quant1.index.tolist()
-        indexes2 = quant2.index.tolist()
-        indexes3 = quant3.index.tolist()
-        indexes4 = quant4.index.tolist()
+        indexes1 = quant1['sample_id'].tolist()
+        indexes2 = quant2['sample_id'].tolist()
+        indexes3 = quant3['sample_id'].tolist()
+        indexes4 = quant4['sample_id'].tolist()
 
         self.assertEqual(indexes1, indexes3)
         self.assertEqual(indexes2, indexes4)
@@ -279,10 +279,10 @@ class TestSplitTable(unittest.TestCase):
         quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.4, 0.6), 100)
         quant3, meta3, quant4, meta4 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.4, 0.6), 100)
         
-        indexes1 = quant1.index.tolist()
-        indexes2 = quant2.index.tolist()
-        indexes3 = quant3.index.tolist()
-        indexes4 = quant4.index.tolist()
+        indexes1 = quant1['sample_id'].tolist()
+        indexes2 = quant2['sample_id'].tolist()
+        indexes3 = quant3['sample_id'].tolist()
+        indexes4 = quant4['sample_id'].tolist()
 
         self.assertEqual(indexes1, indexes3)
         self.assertEqual(indexes2, indexes4)
@@ -294,10 +294,10 @@ class TestSplitTable(unittest.TestCase):
         quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.2, 0.8), 50)
         quant3, meta3, quant4, meta4 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.2, 0.8), 50)
         
-        indexes1 = quant1.index.tolist()
-        indexes2 = quant2.index.tolist()
-        indexes3 = quant3.index.tolist()
-        indexes4 = quant4.index.tolist()
+        indexes1 = quant1['sample_id'].tolist()
+        indexes2 = quant2['sample_id'].tolist()
+        indexes3 = quant3['sample_id'].tolist()
+        indexes4 = quant4['sample_id'].tolist()
 
         self.assertEqual(indexes1, indexes3)
         self.assertEqual(indexes2, indexes4)
@@ -306,10 +306,10 @@ class TestSplitTable(unittest.TestCase):
         quant5, meta5, quant6, meta6 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.2, 0.8), 75)
         quant7, meta7, quant8, meta8 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.2, 0.8), 75)
         
-        indexes5 = quant5.index.tolist()
-        indexes6 = quant6.index.tolist()
-        indexes7 = quant7.index.tolist()
-        indexes8 = quant8.index.tolist()
+        indexes5 = quant5['sample_id'].tolist()
+        indexes6 = quant6['sample_id'].tolist()
+        indexes7 = quant7['sample_id'].tolist()
+        indexes8 = quant8['sample_id'].tolist()
 
         self.assertEqual(indexes5, indexes7)
         self.assertEqual(indexes6, indexes8)

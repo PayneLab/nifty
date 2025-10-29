@@ -39,7 +39,7 @@ class DataSplitter:
                 else:
                     quant_1, quant_2, meta_1, meta_2= train_test_split(quant_df, meta_df, test_size=(proportions[1]), stratify=meta_df['classification_label'])
 
-                split_dfs += (quant_1, meta_1, quant_2, meta_2)
+                split_dfs += (quant_1.reset_index(), meta_1.reset_index(), quant_2.reset_index(), meta_2.reset_index())
             elif len(proportions) == 3:
                 if seed is not None:
                     quant_1, quant_rest, meta_1, meta_rest = train_test_split(quant_df, meta_df, test_size=(round(1-proportions[0], 2)), stratify=meta_df['classification_label'], random_state=seed)
@@ -52,7 +52,7 @@ class DataSplitter:
                     val_ratio = proportions[2] / (proportions[1] + proportions[2])
                     quant_2, quant_3, meta_2, meta_3 = train_test_split(quant_rest, meta_rest, test_size=val_ratio, stratify=meta_rest['classification_label'])
 
-                split_dfs += (quant_1, meta_1, quant_2, meta_2, quant_3, meta_3)
+                split_dfs += (quant_1.reset_index(), meta_1.reset_index(), quant_2.reset_index(), meta_2.reset_index(), quant_3.reset_index(), meta_3.reset_index())
             else:
                 print(f"{Colors.ERROR}ERROR: Number of proportions provided must be 2 or 3, got {len(proportions)} (please submit issue on GitHub, this is an internal problem).{Colors.END}", 
                     file=sys.stderr, flush=True)
@@ -85,8 +85,8 @@ class DataSplitter:
             SystemExit(1): If 'split_for_train' or 'split_for_validate' are ever different (should both be True or both False, never split).
         """
         if configs['split_for_FS'] and not configs['split_for_train'] and not configs['split_for_validate']:
-            configs['feature_quant_table'] = configs['reference_quant_table']
-            configs['feature_meta_table'] = configs['reference_meta_table']
+            configs['feature_quant_table'] = configs['reference_quant_table'].reset_index()
+            configs['feature_meta_table'] = configs['reference_meta_table'].reset_index()
         elif not configs['split_for_FS'] and configs['split_for_train'] and not configs['split_for_validate']:  # should never happen
             print(f"{Colors.ERROR}ERROR: 'split_for_train' and 'split_for_validate' must both be True or False (please submit issue on GitHub, this is an internal problem).{Colors.END}", file=sys.stderr, flush=True)
             raise SystemExit(1)
