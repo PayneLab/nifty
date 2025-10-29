@@ -9,7 +9,7 @@ from sklearn.model_selection import RandomizedSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.svm import SVC
 from sklearn.model_selection import cross_validate
-from sklearn.metrics import accuracy_score, precision_score, recall_score
+from sklearn.metrics import make_scorer, accuracy_score, precision_score, recall_score
 
 
 class ModelGenerator:
@@ -19,15 +19,15 @@ class ModelGenerator:
 
     def optimize_model_rf(self, configs, train_data):
         X = train_data
-        y = configs['train_meta_table']
+        y = configs['train_meta_table']['classification_label'].tolist()
         n_iter = configs['n_iter']
         cv = configs['cross_val']
         seed = configs['seed']
 
         scoring = {
-            'Accuracy': 'accuracy',
-            'Precision': 'precision',
-            'Recall': 'recall'
+            'Accuracy': make_scorer(accuracy_score),
+            'Precision': make_scorer(precision_score, average='weighted'),
+            'Recall': make_scorer(recall_score, average='weighted')
         }
 
         if configs['autotune_hyperparameters'] == "grid":
@@ -88,15 +88,15 @@ class ModelGenerator:
 
     def optimize_model_svm(self, configs, train_data):
         X = train_data
-        y = configs['train_meta_table']
+        y = configs['train_meta_table']['classification_label'].tolist()
         n_iter = configs['n_iter']
         cv = configs['cross_val']
         seed = configs['seed']
 
         scoring = {
-            'Accuracy': 'accuracy',
-            'Precision': 'precision',
-            'Recall': 'recall'
+            'Accuracy': make_scorer(accuracy_score),
+            'Precision': make_scorer(precision_score, average='weighted'),
+            'Recall': make_scorer(recall_score, average='weighted')
         }
     
         if configs['autotune_hyperparameters'] == "grid":
@@ -156,16 +156,16 @@ class ModelGenerator:
         """Trains a classifier and returns the cv score and model."""
 
         scoring = {
-            'Accuracy': 'accuracy',
-            'Precision': 'precision',
-            'Recall': 'recall'
+            'Accuracy': make_scorer(accuracy_score),
+            'Precision': make_scorer(precision_score, average='weighted'),
+            'Recall': make_scorer(recall_score, average='weighted')
         }
 
         if configs['model_type'] == "RF":
             if configs['autotune_hyperparameters'] is None:
                 try:
                     X = train_data
-                    y = configs['train_meta_table']
+                    y = configs['train_meta_table']['classification_label'].tolist()
                     if configs['seed'] is not None:
                         rf = RandomForestClassifier(random_state=configs['seed'])
                     else:
@@ -209,7 +209,7 @@ class ModelGenerator:
             if configs['autotune_hyperparameters'] is None:
                 try:
                     X = train_data
-                    y = configs['train_meta_table']
+                    y = configs['train_meta_table']['classification_label'].tolist()
                     if configs['seed'] is not None:
                         svm = SVC(random_state=configs['seed'])
                     else:
@@ -252,11 +252,11 @@ class ModelGenerator:
 
     def validate_model(self, configs, model, validate_data):
         X_val = validate_data
-        y_val = configs['validate_meta_table']
+        y_val = configs['validate_meta_table']['classification_label'].tolist()
         y_val_pred = model.predict(X_val)
         val_accuracy = accuracy_score(y_val, y_val_pred)
-        val_precision = precision_score(y_val, y_val_pred)
-        val_recall = recall_score(y_val, y_val_pred)
+        val_precision = precision_score(y_val, y_val_pred, average='weighted')
+        val_recall = recall_score(y_val, y_val_pred, average='weighted')
 
         val_scores = {
             'Accuracy': val_accuracy, 
@@ -324,6 +324,7 @@ class ModelGenerator:
         # Save train/validate information to "model_information.txt" in the specified output dir
         print("SAVING MODEL INFORMATION", file=sys.stderr, flush=True)
         metrics_output_path = os.path.join(configs['output_dir'], "model_information.txt")
-        self.model_information(metrics=model_information, output_file_path=metrics_output_path)
+        self.save_model_information(metrics=model_information, output_file_path=metrics_output_path)
         
         return model, model_information
+    
