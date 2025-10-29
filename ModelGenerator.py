@@ -20,7 +20,7 @@ class ModelGenerator:
     def optimize_model_rf(self, configs, train_data):
         X = train_data
         y = configs['train_meta_table']['classification_label'].tolist()
-        n_iter = configs['n_iter']
+        n_iter = configs['autotune_n_iter']
         cv = configs['cross_val']
         seed = configs['seed']
 
@@ -89,7 +89,7 @@ class ModelGenerator:
     def optimize_model_svm(self, configs, train_data):
         X = train_data
         y = configs['train_meta_table']['classification_label'].tolist()
-        n_iter = configs['n_iter']
+        n_iter = configs['autotune_n_iter']
         cv = configs['cross_val']
         seed = configs['seed']
 
@@ -191,8 +191,8 @@ class ModelGenerator:
                         'Accuracy_Mean': cv['mean_test_Accuracy'][index], 
                         'Accuracy_Std': cv['std_test_Accuracy'][index], 
                         'Precision_Mean': cv['mean_test_Precision'][index], 
-                        'Precision_Std': cv['mean_test_Precision'][index], 
-                        'Recall_Mean': cv['std_test_Recall'][index], 
+                        'Precision_Std': cv['std_test_Precision'][index], 
+                        'Recall_Mean': cv['mean_test_Recall'][index], 
                         'Recall_Std': cv['std_test_Recall'][index]
                     }
                     params = rf.get_params()
