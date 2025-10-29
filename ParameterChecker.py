@@ -338,7 +338,7 @@ class ParameterChecker:
             if configs['autotune_hyperparameters'] == "":
                 configs['autotune_hyperparameters'] = None
 
-            if configs['autotune_hyperparameters'] not in ['', 'random', 'grid']:
+            if configs['autotune_hyperparameters'] not in [None, 'random', 'grid']:
                 print(f"{Colors.WARNING}WARNING: 'autotune_hyperparameters' must be one of ('', 'random', 'grid'). Got {configs['autotune_hyperparameters']}. Changing 'autotune_hyperparameters' to '' (no auto-tuning).{Colors.END}", file=sys.stderr, flush=True)
                 configs['autotune_hyperparameters'] = None
 
