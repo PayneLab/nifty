@@ -87,5 +87,11 @@ class DataTransformer:
         return quant_df
     
     def prep_vectorized_pairs_for_scikitlearn(self, bool_dict):
-        # TODO - takes bool_dict from vectorize pairs output and turns it into what it needs to be turned into for ML
-        pass
+        # Convert dict values (bool arrays) to int arrays
+        pair_index = list(bool_dict.keys())
+        bool_matrix = np.array([bool_dict[pair].astype(int) for pair in pair_index])
+
+        # Create DataFrame with pair identifiers as index
+        df = pd.DataFrame(bool_matrix, index=pair_index)
+
+        return df
