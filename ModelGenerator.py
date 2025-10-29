@@ -303,9 +303,9 @@ class ModelGenerator:
         train_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['train_quant_table'])
         validate_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['validate_quant_table'])
 
-        train_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(train_bool_dict)
+        train_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(feature_df=configs['feature_table'], bool_dict=train_bool_dict)
         train_matrix.index = configs['train_meta_table'].index.copy()
-        validate_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(validate_bool_dict)
+        validate_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(feature_df=configs['feature_table'], bool_dict=validate_bool_dict)
         validate_matrix.index = configs['validate_meta_table'].index.copy()
 
         # train model
