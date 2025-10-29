@@ -88,12 +88,14 @@ class DataTransformer:
         
         return updated_quant_df
     
-    def prep_vectorized_pairs_for_scikitlearn(self, bool_dict):
+    def prep_vectorized_pairs_for_scikitlearn(self, feature_df, bool_dict):
         # Convert dict values (bool arrays) to int arrays
-        pair_index = list(bool_dict.keys())
-        bool_matrix = np.array([bool_dict[pair].astype(int) for pair in pair_index])
+        pairs = list(zip(feature_df['Protein1'].tolist(), feature_df['Protein2'].tolist()))
+        bool_matrix = pd.DataFrame()
 
-        # Create DataFrame with pair identifiers as index
-        df = pd.DataFrame(bool_matrix, index=pair_index)
+        for pair, evaluations in bool_dict.items():
+            bool_matrix[pair] = [int(eval) for eval in evaluations]
 
-        return df
+        bool_matrix = bool_matrix[pairs]
+
+        return bool_matrix
