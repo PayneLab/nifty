@@ -32,7 +32,7 @@ class ExperimentalClassifier:
 
         print("TRANSFORMING DATA", file=sys.stderr, flush=True)
         experimental_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['experimental_quant_table'])
-        experimental_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(experimental_bool_dict)
+        experimental_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(feature_df=configs['feature_table'], bool_dict=experimental_bool_dict)
 
         print("CLASSIFYING SAMPLES", file=sys.stderr, flush=True)
         predictions = self.predict_classes(configs, experimental_matrix)
