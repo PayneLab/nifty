@@ -119,7 +119,7 @@ class DataStructureChecker:
         return filtered_df
 
     def filter_proteins_by_class(self, quant_df, class_labels, fraction_na, proteins_to_keep=[]):
-        ''' Filter out proteins that have more than fraction_na of their values as NaN'''
+        ''' Filter out proteins that have more than fraction_na of their values as NaN in both classes.'''
         quant_labels_df = quant_df.join(class_labels, how='inner')
         # print(quant_labels_df.shape)
         quant_labels_df = quant_labels_df.dropna(subset=[class_labels.columns[0]])
