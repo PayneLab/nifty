@@ -182,18 +182,23 @@ class ModelGenerator:
                     rf.fit(X, y)
                     params = rf.get_params()
                 except Exception as e:
-                    raise RuntimeError(f"Error training Random Forest: {e}") from e
+                    print(f"{Colors.ERROR}ERROR training RF model: {e}{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
             else:
-                rf, cv, index = self.optimize_model_rf(configs, train_data)
-                cv_scores = {
-                    'Accuracy_Mean': cv['mean_test_Accuracy'][index], 
-                    'Accuracy_Std': cv['std_test_Accuracy'][index], 
-                    'Precision_Mean': cv['mean_test_Precision'][index], 
-                    'Precision_Std': cv['mean_test_Precision'][index], 
-                    'Recall_Mean': cv['std_test_Recall'][index], 
-                    'Recall_Std': cv['std_test_Recall'][index]
-                }
-                params = rf.get_params()
+                try:
+                    rf, cv, index = self.optimize_model_rf(configs, train_data)
+                    cv_scores = {
+                        'Accuracy_Mean': cv['mean_test_Accuracy'][index], 
+                        'Accuracy_Std': cv['std_test_Accuracy'][index], 
+                        'Precision_Mean': cv['mean_test_Precision'][index], 
+                        'Precision_Std': cv['mean_test_Precision'][index], 
+                        'Recall_Mean': cv['std_test_Recall'][index], 
+                        'Recall_Std': cv['std_test_Recall'][index]
+                    }
+                    params = rf.get_params()
+                except Exception as e:
+                    print(f"{Colors.ERROR}ERROR tuning and training RF model: {e}{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
 
             model_information = {
                 'cv_scores': cv_scores, 
@@ -221,18 +226,23 @@ class ModelGenerator:
                     svm.fit(X, y)
                     params = svm.get_params()
                 except Exception as e:
-                    raise RuntimeError(f"Error training Random Forest: {e}") from e
+                    print(f"{Colors.ERROR}ERROR training SVM model: {e}{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
             else:
-                svm, cv, index = self.optimize_model_svm(configs, train_data)
-                cv_scores = {
-                    'Accuracy_Mean': cv['mean_test_Accuracy'][index], 
-                    'Accuracy_Std': cv['std_test_Accuracy'][index], 
-                    'Precision_Mean': cv['mean_test_Precision'][index], 
-                    'Precision_Std': cv['std_test_Precision'][index], 
-                    'Recall_Mean': cv['mean_test_Recall'][index], 
-                    'Recall_Std': cv['std_test_Recall'][index]
-                }
-                params = svm.get_params()
+                try:
+                    svm, cv, index = self.optimize_model_svm(configs, train_data)
+                    cv_scores = {
+                        'Accuracy_Mean': cv['mean_test_Accuracy'][index], 
+                        'Accuracy_Std': cv['std_test_Accuracy'][index], 
+                        'Precision_Mean': cv['mean_test_Precision'][index], 
+                        'Precision_Std': cv['std_test_Precision'][index], 
+                        'Recall_Mean': cv['mean_test_Recall'][index], 
+                        'Recall_Std': cv['std_test_Recall'][index]
+                    }
+                    params = svm.get_params()
+                except Exception as e:
+                    print(f"{Colors.ERROR}ERROR tuning and training SVM model: {e}{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
 
             model_information = {
                 'cv_scores': cv_scores, 
@@ -297,7 +307,7 @@ class ModelGenerator:
         train_matrix.index = configs['train_meta_table'].index.copy()
         validate_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(validate_bool_dict)
         validate_matrix.index = configs['validate_meta_table'].index.copy()
-        
+
         # train model
         print("TRAINING MODEL", file=sys.stderr, flush=True)
         model, model_information = self.train_model(configs=configs, train_data=train_matrix)
