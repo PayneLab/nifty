@@ -43,7 +43,7 @@ cross_val = 5
 model_type = "RF"  # optional, default is "RF"
 autotune_hyperparameters = ""  # if blank, no autotune will be done. User inputs either "random" or "grid"
 autotune_n_iter = 20  # optional, default is 20 for random search
-verbose = false
+verbose = 0  # optional, default is 0, allowed values include [0, 1, 2, 3, 4]
 
 
 # apply model settings
