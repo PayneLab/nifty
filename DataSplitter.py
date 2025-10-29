@@ -12,6 +12,24 @@ class DataSplitter:
         pass
 
     def split_table(self, quant_df: pd.DataFrame, meta_df: pd.DataFrame, proportions: tuple, seed):
+        """
+        Splits a paired reference quant and reference meta table into 2 or 3 separate, paired quant and meta tables.
+        No overlap between samples in the splits, all samples in the original tables are found in one of the split tables.
+        Stratifies splits based on the classification labels in the meta_df.
+
+        Args:
+            quant_df: A pandas DataFrame with sample_id as the index, proteins as columns, quant values as values.
+            meta_df: A pandas DataFrame with sample_id as the index (same as quant_df), classification_label as column, class labels as values.
+            proportions: A tuple containing the fraction of the original input that each split should contain; should add up to 1.
+            seed: A fixed seed to be used in the splitting process (for reproducibility), or None for a random seed.
+
+        Returns:
+            A tuple of 2 or 3 pairs of quant and meta DataFrames, each a unique subset of the original paired input.
+
+        Raises:
+            SystemExit(1): If the number of samples in the splits does not equal the number of samples in the original 
+                           reference (i.e., some samples didn't make it into a subset DataFrame).
+        """
         try:
             split_dfs = ()
 
@@ -54,6 +72,18 @@ class DataSplitter:
             raise SystemExit(1)
 
     def run_data_splitter(self, configs):
+        """
+        Runner function that calls split_table based on the user input stored in configs and stores the new tables under the appropriate key in the dictionary.
+
+        Args:
+            configs: A dictionary storing user configurations and data structures related to the pipeline.
+
+        Returns:
+            None
+
+        Raises:
+            SystemExit(1): If 'split_for_train' or 'split_for_validate' are ever different (should both be True or both False, never split).
+        """
         if configs['split_for_FS'] and not configs['split_for_train'] and not configs['split_for_validate']:
             configs['feature_quant_table'] = configs['reference_quant_table']
             configs['feature_meta_table'] = configs['reference_meta_table']
@@ -74,7 +104,7 @@ class DataSplitter:
                                                                                                                                                           meta_df=configs['reference_meta_table'], 
                                                                                                                                                           proportions=(0.7, 0.3),  # TODO: finalize these proportions
                                                                                                                                                           seed=configs['seed'])
-        else:  # all three are True
+        else:  # all three are True, checked for all three False in ParameterChecker
             configs['feature_quant_df'], configs['feature_meta_df'], configs['train_quant_table'], configs['train_meta_table'], configs['validate_quant_table'], configs['validate_meta_table'] = self.split_table(quant_df=configs['reference_quant_table'], 
                                                                                                                                                                                                                    meta_df=configs['reference_meta_table'], 
                                                                                                                                                                                                                    proportions=(0.15, 0.65, 0.2),  # TODO: finalize these proportions
