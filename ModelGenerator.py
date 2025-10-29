@@ -40,12 +40,12 @@ class ModelGenerator:
             }
 
             if seed is not None:
-                rf = RandomForestClassifier(random_state=seed)
+                rf = RandomForestClassifier(random_state=seed, verbose=configs['verbose'])
             else:
-                rf = RandomForestClassifier()
+                rf = RandomForestClassifier(verbose=configs['verbose'])
 
             grid_search = GridSearchCV(
-                rf, param_grid=param_grid, cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1
+                rf, param_grid=param_grid, cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, verbose=configs['verbose']
             )
 
             grid_search.fit(X, y)
@@ -64,20 +64,20 @@ class ModelGenerator:
 
             # Initialize the Random Forest model
             if seed is not None:
-                rf = RandomForestClassifier(random_state=seed)
+                rf = RandomForestClassifier(random_state=seed, verbose=configs['verbose'])
             else:
-                rf = RandomForestClassifier()
+                rf = RandomForestClassifier(verbose=configs['verbose'])
 
             # Use RandomizedSearchCV
             if seed is not None:
                 random_search = RandomizedSearchCV(
                     rf, param_distributions=param_grid, n_iter=n_iter, 
-                    cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, random_state=seed
+                    cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, random_state=seed, verbose=configs['verbose']
                 )
             else:
                 random_search = RandomizedSearchCV(
                     rf, param_distributions=param_grid, n_iter=n_iter, 
-                    cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1
+                    cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, verbose=configs['verbose']
                 )
 
             # Fit on training data
@@ -107,12 +107,12 @@ class ModelGenerator:
             }
 
             if seed is not None:
-                svm = SVC(random_state=seed)
+                svm = SVC(random_state=seed, verbose=configs['verbose'])
             else:
-                svm = SVC()
+                svm = SVC(verbose=configs['verbose'])
 
             grid_search = GridSearchCV(
-                svm, param_grid=param_grid, cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1
+                svm, param_grid=param_grid, cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, verbose=configs['verbose']
             )
 
             grid_search.fit(X, y)
@@ -128,20 +128,20 @@ class ModelGenerator:
 
             # Initialize the SVM model
             if seed is not None:
-                svm = SVC(random_state=seed)
+                svm = SVC(random_state=seed, verbose=configs['verbose'])
             else:
-                svm = SVC()
+                svm = SVC(verbose=configs['verbose'])
 
             # Use RandomizedSearchCV
             if seed is not None:
                 random_search = RandomizedSearchCV(
                     svm, param_distributions=param_grid, n_iter=n_iter, 
-                    cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, random_state=seed
+                    cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, random_state=seed, verbose=configs['verbose']
                 )
             else:
                 random_search = RandomizedSearchCV(
                     svm, param_distributions=param_grid, n_iter=n_iter, 
-                    cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1
+                    cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, verbose=configs['verbose']
                 )
 
             # Fit on training data
@@ -167,10 +167,10 @@ class ModelGenerator:
                     X = train_data
                     y = configs['train_meta_table']['classification_label'].tolist()
                     if configs['seed'] is not None:
-                        rf = RandomForestClassifier(random_state=configs['seed'])
+                        rf = RandomForestClassifier(random_state=configs['seed'], verbose=configs['verbose'])
                     else:
-                        rf = RandomForestClassifier()
-                    cv = cross_validate(rf, X, y, cv=configs['cross_val'], scoring=scoring)
+                        rf = RandomForestClassifier(verbose=configs['verbose'])
+                    cv = cross_validate(rf, X, y, cv=configs['cross_val'], scoring=scoring, verbose=configs['verbose'])
                     cv_scores = {
                         'Accuracy_Mean': cv['test_Accuracy'].mean(), 
                         'Accuracy_Std': cv['test_Accuracy'].std(), 
@@ -211,10 +211,10 @@ class ModelGenerator:
                     X = train_data
                     y = configs['train_meta_table']['classification_label'].tolist()
                     if configs['seed'] is not None:
-                        svm = SVC(random_state=configs['seed'])
+                        svm = SVC(random_state=configs['seed'], verbose=configs['verbose'])
                     else:
-                        svm = SVC()
-                    cv = cross_validate(svm, X, y, cv=configs['cross_val'], scoring=scoring)
+                        svm = SVC(verbose=configs['verbose'])
+                    cv = cross_validate(svm, X, y, cv=configs['cross_val'], scoring=scoring, verbose=configs['verbose'])
                     cv_scores = {
                         'Accuracy_Mean': cv['test_Accuracy'].mean(), 
                         'Accuracy_Std': cv['test_Accuracy'].std(), 
