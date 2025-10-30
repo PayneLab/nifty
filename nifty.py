@@ -108,8 +108,8 @@ def main():
 
         print("CHECKING EXPERIMENTAL TABLE", file=sys.stderr, flush=True)
         data_structure_checker = DataStructureChecker()
-        configs['experimental_quant_file'] = data_structure_checker.check_quant_table(configs=configs, 
-                                                                                      quant_df=configs['experimental_quant_file'])   
+        configs['experimental_quant_table'] = data_structure_checker.check_quant_table(configs=configs, 
+                                                                                      quant_df=configs['experimental_quant_table'])   
         
         print("CHECKING FEATURE TABLE", file=sys.stderr, flush=True)
         data_structure_checker.check_feature_table(feature_df=configs['feature_table'])
