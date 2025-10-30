@@ -84,9 +84,15 @@ class DataSplitter:
         Raises:
             SystemExit(1): If 'split_for_train' or 'split_for_validate' are ever different (should both be True or both False, never split).
         """
+        num_samples_before_split = len(configs['reference_quant_table'])
+        print(f"{Colors.INFO}INFO: {num_samples_before_split} reference samples before splitting.", file=sys.stderr, flush=True)
+
         if configs['split_for_FS'] and not configs['split_for_train'] and not configs['split_for_validate']:
             configs['feature_quant_table'] = configs['reference_quant_table'].reset_index()
             configs['feature_meta_table'] = configs['reference_meta_table'].reset_index()
+
+            num_samples_FS = len(configs['feature_quant_table'])
+            print(f"{Colors.INFO}INFO: {num_samples_FS} samples for feature selection after splitting.", file=sys.stderr, flush=True)
         elif not configs['split_for_FS'] and configs['split_for_train'] and not configs['split_for_validate']:  # should never happen
             print(f"{Colors.ERROR}ERROR: 'split_for_train' and 'split_for_validate' must both be True or False (please submit issue on GitHub, this is an internal problem).{Colors.END}", file=sys.stderr, flush=True)
             raise SystemExit(1)
@@ -104,9 +110,19 @@ class DataSplitter:
                                                                                                                                                           meta_df=configs['reference_meta_table'], 
                                                                                                                                                           proportions=(0.7, 0.3),  # TODO: finalize these proportions
                                                                                                                                                           seed=configs['seed'])
+            
+            num_samples_train = len(configs['train_quant_table'])
+            num_samples_validate = len(configs['validate_quant_table'])
         else:  # all three are True, checked for all three False in ParameterChecker
             configs['feature_quant_table'], configs['feature_meta_table'], configs['train_quant_table'], configs['train_meta_table'], configs['validate_quant_table'], configs['validate_meta_table'] = self.split_table(quant_df=configs['reference_quant_table'], 
                                                                                                                                                                                                                    meta_df=configs['reference_meta_table'], 
                                                                                                                                                                                                                    proportions=(0.15, 0.65, 0.2),  # TODO: finalize these proportions
                                                                                                                                                                                                                    seed=configs['seed'])
+            
+            num_samples_FS = len(configs['feature_quant_table'])
+            num_samples_train = len(configs['train_quant_table'])
+            num_samples_validate = len(configs['validate_quant_table'])
+            print(f"{Colors.INFO}INFO: {num_samples_FS} samples for feature selection after splitting.", file=sys.stderr, flush=True)
+            print(f"{Colors.INFO}INFO: {num_samples_train} samples for model training after splitting.", file=sys.stderr, flush=True)
+            print(f"{Colors.INFO}INFO: {num_samples_validate} samples for model validation after splitting.", file=sys.stderr, flush=True)
 
