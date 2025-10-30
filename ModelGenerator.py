@@ -1,6 +1,7 @@
 import sys
 import os
 import pickle
+import sklearn
 
 from Colors import Colors
 from DataTransformer import DataTransformer
@@ -311,6 +312,7 @@ class ModelGenerator:
         # train model
         print("TRAINING MODEL", file=sys.stderr, flush=True)
         model, model_information = self.train_model(configs=configs, train_data=train_matrix)
+        model._sklearn_version = sklearn.__version__
 
         # validate model
         print("VALIDATING MODEL", file=sys.stderr, flush=True)
