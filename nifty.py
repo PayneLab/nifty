@@ -25,7 +25,7 @@ def main():
 
     check_param_end = time.time()
     check_param_time = (check_param_end - start_time) / 60
-    print(f"{Colors.INFO}INFO: Parameters checked and files read in in {check_param_time:.2f} minutes.", file=sys.stderr, flush=True)
+    print(f"{Colors.INFO}INFO: Parameters checked and files read in {check_param_time:.2f} minutes.", file=sys.stderr, flush=True)
 
 
     # SPLIT REFERENCE
