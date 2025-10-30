@@ -61,13 +61,16 @@ class ParameterChecker:
         try:
             print(f"    - READING IN {pkl_file_path}", file=sys.stderr, flush=True)
             with open(pkl_file_path, 'rb') as f:
-                model = pickle.load(f)
+                model_with_metadata = pickle.load(f)
+                model = model_with_metadata['model']
+                model._sklearn_version = model_with_metadata['sklearn_version']
             return model
         except pickle.UnpicklingError as e:
             print(f"{Colors.ERROR}ERROR unpickling the model '{pkl_file_path}': {e}{Colors.END}", file=sys.stderr, flush=True)
             raise SystemExit(1)
         except Exception as e:
             print(f"{Colors.ERROR}ERROR: {e}{Colors.END}", file=sys.stderr, flush=True)
+            print(f"{Colors.ERROR} Only models generated with this pipeline can be passed in through 'model_file'.")
             raise SystemExit(1)
 
     def check_configurations_project_settings(self, configs):

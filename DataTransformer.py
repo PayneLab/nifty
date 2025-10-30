@@ -91,9 +91,11 @@ class DataTransformer:
     def prep_vectorized_pairs_for_scikitlearn(self, feature_df, bool_dict):
         # Convert dict values (bool arrays) to int arrays
         pairs = list(zip(feature_df['Protein1'].tolist(), feature_df['Protein2'].tolist()))
+        pairs = [">".join(pair) for pair in pairs]
         bool_matrix = pd.DataFrame()
 
         for pair, evaluations in bool_dict.items():
+            pair = ">".join(pair)
             bool_matrix[pair] = [int(eval) for eval in evaluations]
 
         bool_matrix = bool_matrix[pairs]

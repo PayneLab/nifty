@@ -375,10 +375,11 @@ class DataStructureChecker:
             raise SystemExit(1)
 
         # check that the model has feature names
-        features_experimental = sorted(list(zip(feature_df['Protein1'].tolist(), feature_df['Protein2'].tolist())))
+        features_experimental = list(zip(feature_df['Protein1'].tolist(), feature_df['Protein2'].tolist()))
+        features_experimental = [">".join(pair) for pair in features_experimental]
         if hasattr(model, "feature_names_in_"):
             # check that the feature names match those in the feature_df
-            if sorted(model.feature_names_in_) != features_experimental:
+            if sorted(model.feature_names_in_) != sorted(features_experimental):
                 print(f"{Colors.ERROR}ERROR: Loaded model does not have the same feature names as the feature table. {Colors.END}", file=sys.stderr, flush=True)
                 raise SystemExit(1)
         else:

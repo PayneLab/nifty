@@ -1,6 +1,6 @@
 import sys
 import os
-import pickle
+import cloudpickle
 import sklearn
 
 from Colors import Colors
@@ -267,9 +267,13 @@ class ModelGenerator:
         return val_scores
 
     def save_model(self, model, output_file_path):
+        model_with_metadata = {
+            'model': model, 
+            'sklearn_version': sklearn.__version__
+        }
         with open(output_file_path, "wb") as f:
-            pickle.dump(model, f)
-        print(f"{Colors.INFO}INFO: Model saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
+            cloudpickle.dump(model_with_metadata, f)
+        print(f"{Colors.INFO}INFO: Model and metadata saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
     def save_model_information(self, metrics, output_file_path):
         with open(output_file_path, "w") as out_file:
@@ -320,7 +324,7 @@ class ModelGenerator:
 
         # Save model to "trained_model.pkl" in the specified output dir (configs['output_dir'])
         print("SAVING MODEL", file=sys.stderr, flush=True)
-        model_output_path = os.path.join(configs['output_dir'], "trained_model.pkl")
+        model_output_path = os.path.join(configs['output_dir'], "trained_model_and_model_metadata.pkl")
         self.save_model(model=model, output_file_path=model_output_path)
 
         # Save train/validate information to "model_information.txt" in the specified output dir
