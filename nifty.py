@@ -109,13 +109,13 @@ def main():
         print("CHECKING EXPERIMENTAL TABLE", file=sys.stderr, flush=True)
         data_structure_checker = DataStructureChecker()
         configs['experimental_quant_file'] = data_structure_checker.check_quant_table(configs=configs, 
-                                                                                  quant_df=configs['experimental_quant_file'])   
+                                                                                      quant_df=configs['experimental_quant_file'])   
         
         print("CHECKING FEATURE TABLE", file=sys.stderr, flush=True)
         data_structure_checker.check_feature_table(feature_df=configs['feature_table'])
 
         print("CHECKING MODEL", file=sys.stderr, flush=True)
-        data_structure_checker.check_model(configs['model'])
+        data_structure_checker.check_model(configs=configs, model=configs['model'], feature_df=configs['feature_table'])
 
         experimental_classifier = ExperimentalClassifier()
         configs['experimental_classification'] = experimental_classifier.run_experimental_classifier(configs)
