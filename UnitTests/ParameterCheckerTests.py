@@ -176,7 +176,6 @@ class TestReadPkl(unittest.TestCase):
 
             self.assertEqual(e.exception.code, 1)
 
-    # TODO
     def test_good_pickle_good_contents(self):
         with TemporaryDirectory() as tmpdir:
             data = {'model': BaseEstimator(), 'sklearn_version': 2}
