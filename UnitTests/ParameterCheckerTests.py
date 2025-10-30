@@ -162,15 +162,21 @@ class TestReadPkl(unittest.TestCase):
 
             self.assertEqual(e.exception.code, 1)
 
-    def test_good_pkl(self):
+    def test_good_pkl_bad_contents(self):
         with TemporaryDirectory() as tmpdir:
             data = {'a': 1, 'b': 2}
             pkl_path = os.path.join(tmpdir, "test.pkl")
 
             with open(pkl_path, "wb") as pkl:
                 pickle.dump(data, pkl)
+            with self.assertRaises(SystemExit) as e:
+                self.checker.read_pkl(pkl_path)
 
-            self.assertEqual(self.checker.read_pkl(pkl_path), data)
+            self.assertEqual(e.exception.code, 1)
+
+    # TODO
+    def test_good_pickle_good_contents(self):
+        pass
 
 
 # Test check_configurations_project_settings()
@@ -954,7 +960,7 @@ class TestCheckConfigurationsModelTraining(unittest.TestCase):
                         'model_type': "RF", 
                         'autotune_hyperparameters': "", 
                         'autotune_n_iter': 20, 
-                        'verbose': False}
+                        'verbose': 0}
         
     def test_impute_NA_missing_True(self):
         self.configs['impute_NA_missing'] = True
@@ -1201,19 +1207,12 @@ class TestCheckConfigurationsModelTraining(unittest.TestCase):
 
         self.assertEqual(self.configs['autotune_n_iter'], 20)
 
-    def test_verbose_True(self):
+    def test_verbose_bool(self):
         self.configs['verbose'] = True
 
         self.checker.check_configurations_model_training(self.configs)
 
-        self.assertEqual(self.configs['verbose'], True)
-
-    def test_verbose_False(self):
-        self.configs['verbose'] = False
-
-        self.checker.check_configurations_model_training(self.configs)
-
-        self.assertEqual(self.configs['verbose'], False)
+        self.assertEqual(self.configs['verbose'], 0)
 
     def test_verbose_string(self):
         self.configs['verbose'] = "True"
@@ -1222,19 +1221,61 @@ class TestCheckConfigurationsModelTraining(unittest.TestCase):
 
         self.assertEqual(self.configs['verbose'], False)
 
-    def test_verbose_int(self):
+    def test_verbose_0(self):
+        self.configs['verbose'] = 0
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['verbose'], 0)
+
+    def test_verbose_1(self):
         self.configs['verbose'] = 1
 
         self.checker.check_configurations_model_training(self.configs)
 
-        self.assertEqual(self.configs['verbose'], False)
+        self.assertEqual(self.configs['verbose'], 1)
+
+    def test_verbose_2(self):
+        self.configs['verbose'] = 2
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['verbose'], 2)
+
+    def test_verbose_3(self):
+        self.configs['verbose'] = 3
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['verbose'], 3)
+
+    def test_verbose_4(self):
+        self.configs['verbose'] = 4
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['verbose'], 4)
+
+    def test_verbose_negative(self):
+        self.configs['verbose'] = -3
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['verbose'], 0)
+
+    def test_verbose_greater_than_max(self):
+        self.configs['verbose'] = 77
+
+        self.checker.check_configurations_model_training(self.configs)
+
+        self.assertEqual(self.configs['verbose'], 0)
 
     def test_verbose_float(self):
         self.configs['verbose'] = 1.0
 
         self.checker.check_configurations_model_training(self.configs)
 
-        self.assertEqual(self.configs['verbose'], False)
+        self.assertEqual(self.configs['verbose'], 0)
         
 
 class TestCheckConfigurationsExperimentalClassification(unittest.TestCase):

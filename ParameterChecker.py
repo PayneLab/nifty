@@ -352,7 +352,7 @@ class ParameterChecker:
                 print(f"{Colors.WARNING}WARNING: 'autotune_n_iter' must be a positive integer. Changing 'autotune_n_iter' to 20.{Colors.END}", file=sys.stderr, flush=True)
                 configs['autotune_n_iter'] = 20
 
-            if isinstance(configs['verbose'], bool) or configs['verbose'] not in [0, 1, 2, 3, 4]:
+            if isinstance(configs['verbose'], bool) or not isinstance(configs['verbose'], int) or configs['verbose'] not in [0, 1, 2, 3, 4]:
                 print(f"{Colors.WARNING}WARNING: 'verbose' must be one of (0, 1, 2, 3, 4). Got {configs['verbose']}. Changing 'verbose' to 0.{Colors.END}", file=sys.stderr, flush=True)
                 configs['verbose'] = 0
 
