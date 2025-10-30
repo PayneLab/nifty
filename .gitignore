@@ -5,3 +5,5 @@ Test_Output/
 test_config.toml
 
 data/no-na-testing-dfs/Leduc_et_al_2022/quant_table_imputed.tsv
+
+.DS_Store
