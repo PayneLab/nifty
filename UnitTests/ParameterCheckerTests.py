@@ -3,6 +3,7 @@ import os
 
 import unittest
 from tempfile import TemporaryDirectory
+from sklearn.base import BaseEstimator
 import pandas as pd
 import pickle
 
@@ -169,6 +170,7 @@ class TestReadPkl(unittest.TestCase):
 
             with open(pkl_path, "wb") as pkl:
                 pickle.dump(data, pkl)
+
             with self.assertRaises(SystemExit) as e:
                 self.checker.read_pkl(pkl_path)
 
@@ -176,7 +178,20 @@ class TestReadPkl(unittest.TestCase):
 
     # TODO
     def test_good_pickle_good_contents(self):
-        pass
+        with TemporaryDirectory() as tmpdir:
+            data = {'model': BaseEstimator(), 'sklearn_version': 2}
+            model = data['model']
+            model._sklearn_version = data['sklearn_version']
+            pkl_path = os.path.join(tmpdir, "test.pkl")
+
+            with open(pkl_path, "wb") as pkl:
+                pickle.dump(data, pkl)
+
+            loaded_model = self.checker.read_pkl(pkl_path)
+
+            self.assertIs(type(model), type(loaded_model))
+            self.assertEqual(model.get_params(), loaded_model.get_params())
+            self.assertEqual(model._sklearn_version, loaded_model._sklearn_version)
 
 
 # Test check_configurations_project_settings()
