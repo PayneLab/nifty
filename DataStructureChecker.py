@@ -379,3 +379,8 @@ class DataStructureChecker:
         else:
             print(f"{Colors.ERROR}ERROR: Loaded model does not have 'feature_names_in_' attribute. Cannot check for feature alignment between the model and the feature table. Model needs to be fitted on a pandas.DataFrame.", file=sys.stderr, flush=True)
             raise SystemExit(1)
+        
+        # check that the model has classes
+        if not hasattr(model, 'classes_'):
+            print(f"{Colors.ERROR}ERROR: Loaded model does not have 'classes_' attribute.", file=sys.stderr, flush=True)
+            raise SystemExit(1)
