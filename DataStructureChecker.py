@@ -340,11 +340,16 @@ class DataStructureChecker:
             raise SystemExit(1)
 
         # check that the scikit-learn version for the model matches the one that loaded the model
-        model_version = model._sklearn_version
         sklearn_version = sklearn.__version__
 
-        if model_version != sklearn_version:
-            print(f"{Colors.ERROR}ERROR: Scikit-learn version used to train the model is not the same as the scikit-learn version being used to load the model.{Colors.END}", file=sys.stderr, flush=True)
+        if hasattr(model, "_sklearn_version"):
+            model_version = model._sklearn_version
+
+            if model_version != sklearn_version:
+                print(f"{Colors.ERROR}ERROR: Scikit-learn version used to train the model is not the same as the scikit-learn version being used to load the model.{Colors.END}", file=sys.stderr, flush=True)
+                raise SystemExit(1)
+        else:
+            print(f"{Colors.ERROR}ERROR: Loaded model does not have '_sklearn_version' attribute. Cannot check that the scikit-learn version used to train the model is the same as the scikit-learn version being used to load the model. The following code should be executed after fitting the model: 'model._sklearn_version = sklearn.__version__'.{Colors.END}", file=sys.stderr, flush=True)
             raise SystemExit(1)
 
         # check that the model can predict
