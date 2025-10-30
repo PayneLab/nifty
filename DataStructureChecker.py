@@ -348,10 +348,9 @@ class DataStructureChecker:
             raise SystemExit(1)
 
         # check that the model can predict
-        if configs['prediction_format'] == "classes":
-            if not hasattr(model, "predict"):
-                print(f"{Colors.ERROR}ERROR: Loaded model does not have 'predict()' method.{Colors.END}", file=sys.stderr, flush=True)
-                SystemExit(1)
+        if not hasattr(model, "predict"):
+            print(f"{Colors.ERROR}ERROR: Loaded model does not have 'predict()' method.{Colors.END}", file=sys.stderr, flush=True)
+            SystemExit(1)
 
         # check that the model can predict_proba
         if configs['prediction_format'] == "probabilities":
