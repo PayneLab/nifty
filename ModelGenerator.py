@@ -107,9 +107,9 @@ class ModelGenerator:
             }
 
             if seed is not None:
-                svm = SVC(random_state=seed, verbose=configs['verbose'])
+                svm = SVC(random_state=seed, verbose=configs['verbose'], probability=True)
             else:
-                svm = SVC(verbose=configs['verbose'])
+                svm = SVC(verbose=configs['verbose'], probability=True)
 
             grid_search = GridSearchCV(
                 svm, param_grid=param_grid, cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, verbose=configs['verbose']
@@ -128,9 +128,9 @@ class ModelGenerator:
 
             # Initialize the SVM model
             if seed is not None:
-                svm = SVC(random_state=seed, verbose=configs['verbose'])
+                svm = SVC(random_state=seed, verbose=configs['verbose'], probability=True)
             else:
-                svm = SVC(verbose=configs['verbose'])
+                svm = SVC(verbose=configs['verbose'], probability=True)
 
             # Use RandomizedSearchCV
             if seed is not None:
@@ -211,9 +211,9 @@ class ModelGenerator:
                     X = train_data
                     y = configs['train_meta_table']['classification_label'].tolist()
                     if configs['seed'] is not None:
-                        svm = SVC(random_state=configs['seed'], verbose=configs['verbose'])
+                        svm = SVC(random_state=configs['seed'], verbose=configs['verbose'], probability=True)
                     else:
-                        svm = SVC(verbose=configs['verbose'])
+                        svm = SVC(verbose=configs['verbose'], probability=True)
                     cv = cross_validate(svm, X, y, cv=configs['cross_val'], scoring=scoring, verbose=configs['verbose'])
                     cv_scores = {
                         'Accuracy_Mean': cv['test_Accuracy'].mean(), 
