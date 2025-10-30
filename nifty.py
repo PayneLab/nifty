@@ -44,6 +44,12 @@ def main():
         data_table_splitter = DataSplitter()
         data_table_splitter.run_data_splitter(configs=configs)
 
+        split_reference_end = time.time()
+        split_reference_time = (split_reference_end - check_param_end) / 60
+        print(f"{Colors.INFO}INFO: Reference split in {split_reference_time:.2f} minutes.", file=sys.stderr, flush=True)
+    else:
+        split_reference_end = time.time()
+
 
     # FIND FEATURES
     if configs['find_features']:
@@ -64,7 +70,7 @@ def main():
         configs['rules'], configs['true_scores'], configs['all_evaluated_rules'], configs['feature_table'] = feature_finder.find_features(configs=configs)
 
         find_feature_end = time.time()
-        find_feature_time = (find_feature_end - check_param_end) / 60
+        find_feature_time = (find_feature_end - split_reference_end) / 60
         print(f"{Colors.INFO}INFO: Features found in {find_feature_time:.2f} minutes.", file=sys.stderr, flush=True)
     else:
         find_feature_end = time.time()
