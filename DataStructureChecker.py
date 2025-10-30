@@ -2,6 +2,8 @@ import sys
 
 import numpy as np
 import pandas as pd
+import sklearn
+from sklearn.base import BaseEstimator
 
 from Colors import Colors
 
@@ -331,6 +333,50 @@ class DataStructureChecker:
             print(f"{Colors.ERROR}ERROR: Feature table must have at least 1 rule, found {len(feature_df)}.{Colors.END}", file=sys.stderr, flush=True)
             raise SystemExit(1)
 
-    def check_model(self, model):
-        # TODO: check that the model is structured correctly
-        pass
+    def check_model(self, configs, model, feature_df):
+        # Check that the model is a scikit-learn model
+        if not isinstance(model, BaseEstimator):
+            print(f"{Colors.ERROR}ERROR: Loaded model is not a valid scikit-learn model.{Colors.END}", file=sys.stderr, flush=True)
+            raise SystemExit(1)
+
+        # check that the scikit-learn version for the model matches the one that loaded the model
+        model_version = model._sklearn_version
+        sklearn_version = sklearn.__version__
+
+        if model_version != sklearn_version:
+            print(f"{Colors.ERROR}ERROR: Scikit-learn version used to train the model is not the same as the scikit-learn version being used to load the model.{Colors.END}", file=sys.stderr, flush=True)
+            raise SystemExit(1)
+
+        # check that the model can predict
+        if configs['prediction_format'] == "classes":
+            if not hasattr(model, "predict"):
+                print(f"{Colors.ERROR}ERROR: Loaded model does not have 'predict()' method.{Colors.END}", file=sys.stderr, flush=True)
+                SystemExit(1)
+
+        # check that the model can predict_proba
+        if configs['prediction_format'] == "probabilities":
+            if not hasattr(model, "predict_proba"):
+                print(f"{Colors.ERROR}ERROR: Loaded model does not have 'predict_proba()' method. Some models need to be generated with 'probability=True' to have this method.{Colors.END}", file=sys.stderr, flush=True)
+                SystemExit(1)
+
+        # check that the model has features
+        n_features_experimental = len(feature_df)
+        if hasattr(model, 'n_features_in_'):
+            # check that the number of features in the model match the number of features in the feature_df
+            if model.n_features_in_ != n_features_experimental:
+                print(f"{Colors.ERROR}ERROR: Loaded model does not have the same number of features as the feature table. {Colors.END}", file=sys.stderr, flush=True)
+                raise SystemExit(1)
+        else:
+            print(f"{Colors.ERROR}ERROR: Loaded model does not have 'n_features_in_' attribute. Cannot check for feature alignment between the model and the feature table.", file=sys.stderr, flush=True)
+            raise SystemExit(1)
+
+        # check that the model has feature names
+        features_experimental = sorted(list(zip(feature_df['Protein1'].tolist(), feature_df['Protein2'].tolist())))
+        if hasattr(model, "feature_names_in_"):
+            # check that the feature names match those in the feature_df
+            if sorted(model.feature_names_in_) != features_experimental:
+                print(f"{Colors.ERROR}ERROR: Loaded model does not have the same feature names as the feature table. {Colors.END}", file=sys.stderr, flush=True)
+                raise SystemExit(1)
+        else:
+            print(f"{Colors.ERROR}ERROR: Loaded model does not have 'feature_names_in_' attribute. Cannot check for feature alignment between the model and the feature table. Model needs to be fitted on a pandas.DataFrame.", file=sys.stderr, flush=True)
+            raise SystemExit(1)
