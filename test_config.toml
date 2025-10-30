@@ -1,7 +1,7 @@
 # project settings
-find_features = true  # required
-train_model = true  # required
-apply_model = false  # required
+find_features = false  # required
+train_model = false  # required
+apply_model = true  # required
 seed = "random"  # optional, default is "random"
 
 input_files = "reference"  # required if find_features or train_model are true; options: "reference", "individual"; default is "reference"
@@ -11,20 +11,20 @@ input_files = "reference"  # required if find_features or train_model are true; 
 # files
 output_dir = "Test_Output"  # Optional, default is "cwd"
 
-reference_quant_file = "data\\na-allow-testing-dfs\\Khan_Elcheikhali_et_al_2024\\quant_table_unimputed.tsv"  # required if find_features or train_model are true and input_files = "reference"
-reference_meta_file = "data\\na-allow-testing-dfs\\Khan_Elcheikhali_et_al_2024\\meta_table_unimputed.tsv"  # required if find_features or train_model are true and input_files = "reference"
+reference_quant_file = "data\\na-allow-testing-dfs\\Leduc_et_al_2022\\quant_table_unimputed.tsv"  # required if find_features or train_model are true and input_files = "reference"
+reference_meta_file = "data\\na-allow-testing-dfs\\Leduc_et_al_2022\\meta_table_unimputed.tsv"  # required if find_features or train_model are true and input_files = "reference"
 
 feature_quant_file = ""  # required if find_features = true and input_files = "individual"
 feature_meta_file = ""  # required if find_features = true and input_files = "individual"
-feature_file = ""  # required if find_features = false
+feature_file = "Test_Output\\selected_features.tsv"  # required if find_features = false
 
 train_quant_file = ""  # required if train_model = true and input_files = "individual"
 train_meta_file = ""  # required if train_model = true and input_files = "individual"
 validate_quant_file = ""  # required if train_model = true and input_files = "individual"
 validate_meta_file = ""  # required if train_model = true and input_files = "individual"
-model_file = ""  # required if train_model = false and apply_model = true
+model_file = "Test_Output\\trained_model.pkl"  # required if train_model = false and apply_model = true
 
-experimental_quant_file = ""  # required if apply_model = true
+experimental_quant_file = "data\\no-na-testing-dfs\\Leduc_et_al_2022\\quant_table_imputed.tsv"  # required if apply_model = true
 
 
 
@@ -41,7 +41,7 @@ mutual_information_cutoff = 0.7  # optional, default is 0.7
 impute_NA_missing = true  # optional, default is true
 cross_val = 5
 model_type = "RF"  # optional, default is "RF"
-autotune_hyperparameters = "grid"  # if blank, no autotune will be done. User inputs either "random" or "grid"
+autotune_hyperparameters = ""  # if blank, no autotune will be done. User inputs either "random" or "grid"
 autotune_n_iter = 20  # optional, default is 20 for random search
 verbose = 0  # optional, default is 0, allowed values include [0, 1, 2, 3, 4]
 
