@@ -248,7 +248,6 @@ class TestSplitTable(unittest.TestCase):
 
         self.assertEqual(e.exception.code, 1)
 
-    # TODO: test fixed seed
     def test_random_seed(self):
         quant1, meta1, quant2, meta2 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.3, 0.7), None)
         quant3, meta3, quant4, meta4 = self.splitter.split_table(self.reference_quant_balanced, self.reference_meta_balanced, (0.3, 0.7), None)
