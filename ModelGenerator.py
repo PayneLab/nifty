@@ -46,7 +46,7 @@ class ModelGenerator:
                 rf = RandomForestClassifier(verbose=configs['verbose'])
 
             grid_search = GridSearchCV(
-                rf, param_grid=param_grid, cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, verbose=configs['verbose']
+                estimator = rf, param_grid=param_grid, cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, verbose=configs['verbose']
             )
 
             grid_search.fit(X, y)
@@ -72,12 +72,12 @@ class ModelGenerator:
             # Use RandomizedSearchCV
             if seed is not None:
                 random_search = RandomizedSearchCV(
-                    rf, param_distributions=param_grid, n_iter=n_iter, 
+                    estimator = rf, param_distributions=param_grid, n_iter=n_iter, 
                     cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, random_state=seed, verbose=configs['verbose']
                 )
             else:
                 random_search = RandomizedSearchCV(
-                    rf, param_distributions=param_grid, n_iter=n_iter, 
+                    estimator = rf, param_distributions=param_grid, n_iter=n_iter, 
                     cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, verbose=configs['verbose']
                 )
 
@@ -113,7 +113,7 @@ class ModelGenerator:
                 svm = SVC(verbose=configs['verbose'], probability=True)
 
             grid_search = GridSearchCV(
-                svm, param_grid=param_grid, cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, verbose=configs['verbose']
+                estimator = svm, param_grid=param_grid, cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, verbose=configs['verbose']
             )
 
             grid_search.fit(X, y)
@@ -136,12 +136,12 @@ class ModelGenerator:
             # Use RandomizedSearchCV
             if seed is not None:
                 random_search = RandomizedSearchCV(
-                    svm, param_distributions=param_grid, n_iter=n_iter, 
+                    estimator = svm, param_distributions=param_grid, n_iter=n_iter, 
                     cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, random_state=seed, verbose=configs['verbose']
                 )
             else:
                 random_search = RandomizedSearchCV(
-                    svm, param_distributions=param_grid, n_iter=n_iter, 
+                    estimator = svm, param_distributions=param_grid, n_iter=n_iter, 
                     cv=cv, scoring=scoring, refit='Accuracy', n_jobs=-1, verbose=configs['verbose']
                 )
 
