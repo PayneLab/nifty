@@ -38,7 +38,8 @@ def main():
         configs['reference_quant_table'], configs['reference_meta_table'] = data_structure_checker.check_paired_quant_and_meta_tables(configs=configs, 
                                                                                                                                   quant_df=configs['reference_quant_table'], 
                                                                                                                                   meta_df=configs['reference_meta_table'], 
-                                                                                                                                  min_samples=MIN_SAMPLES_VALIDATE)  # TODO: is this the min we want here?
+                                                                                                                                  min_samples=MIN_SAMPLES_VALIDATE, 
+                                                                                                                                  balance=False)  # TODO: is this the min we want here?
 
         print("SPLITTING REFERENCE TABLES", file=sys.stderr, flush=True)
         data_table_splitter = DataSplitter()
