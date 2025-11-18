@@ -11,6 +11,88 @@ sys.path.append(parent_dir)
 
 from DataStructureChecker import DataStructureChecker
 
+class TestBalanceClasses(unittest.TestCase):
+
+    def setUp(self):
+        self.checker = DataStructureChecker()
+        self.quant_df = pd.DataFrame({
+            'sample_id': ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
+            'P1': [1.0, np.nan, np.nan, 1.0, np.nan, np.nan],
+            'P2': [1.0, 2.0, 3.0, 1.0, 2.0, 3.0],
+            'P3': [np.nan, np.nan, np.nan, np.nan, np.nan, np.nan]
+        })
+        self.meta_df = pd.DataFrame({
+            'sample_id': ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'], 
+            'classification_label': ['A', 'B', 'B', 'A', 'B', 'A']})
+        
+    def test_imbalanced_class_B_more(self):
+        labels = ['A', 'B', 'B', 'A', 'B', 'B']
+        self.meta_df['classification_label'] = labels
+
+        new_quant, new_meta = self.checker.balance_classes(self.quant_df, self.meta_df)
+
+        # sorted new_quant and sorted new_meta should NOT be the same as the original tables
+        new_quant, new_meta = self.checker.sort_data(new_quant, new_meta)
+
+        with self.assertRaises(AssertionError):
+            pd.testing.assert_frame_equal(self.quant_df, new_quant)
+        with self.assertRaises(AssertionError):
+            pd.testing.assert_frame_equal(self.meta_df, new_meta)
+
+        # new_quant and new_meta should have 4 samples and they should be the same samples
+        quant_samples = new_quant['sample_id'].tolist()
+        meta_samples = new_meta['sample_id'].tolist()
+
+        self.assertEqual(len(quant_samples), 4)
+        self.assertEqual(len(meta_samples), 4)
+        self.assertEqual(quant_samples, meta_samples)
+
+        # classification labels in new meta should be 2 A and 2 B
+        label_counts = new_meta['classification_label'].value_counts()
+
+        self.assertEqual(label_counts['A'], 2)
+        self.assertEqual(label_counts['B'], 2)
+
+    def test_imbalanced_class_A_more(self):
+        labels = ['A', 'B', 'A', 'A', 'A', 'A']
+        self.meta_df['classification_label'] = labels
+
+        new_quant, new_meta = self.checker.balance_classes(self.quant_df, self.meta_df)
+
+        # sorted new_quant and sorted new_meta should NOT be the same as the original tables
+        new_quant, new_meta = self.checker.sort_data(new_quant, new_meta)
+
+        with self.assertRaises(AssertionError):
+            pd.testing.assert_frame_equal(self.quant_df, new_quant)
+        with self.assertRaises(AssertionError):
+            pd.testing.assert_frame_equal(self.meta_df, new_meta)
+
+        # new_quant and new_meta should have 4 samples and they should be the same samples
+        quant_samples = new_quant['sample_id'].tolist()
+        meta_samples = new_meta['sample_id'].tolist()
+
+        self.assertEqual(len(quant_samples), 2)
+        self.assertEqual(len(meta_samples), 2)
+        self.assertEqual(quant_samples, meta_samples)
+
+        # classification labels in new meta should be 2 A and 2 B
+        label_counts = new_meta['classification_label'].value_counts()
+
+        self.assertEqual(label_counts['A'], 1)
+        self.assertEqual(label_counts['B'], 1)
+
+    def test_balanced_classes(self):
+        new_quant, new_meta = self.checker.balance_classes(self.quant_df, self.meta_df)
+
+        # new_quant and new_meta should have the same sample IDs
+        self.assertEqual(new_quant['sample_id'].tolist(), new_meta['sample_id'].tolist())
+
+        # sorted new_quant and sorted new_meta should be the same as the original tables
+        new_quant, new_meta = self.checker.sort_data(new_quant, new_meta)
+
+        pd.testing.assert_frame_equal(self.quant_df, new_quant)
+        pd.testing.assert_frame_equal(self.meta_df, new_meta)
+
 class TestDataTableChecker(unittest.TestCase):
     def setUp(self):
         self.checker = DataStructureChecker()

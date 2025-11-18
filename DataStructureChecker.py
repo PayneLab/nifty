@@ -2,6 +2,7 @@ import sys
 
 import numpy as np
 import pandas as pd
+import random
 import sklearn
 from sklearn.base import BaseEstimator
 
@@ -192,8 +193,33 @@ class DataStructureChecker:
     def coerce_to_numeric(self, df):
         df = df.apply(pd.to_numeric, errors='coerce')
         return df
+    
+    def balance_classes(self, quant_df, meta_df):
+        # find the class with the least number of samples, that becomes the number of samples per class
+        label_counts = meta_df['classification_label'].value_counts()
+        min_samples = -1
 
-    def check_paired_quant_and_meta_tables(self, configs, quant_df, meta_df, min_samples):
+        for label, count in label_counts.items():
+            if min_samples == -1:
+                min_samples = count
+            elif count < min_samples:
+                min_samples = count
+
+        # randomly select that number of samples for each class
+        filtered_samples = []
+        for label in label_counts.keys():
+            samples = meta_df[meta_df['classification_label'] == label]['sample_id'].tolist()
+            samples_to_keep = random.sample(samples, min_samples)
+
+            filtered_samples += samples_to_keep
+
+        # filter the dfs to those samples
+        filtered_quant_df = quant_df[quant_df['sample_id'].isin(filtered_samples)]
+        filtered_meta_df = meta_df[meta_df['sample_id'].isin(filtered_samples)]
+
+        return filtered_quant_df, filtered_meta_df
+
+    def check_paired_quant_and_meta_tables(self, configs, quant_df, meta_df, min_samples, balance):
         print(" - CHECKING META DATA TABLE", file=sys.stderr, flush=True)
         check_meta_file_return = self.check_meta_file(meta_df)
         if check_meta_file_return == 1:
@@ -226,8 +252,6 @@ class DataStructureChecker:
             print(f"{Colors.ERROR}ERROR: Found non-numeric, non-NA value in quant data.{Colors.END}", file=sys.stderr, flush=True)
             raise SystemExit(1)
 
-        quant_df, meta_df = self.sort_data(quant_df, meta_df)
-
         print(" - CHECKING PROTEINS", file=sys.stderr, flush=True)
         check_protein_amount_return = self.check_protein_amount(quant_df)
         if check_protein_amount_return == 12:
@@ -242,9 +266,17 @@ class DataStructureChecker:
         print(" - CHECKING SAMPLES", file=sys.stderr, flush=True)
         check_enough_samples_return = self.check_enough_samples(meta_df, min_samples)
         if check_enough_samples_return == 11:
+            # not enough samples per class
             raise SystemExit(1)
         if check_enough_samples_return == 14:
+            # more than two classes
             raise SystemExit(1)
+        
+        # balance the classes if true
+        if balance:
+            quant_df, meta_df = self.balance_classes(quant_df, meta_df)
+
+        quant_df, meta_df = self.sort_data(quant_df, meta_df)
 
         check_samples_return = self.check_samples(quant_df, meta_df)
         if check_samples_return == 4:

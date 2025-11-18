@@ -61,7 +61,8 @@ def main():
         configs['feature_quant_table'], configs['feature_meta_table'] = data_structure_checker.check_paired_quant_and_meta_tables(configs=configs, 
                                                                                         quant_df=configs['feature_quant_table'], 
                                                                                         meta_df=configs['feature_meta_table'], 
-                                                                                        min_samples=MIN_SAMPLES_FEATURES)
+                                                                                        min_samples=MIN_SAMPLES_FEATURES, 
+                                                                                        balance=False)
         configs['filtered_feature_quant_table'] = data_structure_checker.filter_quant_table(configs=configs, 
                                                                                         quant_df=configs['feature_quant_table'], 
                                                                                         meta_df=configs['feature_meta_table'])
@@ -86,13 +87,15 @@ def main():
         configs['train_quant_table'], configs['train_meta_table'] = data_structure_checker.check_paired_quant_and_meta_tables(configs=configs, 
                                                                                                                           quant_df=configs['train_quant_table'], 
                                                                                                                           meta_df=configs['train_meta_table'], 
-                                                                                                                          min_samples=MIN_SAMPLES_TRAIN)
+                                                                                                                          min_samples=MIN_SAMPLES_TRAIN, 
+                                                                                                                          balance=False)
         
         print("CHECKING VALIDATE TABLES", file=sys.stderr, flush=True)
         configs['validate_quant_table'], configs['validate_meta_table'] = data_structure_checker.check_paired_quant_and_meta_tables(configs=configs, 
                                                                                                                                  quant_df=configs['validate_quant_table'], 
                                                                                                                                  meta_df=configs['validate_meta_table'], 
-                                                                                                                                 min_samples=MIN_SAMPLES_VALIDATE)
+                                                                                                                                 min_samples=MIN_SAMPLES_VALIDATE, 
+                                                                                                                                 balance=True)
         
         print("CHECKING FEATURE TABLE", file=sys.stderr, flush=True)
         data_structure_checker.check_feature_table(feature_df=configs['feature_table'])
