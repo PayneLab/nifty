@@ -217,6 +217,8 @@ class DataStructureChecker:
         filtered_quant_df = quant_df[quant_df['sample_id'].isin(filtered_samples)]
         filtered_meta_df = meta_df[meta_df['sample_id'].isin(filtered_samples)]
 
+        print(f"{Colors.INFO}INFO: {len(filtered_meta_df)} samples for model validation after balancing classes.{Colors.END}", file=sys.stderr, flush=True)
+
         return filtered_quant_df, filtered_meta_df
 
     def check_paired_quant_and_meta_tables(self, configs, quant_df, meta_df, min_samples, balance):
