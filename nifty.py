@@ -11,8 +11,8 @@ from Colors import Colors
 
 
 MIN_SAMPLES_FEATURES = 15  # TODO: fill this in with experimentally validated minimums
-MIN_SAMPLES_TRAIN = MIN_SAMPLES_FEATURES * 10  # TODO: fill this in with experimentally validated minimums
-MIN_SAMPLES_VALIDATE = 1
+MIN_SAMPLES_TRAIN = 35  # TODO: fill this in with experimentally validated minimums
+MIN_SAMPLES_VALIDATE = 15
 
 
 def main():
