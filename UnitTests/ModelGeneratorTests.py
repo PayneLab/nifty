@@ -10,7 +10,6 @@ import pandas as pd
 import cloudpickle
 import sklearn
 
-# Make parent directory importable (same pattern as your example)
 current_dir = os.path.dirname(__file__)
 parent_dir = os.path.abspath(os.path.join(current_dir, '..'))
 sys.path.append(parent_dir)

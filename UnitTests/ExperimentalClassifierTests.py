@@ -85,7 +85,7 @@ class TestFormatPredictions(unittest.TestCase):
 
     def setUp(self):
         self.cls = ExperimentalClassifier()
-        # Fake experimental quant table (index = sample IDs)
+        # Sample experimental quant table
         self.experimental_quant = pd.DataFrame({
             'P1': [0.1, 0.2, 0.3],
             'P2': [0.4, 0.5, 0.6]

@@ -22,7 +22,7 @@ class TestFindFeatures(unittest.TestCase):
         # Instance of the class under test
         self.selector = FeatureSelector()
 
-        # Minimal fake filtered_feature_quant_table
+        # Minimal testing filtered_feature_quant_table
         # rows = samples, cols = proteins/features
         self.filtered_feature_quant_table = pd.DataFrame({
             'sample_id': ['s1', 's2', 's3'],
