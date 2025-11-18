@@ -54,7 +54,7 @@ class TestFindFeatures(unittest.TestCase):
         """
         configs = self.base_configs.copy()
 
-        # ----- Set up GenerateRules mock -----
+        # Set up GenerateRules mock
         gr_instance = MagicMock()
         mock_generate_rules_cls.return_value = gr_instance
 
@@ -62,7 +62,7 @@ class TestFindFeatures(unittest.TestCase):
         mock_rules = [('P1', 'P2'), ('P2', 'P3')]
         gr_instance.generate_rule_pairs.return_value = mock_rules
 
-        # ----- Set up EvaluateRules mock -----
+        # Set up EvaluateRules mock
         er_instance = MagicMock()
         mock_evaluate_rules_cls.return_value = er_instance
 
@@ -83,10 +83,10 @@ class TestFindFeatures(unittest.TestCase):
             mock_top_k_rules
         )
 
-        # ----- Call the function under test -----
+        # Call the function under test
         rules, true_scores, all_evaluated_rules, top_k_rules = self.selector.find_features(configs)
 
-        # ----- Assertions on GenerateRules usage -----
+        # Assertions on GenerateRules usage
         mock_generate_rules_cls.assert_called_once()
         gr_instance.generate_rule_pairs.assert_called_once()
         # generate_rule_pairs should be called with filtered_feature_quant_table
@@ -97,7 +97,7 @@ class TestFindFeatures(unittest.TestCase):
             (gen_kwargs.get('quant_df') is configs['filtered_feature_quant_table'])
         )
 
-        # ----- Assertions on EvaluateRules usage -----
+        # Assertions on EvaluateRules usage
         # EvaluateRules should be instantiated with seed
         mock_evaluate_rules_cls.assert_called_once_with(configs['seed'])
 
@@ -114,7 +114,7 @@ class TestFindFeatures(unittest.TestCase):
         self.assertIs(eval_kwargs.get('quant_df'), configs['filtered_feature_quant_table'])
         self.assertIs(eval_kwargs.get('meta_df'), configs['feature_meta_table'])
 
-        # ----- Check returned values match mocks -----
+        #Check returned values match mocks 
         self.assertEqual(rules, mock_rules)
         self.assertIs(true_scores, mock_true_scores)
         self.assertIs(all_evaluated_rules, mock_all_evaluated_rules)
