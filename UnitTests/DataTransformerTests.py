@@ -332,11 +332,131 @@ class TestAddMissingProteins(unittest.TestCase):
         self.assertEqual(e.exception.code, 1)
 
 
-# TODO
 class TestPrepVectorizedPairsForScikitlearn(unittest.TestCase):
 
     def setUp(self):
         self.transformer = DataTransformer()
+
+        # Feature table defining the order and identity of feature pairs
+        self.feature_df = pd.DataFrame({
+            'Protein1': ['P1', 'P1', 'P2'],
+            'Protein2': ['P2', 'P3', 'P3']
+        })
+
+        # Expected ordered list of joined pair strings
+        self.expected_column_order = ["P1>P2", "P1>P3", "P2>P3"]
+
+    def test_basic_functionality(self):
+        """
+        Standard case:
+        - bool_dict contains all required pairs
+        - values are boolean arrays
+        """
+        bool_dict = {
+            ('P1', 'P2'): [True, False, True],
+            ('P1', 'P3'): [False, True, False],
+            ('P2', 'P3'): [True, True, False]
+        }
+
+        df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
+            self.feature_df, bool_dict
+        )
+
+        # Check correct shape
+        self.assertEqual(df.shape, (3, 3))
+
+        # Check correct column order
+        self.assertEqual(list(df.columns), self.expected_column_order)
+
+        # Check values converted to int
+        expected_df = pd.DataFrame({
+            "P1>P2": [1, 0, 1],
+            "P1>P3": [0, 1, 0],
+            "P2>P3": [1, 1, 0]
+        })
+        pd.testing.assert_frame_equal(df, expected_df)
+
+    def test_correct_column_order_even_if_bool_dict_is_unordered(self):
+        """
+        Confirm that even if bool_dict keys are in random order,
+        the output DataFrame still respects feature_df order.
+        """
+        bool_dict = {
+            ('P2', 'P3'): [True, True],
+            ('P1', 'P3'): [False, False],
+            ('P1', 'P2'): [True, False]
+        }
+
+        df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
+            self.feature_df, bool_dict
+        )
+
+        self.assertEqual(list(df.columns), self.expected_column_order)
+
+    def test_extra_pairs_in_bool_dict_are_ignored(self):
+        """
+        bool_dict may contain additional pairs not present in feature_df.
+        These should be ignored entirely.
+        """
+        bool_dict = {
+            ('P1', 'P2'): [True, False],
+            ('P1', 'P3'): [False, True],
+            ('P2', 'P3'): [False, False],
+            ('EXTRA', 'PAIR'): [True, True]  # should be ignored
+        }
+
+        df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
+            self.feature_df, bool_dict
+        )
+
+        self.assertEqual(list(df.columns), self.expected_column_order)
+        self.assertNotIn("EXTRA>PAIR", df.columns)
+
+    def test_missing_pair_in_bool_dict(self):
+        """
+        If a required pair is missing from bool_dict, the function should raise a KeyError.
+        """
+        bool_dict = {
+            ('P1', 'P2'): [True, False, True],
+            # ('P1', 'P3') missing intentionally
+            ('P2', 'P3'): [False, True, False]
+        }
+
+        with self.assertRaises(KeyError):
+            self.transformer.prep_vectorized_pairs_for_scikitlearn(
+                self.feature_df, bool_dict
+            )
+
+    def test_empty_feature_df(self):
+        """
+        No features → return empty DataFrame.
+        """
+        feature_df = pd.DataFrame({'Protein1': [], 'Protein2': []})
+        bool_dict = {}
+
+        df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
+            feature_df, bool_dict
+        )
+
+        self.assertTrue(df.empty)
+
+    def test_empty_bool_arrays(self):
+        """
+        If bool arrays are empty, output should be an empty DataFrame with correct columns.
+        """
+        bool_dict = {
+            ('P1', 'P2'): [],
+            ('P1', 'P3'): [],
+            ('P2', 'P3'): []
+        }
+
+        df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
+            self.feature_df, bool_dict
+        )
+
+        self.assertEqual(list(df.columns), self.expected_column_order)
+        self.assertEqual(df.shape[0], 0)
+
 
 
 if __name__ == "__main__":
