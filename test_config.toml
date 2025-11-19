@@ -11,8 +11,8 @@ input_files = "reference"  # required if find_features or train_model are true; 
 # files
 output_dir = "Test_Output"  # Optional, default is "cwd"
 
-reference_quant_file = "data\\na-allow-testing-dfs\\Leduc_et_al_2022\\quant_table_unimputed.tsv"  # required if find_features or train_model are true and input_files = "reference"
-reference_meta_file = "data\\na-allow-testing-dfs\\Leduc_et_al_2022\\meta_table_unimputed.tsv"  # required if find_features or train_model are true and input_files = "reference"
+reference_quant_file = "Datasets_for_Testing\\Montalvo_Alvarez-Dominguez_Slavov_2023\\NIFty_Ready_Data\\quant_unimputed.tsv"  # required if find_features or train_model are true and input_files = "reference"
+reference_meta_file = "Datasets_for_Testing\\Montalvo_Alvarez-Dominguez_Slavov_2023\\NIFty_Ready_Data\\meta.tsv"  # required if find_features or train_model are true and input_files = "reference"
 
 feature_quant_file = ""  # required if find_features = true and input_files = "individual"
 feature_meta_file = ""  # required if find_features = true and input_files = "individual"
