@@ -1,0 +1,33 @@
+---MODEL PARAMETERS---
+bootstrap: True
+ccp_alpha: 0.0
+class_weight: None
+criterion: gini
+max_depth: None
+max_features: sqrt
+max_leaf_nodes: None
+max_samples: None
+min_impurity_decrease: 0.0
+min_samples_leaf: 1
+min_samples_split: 2
+min_weight_fraction_leaf: 0.0
+monotonic_cst: None
+n_estimators: 100
+n_jobs: None
+oob_score: False
+random_state: 42
+verbose: 0
+warm_start: False
+
+---TRAIN/TEST CV SCORES---
+Accuracy_Mean: 0.99
+Accuracy_Std: 0.020000000000000018
+Precision_Mean: 0.990909090909091
+Precision_Std: 0.018181818181818212
+Recall_Mean: 0.99
+Recall_Std: 0.020000000000000018
+
+---VALIDATION SCORES---
+Accuracy: 0.98
+Precision: 0.9807692307692308
+Recall: 0.98
