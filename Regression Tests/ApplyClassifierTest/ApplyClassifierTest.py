@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Regression test for NIFty: feature selection + training + apply classifier.
 """
@@ -141,7 +140,7 @@ def compare_models(expected_pkl: Path, actual_pkl: Path, label: str):
 
 def main():
     test_dir = Path(__file__).resolve().parent
-    # Repo root: nifty/
+
     repo_root = test_dir.parents[1]
     nifty_script = repo_root / "nifty.py"
 

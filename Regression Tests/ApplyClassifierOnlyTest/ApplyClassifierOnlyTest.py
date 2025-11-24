@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Regression test for NIFty: APPLY MODEL ONLY.
 """
@@ -71,7 +70,7 @@ def compare_predictions(expected_path: Path, actual_path: Path):
 
 def main():
     test_dir = Path(__file__).resolve().parent
-    # Repo root: nifty/
+
     repo_root = test_dir.parents[1]
     nifty_script = repo_root / "nifty.py"
 

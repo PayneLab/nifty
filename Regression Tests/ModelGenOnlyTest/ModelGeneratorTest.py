@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
 """
 Regression test for NIFty: model generation ONLY (using precomputed features).
-
 """
 
 import subprocess
@@ -128,9 +126,8 @@ def compare_models(expected_pkl: Path, actual_pkl: Path, label: str):
 
 
 def main():
-    # This file: nifty/Regression Tests/ModelGenOnlyTest/ModelGeneratorTest.py
     test_dir = Path(__file__).resolve().parent
-    # Repo root: nifty/
+
     repo_root = test_dir.parents[1]
     nifty_script = repo_root / "nifty.py"
 

@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
 """
 Master regression runner for NIFty.
-
 """
 
 import subprocess
@@ -41,8 +39,7 @@ def run_test(name: str, script_path: Path, cwd: Path):
 
 
 def main():
-    base_dir = Path(__file__).resolve().parent  # .../nifty/Regression Tests
-    # We'll run each script from base_dir so their own path logic still works
+    base_dir = Path(__file__).resolve().parent
     cwd = base_dir
 
     TEST_SCRIPTS = [

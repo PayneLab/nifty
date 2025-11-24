@@ -1,7 +1,5 @@
-#!/usr/bin/env python3
 """
 Regression test for NIFty feature selection.
-
 """
 
 import subprocess
@@ -71,9 +69,8 @@ def compare_outputs(expected_path: Path, actual_path: Path) -> None:
 
 
 def main():
-    # This file: nifty/Regression Tests/FeatureSelectionTest/FeatureSelectionTest.py
     test_dir = Path(__file__).resolve().parent
-    # Repo root: nifty/
+
     repo_root = test_dir.parents[1]
     nifty_script = repo_root / "nifty.py"
 
