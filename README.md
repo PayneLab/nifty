@@ -29,7 +29,10 @@ You can control this behavoir using the config.toml file.
 Here are all valid combinations of the three main flags:
 
 ## Full Pipeline:
-Use when you want to run the full pipeline from feature selection to model application in one run.
+The most common use of our tool will be to run the full pipeline. This means that the program will 1. find features, 2. train a model and 3. apply the model. The code and descriptive examples below will help you run the full pipeline.
+LINK TO REGRESSION TEST FOLDR
+LINK TO REGRESSION TEST CONFIG
+
 ### Configuration:
 - find_features = true 
 - train_model = true 
