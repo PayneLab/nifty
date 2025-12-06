@@ -28,6 +28,11 @@ NIFTfy can be executed in several modes depending on which steps of the pipeline
 You can control this behavoir using the config.toml file.
 Here are all valid combinations of the three main flags:
 
+## Tutorials:
+- [Full Pipeline](tutorials/full_pipeline_tutorial.md)
+- 
+
+
 ## Full Pipeline:
 The most common use of our tool will be to run the full pipeline. This means that the program will 1. find features, 2. train a model and 3. apply the model. The code and descriptive examples below will help you run the full pipeline.
 LINK TO REGRESSION TEST FOLDR
