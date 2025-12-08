@@ -195,7 +195,7 @@ Use when you want to train a model and then immediately apply it to unlabeled ex
 
 
 ### Quantification File Format:
-| SampleID | ProteinA | ProteinB | ProteinC |
+| sample_id| ProteinA | ProteinB | ProteinC |
 |----------|----------|----------|----------|
 | S1       | 8.3      | NA       | 0.54     |
 | S2       | 7.1      | 1.88     | NA       |
@@ -209,11 +209,11 @@ Use when you want to train a model and then immediately apply it to unlabeled ex
 - File must be TSV
 
 ### Metadata File Format:
-| SampleID | Class   |
-|----------|---------|
-| S1       | A       |
-| S2       | B       |
-| S3       | A       |
+| sample_id | classification_label  |
+|-----------|-----------------------|
+| S1        | A                     |
+| S2        | B                     |
+| S3        | A                     |
 
 
 #### Requirements:
@@ -230,7 +230,14 @@ Use when you want to train a model and then immediately apply it to unlabeled ex
 | ('P4','P5')         | P4       | P5       | 0.88  | 0.0     |
 | ('P6','P7')         | P6       | P7       | 0.85  | 0.0     |
 
-Above is the ouput format that NIFty produces when making the feature file. The same format is expected when a feature file is given.
+Above is the ouput format that NIFty produces when making the feature file. If features are given to NIFty, the above format is accepted as well as a simple 2 column dataframe with Protein1 and Protein2 being columns, implying that Protein1 < Protein2.
+
+| Protein1 | Protein2 |
+|----------|----------|
+| P1       | P2       |
+| P3       | P2       |
+| P4       | P5       |
+| P6       | P7       |
 
 ### Model File Description:
 This is a binary pickle file containing everything needed to apply a trained NIFty model to new data.
