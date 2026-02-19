@@ -1,74 +1,206 @@
-# File Formats and Descriptions
+# Input File Formats and Descriptions
 
-## Input Files:
+NIFty requires three main input files/formats:
+1. [Configuration File](#configuration-file): this file contains all of the configuration settings to run NIFty, including paths to the other two required input files.
+2. [Quantification File](#quantification-files): this file contains quantification information for all samples. 
+3. [Metadata File](#metadata-files): this file contains required metadata to map samples to class labels.
 
-### Config File Description:
+Below are descriptions of the required information and formats for each of the input files.
 
-#### Project Settings:
-| Setting         | Type                            | Description                                                                                                                                                                          |
-| --------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `find_features` | bool                            | Runs feature generation to produce the top k rules. Required.                                                                                                                        |
-| `train_model`   | bool                            | Trains a machine learning classifier using selected rules. Required.                                                                                                                 |
-| `apply_model`   | bool                            | Applies a trained model to unlabeled data. Required.                                                                                                                                 |
-| `seed`          | int or `"random"`               | Random seed for reproducibility. Optional (default: `"random"`).                                                                                                                     |
-| `input_files`   | `"reference"` or `"individual"` | Defines whether you supply one reference dataset or separate individual datasets for each stage. Required if `find_features = true` or `train_model = true`. Default: `"reference"`. |
+## Configuration File
 
-#### File Paths:
-| Setting                   | Required When                                                          | Description                                                 |
-| ------------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------- |
-| `output_dir`              | optional                                                               | Directory to write results. `"cwd"` uses current directory. |
-| `reference_quant_file`    | (`find_features` or `train_model`) **and** `input_files = "reference"` | Quantification table for the reference dataset.             |
-| `reference_meta_file`     | same as above                                                          | Metadata table for the reference dataset.                   |
-| `feature_quant_file`      | `find_features = true` **and** `input_files = "individual"`            | Quant table used for feature selection only.                |
-| `feature_meta_file`       | same as above                                                          | Metadata used for feature selection only.                   |
-| `feature_file`            | `find_features = false`                                                | Existing feature file to use instead of generating rules.   |
-| `train_quant_file`        | `train_model = true` **and** `input_files = "individual"`              | Training quantification table.                              |
-| `train_meta_file`         | same as above                                                          | Training metadata.                                          |
-| `validate_quant_file`     | same as above                                                          | Validation quant table.                                     |
-| `validate_meta_file`      | same as above                                                          | Validation metadata.                                        |
-| `model_file`              | `train_model = false` **and** `apply_model = true`                     | Trained model pickle file.                                  |
-| `experimental_quant_file` | `apply_model = true`                                                   | Unlabeled samples for prediction.                           |
+The configuration file is a `.toml` file containing all of the configuration settings to run NIFty.
+For information on the TOML file syntax and types, see [[Tom's Obvious Minimal Language]](https://toml.io/en/).
 
-#### Feature Selection Settings:
-| Setting                     | Type  | Description                                                          |
-| --------------------------- | ----- | -------------------------------------------------------------------- |
-| `k_rules`                   | int   | Number of top rules to keep. Optional, default = 15 (max = 50).      |
-| `missingness_cutoff`        | float | Removes candidate features with too much missingness. Default = 0.5. |
-| `disjoint`                  | bool  | If true, selected rules cannot share features. Default = false.      |
-| `mutual_information`        | bool  | Whether to score rules using mutual information. Default = true.     |
-| `mutual_information_cutoff` | float | Minimum mutual information required for a rule. Default = 0.7.       |
+There are five sets of settings in NIFty's config file:
+1. [Project Settings](#project-settings)
+2. [File Paths](#file-paths)
+3. [Feature Selection Settings](#feature-selection-settings)
+4. [Model Training Settings](#model-training-settings)
+5. [Model Application Settings](#model-application-settings)
 
-#### Model Training Settings:
-| Setting                    | Type   | Description                                                                   |
-| -------------------------- | ------ | ----------------------------------------------------------------------------- |
-| `impute_NA_missing`        | bool   | Whether to impute missing values *after* rule transformation. Default = true. |
-| `cross_val`                | int    | Number of folds for cross-validation.                                         |
-| `model_type`               | string | Type of classifier to train. Default = `"RF"` (Random Forest).                |
-| `autotune_hyperparameters` | string | `"random"` or `"grid"` for hyperparameter tuning. Blank = no tuning.          |
-| `autotune_n_iter`          | int    | Number of random-search iterations for tuning. Default = 20.                  |
-| `verbose`                  | int    | Level of console output (0–4). Default = 0.                                   |
+A baseline configuration file to run NIFty can be found in the main repository directory under `config.toml`. 
+*NOTE: This file has default settings in place where possible, but there are a number of settings that **must** be provided by the user before NIFty can be run.
+Required settings with no default value are left blank.*
 
-#### Model Application Settings:
-| Setting             | Type                             | Description                                                             |
-| ------------------- | -------------------------------- | ----------------------------------------------------------------------- |
-| `prediction_format` | `"classes"` or `"probabilities"` | Output predicted classes or probability vectors. Default = `"classes"`. |
+Below are descriptions of each customizable setting in the configuration file.
+
+### Project Settings
+
+#### Example TOML format for NIFty project settings:
+
+```toml
+# project settings
+find_features =   # required
+train_model =   # required
+apply_model =   # required
+seed = "random"  # optional, default is "random"
+
+input_files = "reference"  # required if find_features or train_model are true; options: "reference", "individual"; default is "reference"
+```
+
+#### Description of each project setting:
+
+| Key | Status | Value | Description | Default |
+| --- | ------ | ----- | ----------- | ------- | 
+| `find_features` | Required | bool | Enables feature generation and selection and outputs the best *k* features. | |
+| `train_model` | Required | bool | Enables machine learning classifier training using selected rules. | |
+| `apply_model` | Required | bool | Enables trained model application on unlabeled data. | |
+| `seed` | Optional |int or `"random"` | Sets seed for reproducibility or uses random seed. | `"random"` |
+| `input_files` | Optional | `"reference"` or `"individual"` | If `find_features = true` or `train_model = true`, indicates whether quant and meta data files are one, reference set to be split for each mode or whether individual quant and metadata files will be provided for each mode. | `"reference"` |
+
+### File Paths
+
+#### Example TOML format for NIFty project settings:
+
+```toml
+# file paths
+output_dir = "cwd"  # Optional, default is "cwd"
+
+reference_quant_file = ""  # required if find_features or train_model are true and input_files = "reference"
+reference_meta_file = ""  # required if find_features or train_model are true and input_files = "reference"
+
+feature_quant_file = ""  # required if find_features = true and input_files = "individual"
+feature_meta_file = ""  # required if find_features = true and input_files = "individual"
+feature_file = ""  # required if find_features = false
+
+train_quant_file = ""  # required if train_model = true and input_files = "individual"
+train_meta_file = ""  # required if train_model = true and input_files = "individual"
+validate_quant_file = ""  # required if train_model = true and input_files = "individual"
+validate_meta_file = ""  # required if train_model = true and input_files = "individual"
+model_file = ""  # required if train_model = false and apply_model = true
+
+experimental_quant_file = ""  # required if apply_model = true
+```
+
+#### Description of each project setting:
+
+| Key | Status | Value | Description | Default |
+| --- | ------ | ----- | ----------- | ------- | 
+| `output_dir` | Optional | basic string | Path to directory where NIFty should write results. `"cwd"` uses current directory. | `"cwd"` |
+| `reference_quant_file` | Required if (`find_features = true` or `train_model = true`) **and** `input_files = "reference"` | basic string | Path to quantification table for the reference dataset. | |
+| `reference_meta_file` |  Required if (`find_features = true` or `train_model = true`) **and** `input_files = "reference"` | basic string | Path to metadata table for the reference dataset. | |
+| `feature_quant_file` | Required if `find_features = true` **and** `input_files = "individual"` | basic string | Path to quantification table for feature selection. | |
+| `feature_meta_file` | Required if `find_features = true` **and** `input_files = "individual"` | basic string | Path to metadata table for feature selection. | |
+| `feature_file` | Required if `find_features = false` | basic string | Path to `selected_features.tsv` file previously generated by NIFty's `find_features` mode. | |
+| `train_quant_file` | Required if `train_model = true` **and** `input_files = "individual"` | basic string | Path to quantification table for model training. | |
+| `train_meta_file` | Required if `train_model = true` **and** `input_files = "individual"` | basic string | Path to metadata table for model training. | |
+| `validate_quant_file` | Required if `train_model = true` **and** `input_files = "individual"` | basic string | Path to quantification table for model validation. | |
+| `validate_meta_file` | Required if `train_model = true` **and** `input_files = "individual"` | basic string | Path to metadata table for model validation. | |
+| `model_file` | Required if `train_model = false` **and** `apply_model = true` | bastic string | Path to `trained_model_and_model_metadata.pkl` file previously generated by NIFty's `train_model` mode. | |
+| `experimental_quant_file` | Required if `apply_model = true` | basic string | Path to quantification table for model application. | |
+
+### Feature Selection Settings
+
+#### Example TOML format for NIFty project settings:
+
+```toml
+# find_features settings
+k_rules = 15  # optional, default is 15, max is 50
+missingness_cutoff = 0.5  # optional, default is 0.5
+disjoint = false  # optional, default is false
+mutual_information = true  # optional, default is true
+mutual_information_cutoff = 0.7  # optional, default is 0.7
+```
+
+#### Description of each project setting:
+
+| Key | Status | Value | Description | Default |
+| --- | ------ | ----- | ----------- | ------- | 
+| `k_rules` | Optional | int | Number (between 1 and 50) of top rules to keep. | 15 |
+| `missingness_cutoff` | Optional | float | Data-missingness threshhold (between 0.0 and 1.0); if the proportion of missing values in a quant column is above this threshhold in all classes, the column is dropped. | 0.5 |
+| `disjoint` | Optional | bool  | Enables disjoint filtering for feature selection. When enabled, selected features cannot share proteins. | false |
+| `mutual_information` | Optional | bool | Enables mutual information filtering for feature selection. When enabled, the best *k* features that share less mutual information than the `mutual_information_cutoff` are selected. | true |
+| `mutual_information_cutoff` | Optional | float | Mutual information theshhold (between 0.0 and 1.0); if the amount of mututal information shared between a prospective top feature and any other already-selected feature is above the threshhold, the feature is not selected. | 0.7 |
+
+### Model Training Settings
+
+#### Example TOML format for NIFty project settings:
+
+```toml
+# train_model settings
+impute_NA_missing = true  # optional, default is true
+cross_val = 5
+model_type = "RF"  # optional, default is "RF"
+autotune_hyperparameters = ""  # if blank, no autotune will be done. User inputs either "random" or "grid"
+autotune_n_iter = 20  # optional, default is 20 for random search
+verbose = 0  # optional, default is 0, allowed values include [0, 1, 2, 3, 4]
+```
+
+#### Description of each project setting:
+
+| Key | Status | Value | Description | Default |
+| --- | ------ | ----- | ----------- | ------- | 
+| `impute_NA_missing` | Optional | bool | When enabled, missing quant columns required for data transformation based on selected features are created and filled with *NA*. | true |
+| `cross_val` | Opteional | int | Number (>0) of folds for model train/test cross-validation. | 5 |
+| `model_type` | Optional | `"RF"` or `"SVM"` | Type of classifier trained, random forest (RF) or SVM. | `"RF"` |
+| `autotune_hyperparameters` | Optional | `"random"`, `"grid"`, or `""` | If `"random"`, randomized search is used for model hyperparameter tuning. If `"grid"`, grid search is used for model hyperparameter turning. If `""`, no model hyperparameter tuning is performed (default parameters used). | `""` |
+| `autotune_n_iter` | Optional | int | Number of randomized search iterations for model hyperparameter tuning. | 20 |
+| `verbose` | Optional | int | Number (0-4) indicating the level of console output from Scikit-learn model training process. | 0 |                 |
+
+### Model Application Settings
+
+#### Example TOML format for NIFty project settings:
+
+```toml
+# apply_model settings
+prediction_format = "classes"  # can be 'classes' or 'probabilities', default is 'classes'
+```
+
+#### Description of each project setting:
+
+| Key | Status | Value | Description | Default |
+| --- | ------ | ----- | ----------- | ------- | 
+| `prediction_format` | Optional | `"classes"` or `"probabilities"` | Specifies whether output classification predictions are classes or probability vectors. | `"classes"` |
 
 
-### Quantification File Format:
+## Quantification File(s)
+
+### Requirements
+Quantification files in NIFty have the following structural requirements:
+* Quant files must be in `.tsv` format
+* Rows represent samples, one row per unique sample ID
+* Columns represent proteins, or other quantified molecular identifiers, one column per unique molecular identifier
+    * One column must be called `sample_id` and contain unique identifiers for the samples
+    * All other columns must contain numeric or *NA* (empty) values
+
+*NOTE: Order of rows does not matter, NIFty automatically sorts quantification tables on the `sample_id` column.*
+
+### Example Structure
+Example quantification file structure (`.tsv`):
+```
+sample_id\tProteinA\tProteinB\tProteinC\n
+S1\t8.3\t\t0.54\n
+S2\t7.1\t1.88\t\n
+S3\t\t0.92\t0.44\n
+```
+
+Example quantification file structure (dataframe):
 | sample_id| ProteinA | ProteinB | ProteinC |
 |----------|----------|----------|----------|
-| S1       | 8.3      | NA       | 0.54     |
-| S2       | 7.1      | 1.88     | NA       |
-| S3       | NA       | 0.92     | 0.44     |
+| S1       | 8.3      | *NaN*    | 0.54     |
+| S2       | 7.1      | 1.88     | *NaN*    |
+| S3       | *NaN*    | 0.92     | 0.44     |
 
-#### Requirements:
-- Samples must be rows
-- Proteins/features must be columns
-- Missing values allowed (NA or empty cell)
-- First column must contain unique sample identifiers
-- File must be TSV
+## Metadata File(s)
 
-### Metadata File Format:
+### Requirements
+Metadata files in NIFty have the following structural requirements:
+* One column must be called `sample_id` and contain unique identifiers for the samples; IDs in this column must match exactly to those in the `sample_id` column in the quant table
+* One column must be called `classification_label` and contain class labels corresponding to the samples
+
+*NOTE: Order of rows does not matter, NIFty automatically sorts metadata tables on the `sample_id` column.*
+
+### Example Structure
+Example quantification file structure (`.tsv`):
+```
+sample_id\tclassification_label\n
+S1\tA\n
+S2\tB\n
+S3\tA\n
+```
+
+Example metadata file structure (dataframe):
 | sample_id | classification_label  |
 |-----------|-----------------------|
 | S1        | A                     |
@@ -76,77 +208,3 @@
 | S3        | A                     |
 
 
-#### Requirements:
-- Rows must correspond exactly to quantification file sample names
-- Must contain a column representing the class label
-- SampleID must match the quantification file’s SampleID exactly
-- Order does not need to match (NIFty aligns automatically)
-
-### Feature File Format:
-| Protein_Pair        | Protein1 | Protein2 | Score | P_Value |
-|---------------------|----------|----------|-------|---------|
-| ('P1','P2')         | P1       | P2       | 1.00  | 0.0     |
-| ('P3','P2')         | P3       | P2       | 0.88  | 0.0     |
-| ('P4','P5')         | P4       | P5       | 0.88  | 0.0     |
-| ('P6','P7')         | P6       | P7       | 0.85  | 0.0     |
-
-Above is the ouput format that NIFty produces when making the feature file. If features are given to NIFty, the above format is accepted as well as a simple 2 column dataframe with Protein1 and Protein2 being columns, implying that Protein1 < Protein2.
-
-| Protein1 | Protein2 |
-|----------|----------|
-| P1       | P2       |
-| P3       | P2       |
-| P4       | P5       |
-| P6       | P7       |
-
-### Model File Description:
-This is a binary pickle file containing everything needed to apply a trained NIFty model to new data.
-
-It includes:
-- the trained classifier
-- the selected rule-based features
-- metadata for transforming new samples
-- training details (hyperparameters, CV scores, seed)
-
-Use this file by setting model_file in the config when apply_model = true.
-
-### Output Files:
-
-### Feature File Format:
-| Protein_Pair        | Protein1 | Protein2 | Score | P_Value |
-|---------------------|----------|----------|-------|---------|
-| ('P1','P2')         | P1       | P2       | 1.00  | 0.0     |
-| ('P3','P2')         | P3       | P2       | 0.88  | 0.0     |
-| ('P4','P5')         | P4       | P5       | 0.88  | 0.0     |
-| ('P6','P7')         | P6       | P7       | 0.85  | 0.0     |
-
-Above is the ouput format that NIFty produces when making the feature file. The same format is expected when a feature file is given.
-
-### Model File Description:
-This is a binary pickle file containing everything needed to apply a trained NIFty model to new data. 
-
-This file is saved as the following:
-trained_model_and_model_metadata.pkl
-
-It includes:
-- the trained classifier
-- the selected rule-based features
-- metadata for transforming new samples
-- training details (hyperparameters, CV scores, seed)
-
-This file can also be used as input by setting model_file in the config when apply_model = true.
-
-### Model Information File (model_information.txt):
-This file provides a human-readable summary of the trained model. It includes:
-
-1. Model Parameters:
-All hyperparameters used by the final trained classifier (e.g., number of trees, max depth, random seed).
-
-2. Cross-Validation Performance:
-Mean and standard deviation for metrics such as accuracy, precision, and recall computed during training.
-
-3. Validation Set Results:
-Final performance metrics on the held-out validation dataset (accuracy, precision, recall).
-
-
-This file is meant for inspection and reporting—it does not contain the model itself.

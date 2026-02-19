@@ -8,8 +8,8 @@ input_files = "reference"  # required if find_features or train_model are true; 
 
 
 
-# files
-output_dir = "cwd"  # Optional, default is "cwd"
+# file paths
+output_dir = "cwd"  # optional, default is "cwd"
 
 reference_quant_file = ""  # required if find_features or train_model are true and input_files = "reference"
 reference_meta_file = ""  # required if find_features or train_model are true and input_files = "reference"
@@ -28,7 +28,7 @@ experimental_quant_file = ""  # required if apply_model = true
 
 
 
-# find feature settings
+# find_features settings
 k_rules = 15  # optional, default is 15, max is 50
 missingness_cutoff = 0.5  # optional, default is 0.5
 disjoint = false  # optional, default is false
@@ -37,7 +37,7 @@ mutual_information_cutoff = 0.7  # optional, default is 0.7
 
 
 
-# train model settings
+# train_model settings
 impute_NA_missing = true  # optional, default is true
 cross_val = 5
 model_type = "RF"  # optional, default is "RF"
@@ -46,5 +46,5 @@ autotune_n_iter = 20  # optional, default is 20 for random search
 verbose = 0  # optional, default is 0, allowed values include [0, 1, 2, 3, 4]
 
 
-# apply model settings
+# apply_model settings
 prediction_format = "classes"  # can be 'classes' or 'probabilities', default is 'classes'
