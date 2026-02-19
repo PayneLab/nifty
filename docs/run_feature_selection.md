@@ -1,6 +1,6 @@
 # Using NIFty to Generate and Select Features
 
-It is possible to only generate and select the best *k* TSP features when running NIFty.
+It is possible to just generate and select the best *k* TSP features when running NIFty.
 
 The code and descriptive examples below will help you run NIFty is find_features only mode:
 * [Feature Selection Regression Test](../Regression%20Tests/FeatureSelectionTest/)
