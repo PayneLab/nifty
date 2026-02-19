@@ -156,6 +156,8 @@ prediction_format = "classes"  # can be 'classes' or 'probabilities', default is
 
 ## Quantification File(s)
 
+Quantification files must always be paired with a matching metadata file.
+
 ### Requirements
 Quantification files in NIFty have the following structural requirements:
 * Quant files must be in `.tsv` format
@@ -183,6 +185,8 @@ Example quantification file structure (dataframe):
 | S3       | *NaN*    | 0.92     | 0.44     |
 
 ## Metadata File(s)
+
+Metadata files must always be paired with a matching quantification file.
 
 ### Requirements
 Metadata files in NIFty have the following structural requirements:
