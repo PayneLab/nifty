@@ -76,3 +76,17 @@ When NIFty is run with `prediction_format = "probabilities"`, it includes the fo
 * **classification_probability_\<class1\>**: the esitmated probability that the sample belongs to \<class1\>.
 * **classification_probability_\<class2\>**: the esitmated probability that the sample belongs to \<class2\>.
 
+### Example `selected_features.tsv` file (`prediction_format = "classes"`):
+| sample_id | classification_label  |
+|-----------|-----------------------|
+| S1        | A                     |
+| S2        | B                     |
+| S3        | A                     |
+
+### Example `selected_features.tsv` file (`prediction_format = "probabilities"`):
+| sample_id | classification_probability_A | classification_probability_B |
+|-----------|------------------------------|------------------------------|
+| S1        | 0.93                         | 0.07                         |
+| S2        | 0.32                         | 0.68                         |
+| S3        | 0.85                         | 0.15                         |
+
