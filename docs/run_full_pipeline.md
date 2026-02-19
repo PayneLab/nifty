@@ -18,7 +18,9 @@ To run NIFty in this mode, the following are the minimum required changes to the
 * reference_meta_file = "your/path/to/reference/meta.tsv"
 * experimental_quant_file = "your/path/to/unlabeled/experimental/quant.tsv"
 
-*NOTE: NIFty, bu default, only requires one reference dataset to both generate features and train and validate a classifier. When run in this mode, NIFty internally splits the reference dataset into three, non-overlapping sets: a feature selection set, a training/testing set, and a validation set. Alternatively, if you want to split your reference data yourself (or use multiple reference datasets for different portions of the pipeline), you can make these additional changes to the configuration file:*
+*NOTE: NIFty, by default, only requires one reference dataset to both generate features and train and validate a classifier. 
+When run in this mode, NIFty internally splits the reference dataset into three, non-overlapping sets: a feature selection set, a training/testing set, and a validation set. 
+Alternatively, if you want to split your reference data yourself (or use multiple reference datasets for different portions of the pipeline), you can make these additional changes to the configuration file:*
 * input_files = "individual"
 * feature_quant_file = "your/path/to/feature/selection/quant.tsv"
 * feature_meta_file = "your/path/to/feature/selection/meta.tsv"
