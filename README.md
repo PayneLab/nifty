@@ -3,11 +3,11 @@ Never Impute Features (thank you).
 
 The pre-print manuscript associated with this tool can be found here: <TBA>
 
-NIFty is a python program for feature selection (including generation and scoring), model generation, and experimental classification that does not require missing-value imputation, avoids common circular analysis pitfalls by default, and overcomes batch effects. 
+NIFty is a python program for top-scoring pairs (TSP)-based rule generation and feature selection, model generation, and experimental classification that does not require missing-value imputation, avoids common circular analysis pitfalls by default, and overcomes batch effects. 
 The primary application is large molecular data, like proteomics. 
-We assume input to be two tables: 
 
-1. a table with quantification data, proteins (or some other data type) as the columns and samples as the rows; and
+NIFty uses a minimum of two user-provided tables as input: 
+1. a table with quantification data, proteins (or some other molecular data type) as the columns and samples as the rows; and
 2. a table that has the label (class) for each sample. 
 
 The output from our program depends on which functionalty the user would like to run. 
