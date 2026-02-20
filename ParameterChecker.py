@@ -114,7 +114,7 @@ class ParameterChecker:
         print(" - CHECKING FILES", file=sys.stderr, flush=True)
         # check files
         # check that the FS, train, and validate paths are not the same if they're not all empty
-        if configs['input_files'] == "individual":
+        if configs['input_files'] == "individual" and configs['train_model']:
             identical_files = 0
             if (configs['feature_quant_file'] + configs['feature_meta_file']) == (configs['train_quant_file'] + configs['train_meta_file']) and (configs['feature_quant_file'] + configs['feature_meta_file']) != "":
                 identical_files += 1
@@ -125,6 +125,7 @@ class ParameterChecker:
 
             if identical_files > 0:
                 print(f"{Colors.ERROR}ERROR: 'feature_quant_file'+'feature_meta_file', 'train_quant_file'+'train_meta_file', and 'validate_quant_file'+'validate_meta_file' must all be different, unless empty.{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.ERROR}        If you would like to use one reference dataset to both select features and train a model, use 'input_files = \"reference\"' and 'reference_quant_file' and 'reference_meta_file'.{Colors.END}", file=sys.stderr, flush=True)
                 raise SystemExit(1)
         
         # if path is required based on project settings:
