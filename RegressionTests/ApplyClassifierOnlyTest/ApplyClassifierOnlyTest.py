@@ -9,6 +9,9 @@ from pathlib import Path
 
 import pandas as pd
 
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 
 PRED_CLASSES_FILE = "predicted_classes.tsv"
 

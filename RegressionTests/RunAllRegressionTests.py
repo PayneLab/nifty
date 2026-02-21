@@ -6,6 +6,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 
 def run_test(name: str, script_path: Path, cwd: Path):
     print("\n" + "=" * 70)

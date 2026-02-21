@@ -11,6 +11,9 @@ import pickle
 import numpy as np
 import pandas as pd
 
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 
 MODEL_INFO_FILE = "model_information.txt"
 MODEL_PKL_FILE = "trained_model_and_model_metadata.pkl"

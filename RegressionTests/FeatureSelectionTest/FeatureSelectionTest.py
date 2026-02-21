@@ -9,6 +9,9 @@ from pathlib import Path
 
 import pandas as pd
 
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 
 OUTPUT_FILENAME = "selected_features.tsv"
 
