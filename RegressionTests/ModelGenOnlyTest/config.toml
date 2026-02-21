@@ -16,12 +16,12 @@ reference_meta_file = ""  # required if find_features or train_model are true an
 
 feature_quant_file = ""  # required if find_features = true and input_files = "individual"
 feature_meta_file = ""  # required if find_features = true and input_files = "individual"
-feature_file = "Regression Tests/ModelGenOnlyTest/expected_selected_features.tsv"  # required if find_features = false
+feature_file = "RegressionTests/ModelGenOnlyTest/expected_selected_features.tsv"  # required if find_features = false
 
-train_quant_file = "Regression Tests/test_data/Train_Test_quant.tsv"  # required if train_model = true and input_files = "individual"
-train_meta_file = "Regression Tests/test_data/Train_Test_meta.tsv"  # required if train_model = true and input_files = "individual"
-validate_quant_file = "Regression Tests/test_data/Val_quant.tsv"  # required if train_model = true and input_files = "individual"
-validate_meta_file = "Regression Tests/test_data/Val_meta.tsv"  # required if train_model = true and input_files = "individual"
+train_quant_file = "RegressionTests/test_data/Train_Test_quant.tsv"  # required if train_model = true and input_files = "individual"
+train_meta_file = "RegressionTests/test_data/Train_Test_meta.tsv"  # required if train_model = true and input_files = "individual"
+validate_quant_file = "RegressionTests/test_data/Val_quant.tsv"  # required if train_model = true and input_files = "individual"
+validate_meta_file = "RegressionTests/test_data/Val_meta.tsv"  # required if train_model = true and input_files = "individual"
 model_file = ""  # required if train_model = false and apply_model = true
 
 experimental_quant_file = ""  # required if apply_model = true

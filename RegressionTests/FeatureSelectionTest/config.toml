@@ -13,8 +13,8 @@ output_dir = "cwd"  # Optional, default is "cwd"
 reference_quant_file = ""  # required if find_features or train_model are true and input_files = "reference"
 reference_meta_file = ""  # required if find_features or train_model are true and input_files = "reference"
 
-feature_quant_file = "Regression Tests/test_data/FS_quant.tsv"  # required if find_features = true and input_files = "individual"
-feature_meta_file = "Regression Tests/test_data/FS_meta.tsv"  # required if find_features = true and input_files = "individual"
+feature_quant_file = "RegressionTests/test_data/FS_quant.tsv"  # required if find_features = true and input_files = "individual"
+feature_meta_file = "RegressionTests/test_data/FS_meta.tsv"  # required if find_features = true and input_files = "individual"
 feature_file = ""  # required if find_features = false
 
 train_quant_file = ""  # required if train_model = true and input_files = "individual"
