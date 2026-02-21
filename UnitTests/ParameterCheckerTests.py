@@ -306,18 +306,16 @@ class TestCheckConfigurationsProjectSettings(unittest.TestCase):
     def test_input_files_bad_string(self):
         self.configs['input_files'] = "bad string"
 
-        with self.assertRaises(SystemExit) as e:
-            self.checker.check_configurations_project_settings(configs=self.configs)
+        self.checker.check_configurations_project_settings(configs=self.configs)
 
-        self.assertEqual(e.exception.code, 1)
+        self.assertEqual(self.configs['input_files'], "reference")
 
     def test_input_files_int(self):
         self.configs['input_files'] = 100
 
-        with self.assertRaises(SystemExit) as e:
-            self.checker.check_configurations_project_settings(configs=self.configs)
+        self.checker.check_configurations_project_settings(configs=self.configs)
 
-        self.assertEqual(e.exception.code, 1)
+        self.assertEqual(self.configs['input_files'], "reference")
 
     def test_input_files_reference(self):
         self.configs['input_files'] = "reference"

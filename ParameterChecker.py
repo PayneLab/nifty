@@ -78,12 +78,24 @@ class ParameterChecker:
         # check project settings
         # all but seed must be booleans
         # all but seed cannot be False
+        if 'find_features' not in configs:
+            print(f"{Colors.ERROR}ERROR: configuration file must contain 'find_features' key.{Colors.END}", file=sys.stderr, flush=True)
+            raise SystemExit(1)
+        
         if not isinstance(configs['find_features'], bool):
             print(f"{Colors.ERROR}ERROR: 'find_features' must be a boolean. Type of 'find_features' is: {type(configs['find_features'])}.{Colors.END}", file=sys.stderr, flush=True)
+            raise SystemExit(1)
+        
+        if 'train_model' not in configs:
+            print(f"{Colors.ERROR}ERROR: configuration file must contain 'train_model' key.{Colors.END}", file=sys.stderr, flush=True)
             raise SystemExit(1)
 
         if not isinstance(configs['train_model'], bool):
             print(f"{Colors.ERROR}ERROR: 'train_model' must be a boolean. Type of 'train_model' is: {type(configs['train_model'])}.{Colors.END}", file=sys.stderr, flush=True)
+            raise SystemExit(1)
+        
+        if 'apply_model' not in configs:
+            print(f"{Colors.ERROR}ERROR: configuration file must contain 'apply_model' key.{Colors.END}", file=sys.stderr, flush=True)
             raise SystemExit(1)
 
         if not isinstance(configs['apply_model'], bool):
@@ -95,10 +107,14 @@ class ParameterChecker:
             raise SystemExit(1)
 
         # seed must be "random" or int
+        if 'seed' not in configs:
+            print(f"{Colors.INFO}INFO: configuration file does not contain 'seed' key. Setting 'seed' to \"random\".{Colors.END}", file=sys.stderr, flush=True)
+            configs['seed'] = "random"
+        
         if configs['seed'] == "random":
             configs['seed'] = None
         elif isinstance(configs['seed'], bool) or not isinstance(configs['seed'], int):
-            print(f"{Colors.WARNING}WARNING: 'seed' {configs['seed']} is not type 'int'. Changing 'seed' to 'random'.{Colors.END}", file=sys.stderr, flush=True)
+            print(f"{Colors.WARNING}WARNING: 'seed' {configs['seed']} is not type 'int'. Changing 'seed' to \"random\".{Colors.END}", file=sys.stderr, flush=True)
             configs['seed'] = None
         else:
             random.seed(configs['seed'])
@@ -106,27 +122,53 @@ class ParameterChecker:
             print(f"{Colors.INFO}INFO: Using fixed seed {configs['seed']}.{Colors.END}", file=sys.stderr, flush=True)
 
         # input_files can be "reference" or "individual"
+        if 'input_files' not in configs:
+            print(f"{Colors.INFO}INFO: configuration file does not contain 'input_files' key. Setting 'input_files' to \"reference\".{Colors.END}", file=sys.stderr, flush=True)
+            configs['input_files'] = "reference"
+
         if configs['input_files'] != "reference" and configs['input_files'] != "individual":
-            print(f"{Colors.ERROR}ERROR: 'input_files' must be \"reference\" or \"individual\", got {configs['input_files']}.{Colors.END}", file=sys.stderr, flush=True)
-            raise SystemExit(1)
+            print(f"{Colors.WARNING}WARNING: 'input_files' must be \"reference\" or \"individual\", got {configs['input_files']}. Changing 'input_files' to \"reference\".{Colors.END}", file=sys.stderr, flush=True)
+            configs['input_files'] = "reference"
 
     def check_configurations_files(self, configs):
         print(" - CHECKING FILES", file=sys.stderr, flush=True)
         # check files
         # check that the FS, train, and validate paths are not the same if they're not all empty
-        if configs['input_files'] == "individual" and configs['train_model']:
-            identical_files = 0
-            if (configs['feature_quant_file'] + configs['feature_meta_file']) == (configs['train_quant_file'] + configs['train_meta_file']) and (configs['feature_quant_file'] + configs['feature_meta_file']) != "":
-                identical_files += 1
-            if (configs['feature_quant_file'] + configs['feature_meta_file']) == (configs['validate_quant_file'] + configs['validate_meta_file']) and (configs['feature_quant_file'] + configs['feature_meta_file']) != "":
-                identical_files += 1
-            if (configs['train_quant_file'] + configs['train_meta_file']) == (configs['validate_quant_file'] + configs['validate_meta_file']) and (configs['train_quant_file'] + configs['train_meta_file']) != "":
-                identical_files += 1
+        if configs['input_files'] == "individual":
+            if configs['find_features']:
+                if 'feature_quant_file' not in configs:
+                    print(f"{Colors.ERROR}ERROR: configuration file must contain 'feature_quant_file' key if 'find_features' = true AND 'input_files' = \"individual\".{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
+                if 'feature_meta_file' not in configs:
+                    print(f"{Colors.ERROR}ERROR: configuration file must contain 'feature_meta_file' key if 'find_features' = true AND 'input_files' = \"individual\".{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
 
-            if identical_files > 0:
-                print(f"{Colors.ERROR}ERROR: 'feature_quant_file'+'feature_meta_file', 'train_quant_file'+'train_meta_file', and 'validate_quant_file'+'validate_meta_file' must all be different, unless empty.{Colors.END}", file=sys.stderr, flush=True)
-                print(f"{Colors.ERROR}        If you would like to use one reference dataset to both select features and train a model, use 'input_files = \"reference\"' and 'reference_quant_file' and 'reference_meta_file'.{Colors.END}", file=sys.stderr, flush=True)
-                raise SystemExit(1)
+            if configs['train_model']:
+                if 'train_quant_file' not in configs:
+                    print(f"{Colors.ERROR}ERROR: configuration file must contain 'train_quant_file' key if 'train_model' = true AND 'input_files' = \"individual\".{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
+                if 'train_meta_file' not in configs:
+                    print(f"{Colors.ERROR}ERROR: configuration file must contain 'train_meta_file' key if 'train_model' = true AND 'input_files' = \"individual\".{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
+                if 'validate_quant_file' not in configs:
+                    print(f"{Colors.ERROR}ERROR: configuration file must contain 'validate_quant_file' key if 'train_model' = true AND 'input_files' = \"individual\".{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
+                if 'validate_meta_file' not in configs:
+                    print(f"{Colors.ERROR}ERROR: configuration file must contain 'validate_meta_file' key if 'train_model' = true AND 'input_files' = \"individual\".{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
+                
+                identical_files = 0
+                if (configs['feature_quant_file'] + configs['feature_meta_file']) == (configs['train_quant_file'] + configs['train_meta_file']) and (configs['feature_quant_file'] + configs['feature_meta_file']) != "":
+                    identical_files += 1
+                if (configs['feature_quant_file'] + configs['feature_meta_file']) == (configs['validate_quant_file'] + configs['validate_meta_file']) and (configs['feature_quant_file'] + configs['feature_meta_file']) != "":
+                    identical_files += 1
+                if (configs['train_quant_file'] + configs['train_meta_file']) == (configs['validate_quant_file'] + configs['validate_meta_file']) and (configs['train_quant_file'] + configs['train_meta_file']) != "":
+                    identical_files += 1
+
+                if identical_files > 0:
+                    print(f"{Colors.ERROR}ERROR: 'feature_quant_file'+'feature_meta_file', 'train_quant_file'+'train_meta_file', and 'validate_quant_file'+'validate_meta_file' must all be different, unless empty.{Colors.END}", file=sys.stderr, flush=True)
+                    print(f"{Colors.ERROR}        If you would like to use one reference dataset to select features and/or train a model, use 'input_files = \"reference\"' and 'reference_quant_file' and 'reference_meta_file'.{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
         
         # if path is required based on project settings:
         #   - must be valid path
@@ -169,6 +211,10 @@ class ParameterChecker:
         else:
             # required paths:
             #   - feature_file
+            if 'feature_file' not in configs:
+                print(f"{Colors.ERROR}ERROR: configuration file must contain 'feature_file' key if 'find_features' = false.{Colors.END}", file=sys.stderr, flush=True)
+                raise SystemExit(1)
+
             if not os.path.isfile(configs['feature_file']):
                 print(f"{Colors.ERROR}ERROR: 'feature_file' '{configs['feature_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
                 raise SystemExit(1)
@@ -241,6 +287,10 @@ class ParameterChecker:
             if configs['apply_model']:
                 # required paths:
                 #   - model_file
+                if 'model_file' not in configs:
+                    print(f"{Colors.ERROR}ERROR: configuration file must contain 'model_file' key if 'train_model' = false AND 'apply_model' = true.{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
+
                 if not os.path.isfile(configs['model_file']):
                     print(f"{Colors.ERROR}ERROR: 'model_file' '{configs['model_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
                     raise SystemExit(1)
@@ -258,6 +308,10 @@ class ParameterChecker:
         if configs['apply_model']:
             # required paths:
             #   - experimental_quant_file
+            if 'experimental_quant_file' not in configs:
+                print(f"{Colors.ERROR}ERROR: configuration file must contain 'experimental_quant_file' key if 'apply_model' = true.{Colors.END}", file=sys.stderr, flush=True)
+                raise SystemExit(1)
+            
             if not os.path.isfile(configs['experimental_quant_file']):
                 print(f"{Colors.ERROR}ERROR: 'experimental_quant_file' '{configs['experimental_quant_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
                 raise SystemExit(1)
@@ -268,7 +322,14 @@ class ParameterChecker:
 
             configs['experimental_quant_table'] = self.read_tsv(configs['experimental_quant_file'])
 
-        if configs['input_files'] == "reference":
+        if configs['input_files'] == "reference" and (configs['find_features'] or configs['train_model']):
+            if 'reference_quant_file' not in configs:
+                print(f"{Colors.ERROR}ERROR: configuration file must contain 'reference_quant_file' key if ('find_features' = true or 'train_model' = true) AND 'input_files' = \"reference\".{Colors.END}", file=sys.stderr, flush=True)
+                raise SystemExit(1)
+            if 'reference_meta_file' not in configs:
+                print(f"{Colors.ERROR}ERROR: configuration file must contain 'reference_meta_file' key if ('find_features' = true or 'train_model' = true) AND 'input_files' = \"reference\".{Colors.END}", file=sys.stderr, flush=True)
+                raise SystemExit(1)
+            
             if not os.path.isfile(configs['reference_quant_file']):
                 print(f"{Colors.ERROR}ERROR: 'reference_quant_file' '{configs['reference_quant_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
                 raise SystemExit(1)
@@ -288,6 +349,9 @@ class ParameterChecker:
             configs['reference_quant_table'] = self.read_tsv(configs['reference_quant_file'])
             configs['reference_meta_table'] = self.read_tsv(configs['reference_meta_file'])
 
+        if 'output_dir' not in configs:
+            print(f"{Colors.INFO}INFO: configuration file does not contain 'output_dir' key. Setting 'output_dir' to \"cwd\".{Colors.END}", file=sys.stderr, flush=True)
+            configs['output_dir'] = "cwd"
         if configs['output_dir'] == "cwd":
             configs['output_dir'] = os.getcwd()
             print(f"{Colors.INFO}INFO: Setting output directory to '{configs['output_dir']}'.{Colors.END}", file=sys.stderr, flush=True)
@@ -299,26 +363,41 @@ class ParameterChecker:
         # check find features settings
         if configs['find_features']:
             print(" - CHECKING FEATURE SELECTION SETTINGS", file=sys.stderr, flush=True)
+            if 'k_rules' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'k_rules' key. Setting 'k_rules' to 15.{Colors.END}", file=sys.stderr, flush=True)
+                configs['k_rules'] = 15
             if isinstance(configs['k_rules'], bool) or not isinstance(configs['k_rules'], int) or not (0 < configs['k_rules'] <= 50):
                 print(f"{Colors.WARNING}WARNING: 'k_rules' must be a positive integer between 1 and 50. Changing 'k_rules' to 15.{Colors.END}", file=sys.stderr, flush=True)
                 configs['k_rules'] = 15
 
+            if 'missingness_cutoff' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'missingness_cutoff' key. Setting 'missingness_cutoff' to 0.5.{Colors.END}", file=sys.stderr, flush=True)
+                configs['missingness_cutoff'] = 0.5
             if isinstance(configs['missingness_cutoff'], bool) or not isinstance(configs['missingness_cutoff'], (int, float, complex)) or not (0.0 <= configs['missingness_cutoff'] <= 1.0):
                 print(f"{Colors.WARNING}WARNING: 'missingness_cutoff' must be a number between 0.0 and 1.0. Changing 'missingness_cutoff' to 0.5.{Colors.END}", file=sys.stderr, flush=True)
                 configs['missingness_cutoff'] = 0.5
 
+            if 'disjoint' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'disjoint' key. Setting 'disjoint' to false.{Colors.END}", file=sys.stderr, flush=True)
+                configs['disjoint'] = False
             if not isinstance(configs['disjoint'], bool):
-                print(f"{Colors.WARNING}WARNING: 'disjoint' must be a boolean. Type of 'disjoint' is: {type(configs['disjoint'])}. Changing 'disjoint' to False.{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.WARNING}WARNING: 'disjoint' must be a boolean. Type of 'disjoint' is: {type(configs['disjoint'])}. Changing 'disjoint' to false.{Colors.END}", file=sys.stderr, flush=True)
                 configs['disjoint'] = False
             if configs['disjoint']:
                 print(f"{Colors.INFO}INFO: Disjoint filtering enabled.{Colors.END}", file=sys.stderr, flush=True)
 
+            if 'mutual_information' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'mutual_information' key. Setting 'mutual_information' to true.{Colors.END}", file=sys.stderr, flush=True)
+                configs['mutual_information'] = True
             if not isinstance(configs['mutual_information'], bool):
-                print(f"{Colors.WARNING}WARNING: 'mutual_information' must be a boolean. Type of 'mutual_information' is: {type(configs['mutual_information'])}. Changing 'mutual_information' to True.{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.WARNING}WARNING: 'mutual_information' must be a boolean. Type of 'mutual_information' is: {type(configs['mutual_information'])}. Changing 'mutual_information' to true.{Colors.END}", file=sys.stderr, flush=True)
                 configs['mutual_information'] = True
             if not configs['mutual_information']:
                 print(f"{Colors.WARNING}WARNING: Mutual information filtering disabled.{Colors.END}", file=sys.stderr, flush=True)
 
+            if 'mutual_information_cutoff' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'mutual_information_cutoff' key. Setting 'mutual_information_cutoff' to 0.7.{Colors.END}", file=sys.stderr, flush=True)
+                configs['mutual_information_cutoff'] = 0.7
             if isinstance(configs['mutual_information_cutoff'], bool) or not isinstance(configs['mutual_information_cutoff'], (int, float, complex)) or not (0 <= configs['mutual_information_cutoff'] <= 1):
                 print(f"{Colors.WARNING}WARNING: 'mutual_information_cutoff' must be a number between 0.0 and 1.0. Changing 'mutual_information_cutoff' to 0.7.{Colors.END}", file=sys.stderr, flush=True)
                 configs['mutual_information_cutoff'] = 0.7
@@ -327,32 +406,50 @@ class ParameterChecker:
         # check train model settings
         if configs['train_model']:
             print(" - CHECKING MODEL TRAINING SETTINGS", file=sys.stderr, flush=True)
+            if 'impute_NA_missing' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'impute_NA_missing' key. Setting 'impute_NA_missing' to true.{Colors.END}", file=sys.stderr, flush=True)
+                configs['impute_NA_missing'] = True
             if not isinstance(configs['impute_NA_missing'], bool):
-                print(f"{Colors.WARNING}WARNING: 'impute_NA_missing' must be a boolean. Type of 'impute_NA_missing' is: {type(configs['impute_NA_missing'])}. Changing 'impute_NA_missing' to True.{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.WARNING}WARNING: 'impute_NA_missing' must be a boolean. Type of 'impute_NA_missing' is: {type(configs['impute_NA_missing'])}. Changing 'impute_NA_missing' to true.{Colors.END}", file=sys.stderr, flush=True)
                 configs['impute_NA_missing'] = True
 
+            if 'cross_val' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'cross_val' key. Setting 'cross_val' to 5.{Colors.END}", file=sys.stderr, flush=True)
+                configs['cross_val'] = 5
             if isinstance(configs['cross_val'], bool) or not isinstance(configs['cross_val'], int) or not (0 < configs['cross_val'] <= 20):
                 print(f"{Colors.WARNING}WARNING: 'cross_val' must be a positive integer between 1 and 20. Changing 'cross_val' to 5.{Colors.END}", file=sys.stderr, flush=True)
                 configs['cross_val'] = 5
 
+            if 'model_type' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'model_type' key. Setting 'model_type' to \"RF\".{Colors.END}", file=sys.stderr, flush=True)
+                configs['model_type'] = 'RF'
             if configs['model_type'] not in ['RF', 'SVM']:
-                print(f"{Colors.WARNING}WARNING: 'model_type' must be one of ('RF', 'SVM'). Got {configs['model_type']}. Changing 'model_type' to 'RF'.{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.WARNING}WARNING: 'model_type' must be one of ('RF', 'SVM'). Got {configs['model_type']}. Changing 'model_type' to \"RF\".{Colors.END}", file=sys.stderr, flush=True)
                 configs['model_type'] = 'RF'
 
+            if 'autotune_hyperparameters' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'autotune_hyperparameters' key. Setting 'autotune_hyperparameters' to \"\".{Colors.END}", file=sys.stderr, flush=True)
+                configs['autotune_hyperparameters'] = ''
             if configs['autotune_hyperparameters'] == "":
                 configs['autotune_hyperparameters'] = None
 
             if configs['autotune_hyperparameters'] not in [None, 'random', 'grid']:
-                print(f"{Colors.WARNING}WARNING: 'autotune_hyperparameters' must be one of ('', 'random', 'grid'). Got {configs['autotune_hyperparameters']}. Changing 'autotune_hyperparameters' to '' (no auto-tuning).{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.WARNING}WARNING: 'autotune_hyperparameters' must be one of (\"\", \"random\", \"grid\"). Got {configs['autotune_hyperparameters']}. Changing 'autotune_hyperparameters' to \"\" (no auto-tuning).{Colors.END}", file=sys.stderr, flush=True)
                 configs['autotune_hyperparameters'] = None
 
             if configs['autotune_hyperparameters'] in ['random', 'grid']:
                 print(f"{Colors.WARNING}WARNING: Auto-tuning hyperparameters will increase computational complexity and runtime.{Colors.END}",file=sys.stderr, flush=True)
 
+            if 'autotune_n_iter' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'autotune_n_iter' key. Setting 'autotune_n_iter' to 20.{Colors.END}", file=sys.stderr, flush=True)
+                configs['autotune_n_iter'] = 20
             if isinstance(configs['autotune_n_iter'], bool) or not isinstance(configs['autotune_n_iter'], int) or not (0 < configs['autotune_n_iter'] <= 100):  # TODO decide if this is a good max
                 print(f"{Colors.WARNING}WARNING: 'autotune_n_iter' must be a positive integer. Changing 'autotune_n_iter' to 20.{Colors.END}", file=sys.stderr, flush=True)
                 configs['autotune_n_iter'] = 20
 
+            if 'verbose' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'verbose' key. Setting 'verbose' to 0.{Colors.END}", file=sys.stderr, flush=True)
+                configs['verbose'] = 0
             if isinstance(configs['verbose'], bool) or not isinstance(configs['verbose'], int) or configs['verbose'] not in [0, 1, 2, 3, 4]:
                 print(f"{Colors.WARNING}WARNING: 'verbose' must be one of (0, 1, 2, 3, 4). Got {configs['verbose']}. Changing 'verbose' to 0.{Colors.END}", file=sys.stderr, flush=True)
                 configs['verbose'] = 0
@@ -361,8 +458,11 @@ class ParameterChecker:
         # check apply model settings.
         if configs['apply_model']:
             print(" - CHECKING EXPERIMENTAL CLASSIFICATION SETTINGS", file=sys.stderr, flush=True)
+            if 'prediction_format' not in configs:
+                print(f"{Colors.INFO}INFO: configuration file does not contain 'prediction_format' key. Setting 'prediction_format' to \"classes\".{Colors.END}", file=sys.stderr, flush=True)
+                configs['prediction_format'] = 'classes'
             if configs['prediction_format'] not in ['classes', 'probabilities']:
-                print(f"{Colors.WARNING}WARNING: 'prediction_format' must be one of ('classes', 'probabilities'). Got {configs['prediction_format']}. Changing 'prediction_format' to 'classes'.{Colors.END}", file=sys.stderr, flush=True)
+                print(f"{Colors.WARNING}WARNING: 'prediction_format' must be one of (\"classes\", \"probabilities\"). Got {configs['prediction_format']}. Changing 'prediction_format' to \"classes\".{Colors.END}", file=sys.stderr, flush=True)
                 configs['prediction_format'] = 'classes'
 
     def run_paramater_checker(self):
