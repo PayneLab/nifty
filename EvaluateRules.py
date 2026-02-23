@@ -7,46 +7,11 @@ import statsmodels.stats.multitest as ssm
 from sklearn.metrics import normalized_mutual_info_score
 
 from Colors import Colors
+from DataTransformer import DataTransformer
 
 class EvaluateRules:
     def __init__(self, seed=None):
         self.seed = seed
-
-    def vectorize_all_pairs(self, pairs: list, quant_df) -> dict:
-        '''Vectorizes all pairs of proteins and returns a dictionary of boolean vectors.
-        Rows are indexed by the string representation of each pair.'''
-        bool_dict = {}
-        for pair in pairs:
-            bool_vector = self.vectorize_pair(pair, quant_df)
-            bool_dict[pair] = bool_vector
-        return bool_dict
-
-    def vectorize_pair(self, pair: list, quant_df) -> np.ndarray:
-        '''Gets all values for two proteins of a pair, compares them and returns a boolean vector'''
-        prot1_values = quant_df[pair[0]].to_numpy(copy=True)
-        prot2_values = quant_df[pair[1]].to_numpy(copy=True)
-
-        # Create masks for NaN combinations
-        mask1_nan = np.isnan(prot1_values)
-        mask2_nan = np.isnan(prot2_values)
-
-        both_nan = mask1_nan & mask2_nan
-        only1_nan = mask1_nan & ~mask2_nan
-        only2_nan = mask2_nan & ~mask1_nan
-
-        # Apply replacement logic
-        prot1_values[only1_nan] = 0
-        prot2_values[only1_nan] = 10
-
-        prot2_values[only2_nan] = 0
-        prot1_values[only2_nan] = 10
-
-        prot1_values[both_nan] = 0
-        prot2_values[both_nan] = 10
-
-        bool_vector = prot1_values > prot2_values
-
-        return bool_vector
 
     def score_pair(self, pair: list, bool_dict, binarized_labels: np.ndarray) -> float:
         '''Scores a pair of proteins based on how well they separate the classes in the metadata'''
@@ -267,17 +232,18 @@ class EvaluateRules:
         print(f"{Colors.INFO}INFO: Rules saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
     #Wrapper:
-    def run_rule_evaluator(self, args, pairs: list, quant_df, meta_df):
+    def run_rule_evaluator(self, configs, pairs: list, quant_df, meta_df):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
 
-        print("GENERATING RULE TABLE", file=sys.stderr, flush=True)
-        bool_dict = self.vectorize_all_pairs(pairs, quant_df)
+        print(" - GENERATING RULE TABLE", file=sys.stderr, flush=True)
+        data_transformer = DataTransformer()
+        bool_dict = data_transformer.vectorize_all_pairs(pairs, quant_df)
 
-        print("BINARIZING LABELS", file=sys.stderr, flush=True)
+        print(" - BINARIZING LABELS", file=sys.stderr, flush=True)
         binarized_labels = self.binarize_labels(meta_df)
 
-        print("SCORING RULES", file=sys.stderr, flush=True)
+        print(" - SCORING RULES", file=sys.stderr, flush=True)
         true_scores = dict(self.evaluate_pairs(pairs, bool_dict, binarized_labels))
 
         print("EVALUATING SCORES", file=sys.stderr, flush=True)
@@ -288,10 +254,10 @@ class EvaluateRules:
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
 
         print("FILTERING RULES", file=sys.stderr, flush=True)
-        filtered_df = self.filter_rules(summary_df, bool_dict, k=args.k, mutual_info=args.mutual_info, mi_cutoff=args.mi_cutoff, disjoint=args.disjoint)
+        filtered_df = self.filter_rules(summary_df, bool_dict, k=configs['k_rules'], mutual_info=configs['mutual_information'], mi_cutoff=configs['mutual_information_cutoff'], disjoint=configs['disjoint'])
 
         print("SAVING RULES", file=sys.stderr, flush=True)
-        output_file_path = os.path.join(args.output, "output.tsv")
+        output_file_path = os.path.join(configs['output_dir'], "selected_features.tsv")
         self.save_rules(filtered_df, output_file_path)
 
         return true_scores, summary_df, filtered_df
