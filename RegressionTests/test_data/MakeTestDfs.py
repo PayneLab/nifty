@@ -2,10 +2,16 @@
 import os
 import random
 import pandas as pd
+from pathlib import Path
+
+script_path = os.path.abspath(__file__)
+script_directory = os.path.dirname(script_path)
+
+grandparent_dir = Path(script_directory).parent.parent
 
 # -------- CONFIG --------
-QUANT_FILENAME = "/Users/blakemcgee/Desktop/TSP Classifier/github/nifty/data/na-allow-testing-dfs/Leduc_et_al_2022/quant_table_unimputed.tsv"
-META_FILENAME = "/Users/blakemcgee/Desktop/TSP Classifier/github/nifty/data/na-allow-testing-dfs/Leduc_et_al_2022/meta_table_unimputed.tsv"
+QUANT_FILENAME = grandparent_dir / "data" / "na-allow-testing-dfs" / "Leduc_et_al_2022" / "quant_table_unimputed.tsv"
+META_FILENAME = grandparent_dir / "data" / "na-allow-testing-dfs" / "Leduc_et_al_2022" / "meta_table_unimputed.tsv"
 
 N_PARTS = 4
 PER_CLASS_PER_PART = 50  # 50 of each class per split
