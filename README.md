@@ -6,9 +6,14 @@ The pre-print manuscript associated with this tool can be found here: TBA
 NIFty is a python program for data-driven cell annotation (classification). NIFty can be used for top-scoring pairs (TSP)-based rule generation and feature selection, classification model generation, and model application on unlabaled data. NIFty is unique in that it does not require missing-value imputation, avoids common circular analysis pitfalls by default, and overcomes batch effects. 
 The primary application is for classifying large molecular data, like proteomics. 
 
-NIFty uses a minimum of two user-provided tables as input: 
+NIFty uses a minimum of two user-provided tables as input for feature selection and model generation: 
 1. a table with quantification data, proteins (or some other molecular data type) as the columns and samples as the rows; and
 2. a table that has the label (class) for each sample. 
+
+For model application, a minimum of one user-provided table is used as input:
+1. a table with quantification data, proteins (or some other molecular data type) as the columns and samples as the rows.
+
+Quantitation measurements can come from any search tool and any number of measurements (minimum of 2) can be provided.
 
 The output from our program depends on which functionalty the user would like to run. 
 In the 'find_features' mode, the output is a list of the *k* best TSP-based features/rules that can be used to train a machine learning classifier for sample annotation. 
