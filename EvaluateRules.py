@@ -38,10 +38,21 @@ class EvaluateRules:
 
         return binarized_labels
 
-    def evaluate_pairs(self, pairs: list, bool_dict, binarized_labels) -> list:
-        '''Evaluates all pairs of proteins and returns a list of tuples with the pair and its score'''
+    def evaluate_pairs(self, pairs: list, bool_matrix, binarized_labels) -> list:
+        """Evaluates all pairs of proteins and returns a list of tuples with the pair and its score"""
+        
         # score pairs
-        scored_pairs = [(pair, self.score_pair(pair, bool_dict, binarized_labels)) for pair in pairs]
+        inverse = 1 - binarized_labels
+
+        TP = bool_matrix.dot(binarized_labels)
+        FP = bool_matrix.dot(inverse)
+
+        TP_prop = TP / self._n_pos if self._n_pos > 0 else 0
+        FP_prop = FP / self._n_neg if self._n_neg > 0 else 0
+
+        final_scores = np.abs(TP_prop - FP_prop)
+        
+        scored_pairs = zip(pairs, final_scores)
 
         return scored_pairs
 
@@ -238,13 +249,13 @@ class EvaluateRules:
 
         print(" - GENERATING RULE TABLE", file=sys.stderr, flush=True)
         data_transformer = DataTransformer()
-        bool_dict = data_transformer.vectorize_all_pairs(pairs, quant_df)
+        bool_dict, bool_matrix = data_transformer.vectorize_all_pairs(pairs, quant_df)
 
         print(" - BINARIZING LABELS", file=sys.stderr, flush=True)
         binarized_labels = self.binarize_labels(meta_df)
 
         print(" - SCORING RULES", file=sys.stderr, flush=True)
-        true_scores = dict(self.evaluate_pairs(pairs, bool_dict, binarized_labels))
+        true_scores = dict(self.evaluate_pairs(pairs, bool_matrix, binarized_labels))
 
         print("EVALUATING SCORES", file=sys.stderr, flush=True)
         bucket_to_rules = self.get_bucket_to_rules(pairs, bool_dict)

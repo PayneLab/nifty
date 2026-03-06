@@ -9,14 +9,16 @@ class DataTransformer:
     def __init__(self):
         pass
 
-    def vectorize_all_pairs(self, pairs: list, quant_df) -> dict:
-        '''Vectorizes all pairs of proteins and returns a dictionary of boolean vectors.
-        Rows are indexed by the string representation of each pair.'''
+    def vectorize_all_pairs(self, pairs: list, quant_df) -> tuple[dict, np.ndarray]:
+        """Vectorizes all pairs of proteins and returns a dictionary of boolean vectors.
+        Rows are indexed by the string representation of each pair."""
         bool_dict = {}
-        for pair in pairs:
+        final_matrix = np.empty((len(pairs), quant_df.shape[0]), dtype=np.int8)
+        for i,pair in enumerate(pairs):
             bool_vector = self.vectorize_pair(pair, quant_df)
             bool_dict[pair] = bool_vector
-        return bool_dict
+            final_matrix[i, :] = bool_vector
+        return bool_dict, final_matrix
 
     def vectorize_pair(self, pair: tuple, quant_df) -> np.ndarray:
         '''Gets all values for two proteins of a pair, compares them and returns a boolean vector'''
