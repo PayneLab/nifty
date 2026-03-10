@@ -67,5 +67,7 @@ Each of the use-case documents below contain the following information: (1) a br
 ## Citing NIFty
 
 Classification with Missing Data - A NIFty Pipeline for Single-Cell Proteomics
+
 Alyssa A Nitz, Benjamin Echarry, Blake McGee, Samuel H Payne
+
 bioRxiv 2026.03.06.710179; doi: https://doi.org/10.64898/2026.03.06.710179 
