@@ -56,38 +56,55 @@ class EvaluateRules:
 
         return scored_pairs
 
-    def get_significant_pairs(self, summary_df) -> pd.DataFrame:
-        '''Adjust p-values for multiple testing'''
-        summary_df['FDR'] = ssm.fdrcorrection(summary_df.P_Value)[1]
-        return summary_df
+    def evaluate_null(self, bool_matrix, binarized_labels) -> list:
+        """Evaluates all pairs of proteins and returns a list of tuples with the pair and its score"""
+        
+        # score pairs
+        inverse = 1 - binarized_labels
 
-    def get_proportion_bucket(self, bool_vector: np.ndarray) -> int:
-        '''Returns the proportions of true and false of each bucket for the vector of the rules'''
-        # print(bool_vector)
-        n_true = int(np.sum(bool_vector))
-        n_false = len(bool_vector) - n_true
-        #return tuple([n_true, n_false])
-        return round((n_true / (n_true + n_false)) * 100)
+        TP = bool_matrix.dot(binarized_labels)
+        FP = bool_matrix.dot(inverse)
 
-    def get_rule_to_buckets(self, pairs, bool_dict) -> dict:
-        rule_to_buckets = {}
-        # ('P1', 'P2'): (7, 5)
-        for pair in pairs:
-            bool_vector = bool_dict[pair]
-            bucket = self.get_proportion_bucket(bool_vector)
-            rule_to_buckets[pair] = bucket
-        return rule_to_buckets
+        TP_prop = TP / self._n_pos if self._n_pos > 0 else 0
+        FP_prop = FP / self._n_neg if self._n_neg > 0 else 0
 
-    def get_bucket_to_rules(self, pairs, bool_dict) -> dict:
-        '''Group pairs into buckets'''
+        final_scores = np.abs(TP_prop - FP_prop)
+
+        return final_scores
+    
+    def get_proportion_bucket_list(self, bool_matrix) -> np.ndarray:
+        """
+        Takes the full (N_pairs, N_samples) matrix and returns a 1D array of buckets.
+        """
+        n_trues = np.sum(bool_matrix, axis=1)
+        total_samples = bool_matrix.shape[1]
+        percentages = (n_trues / total_samples) * 100
+        buckets = np.round(percentages).astype(int)
+        return buckets
+
+    
+    def bookkeeping(self, true_scores, null_scores, bool_matrix) -> tuple[dict,dict]:
+        """
+        make score-key rule
+        make score-key null score lists
+        """
+        bucket_list = self.get_proportion_bucket_list(bool_matrix)
         bucket_to_rules = {}
-        for pair in pairs:
-            bool_vector = bool_dict[pair]
-            bucket = self.get_proportion_bucket(bool_vector)
+        bucket_to_null_scores = {}
+        
+        zip(true_scores, null_scores, bucket_list)
+        for pair, true_score, null_score, bucket in zip(true_scores.keys(), true_scores.values(), null_scores, bucket_list):
+            # assign pair to bucket
             if bucket not in bucket_to_rules:
                 bucket_to_rules[bucket] = []
             bucket_to_rules[bucket].append(pair)
-        return bucket_to_rules
+            # assign true score to pair
+            true_scores[pair] = true_score
+            # assign null score to pair
+            if bucket not in bucket_to_null_scores:
+                bucket_to_null_scores[bucket] = []
+            bucket_to_null_scores[bucket].append(null_score)
+        return bucket_to_rules, bucket_to_null_scores
 
     def randomize_labels(self, labels: np.ndarray) -> np.ndarray:
         '''Randomizes the labels in the metadata and returns a new DataFrame.'''
@@ -98,18 +115,13 @@ class EvaluateRules:
             return shuffled
         else:
             return np.random.permutation(labels)
-
-    def create_null_distributions_for_p_values_testing(self, bool_dict, binarized_labels, bucket_to_rules):
+    
+    def create_null_matrix(self, bool_matrix, binarized_labels) -> np.ndarray:
         shuffled_labels = self.randomize_labels(binarized_labels)
+        null_matrix = self.evaluate_null(bool_matrix, shuffled_labels)
+        return null_matrix
 
-        buckets = {}
-        # Reuse score_pair logic efficiently
-        for bucket, rules in bucket_to_rules.items():
-            scores = [self.score_pair(pair, bool_dict, shuffled_labels) for pair in rules]
-            buckets[bucket] = np.array(scores)
-        return buckets
-
-    def expand_small_null_distributions(self, buckets, bool_dict, binarized_labels, bucket_to_rules):
+    def expand_small_null_distributions(self, buckets, bool_dict, binarized_labels, bucket_to_rules) -> dict:
         for bucket, scores in buckets.items():
             n = len(scores)
             if n < 100:
@@ -258,9 +270,9 @@ class EvaluateRules:
         true_scores = dict(self.evaluate_pairs(pairs, bool_matrix, binarized_labels))
 
         print("EVALUATING SCORES", file=sys.stderr, flush=True)
-        bucket_to_rules = self.get_bucket_to_rules(pairs, bool_dict)
-        buckets = self.create_null_distributions_for_p_values_testing(bool_dict, binarized_labels, bucket_to_rules)
-        expanded_buckets = self.expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
+        null_scores = self.create_null_matrix(bool_matrix, binarized_labels)
+        bucket_to_rules, bucket_to_null_scores = self.bookkeeping(true_scores,null_scores,bool_matrix)
+        expanded_buckets = self.expand_small_null_distributions(bucket_to_null_scores, bool_dict, binarized_labels, bucket_to_rules)
 
         summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
 
