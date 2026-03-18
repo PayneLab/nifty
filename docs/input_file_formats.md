@@ -191,7 +191,7 @@ Metadata files must always be paired with a matching quantification file.
 ### Requirements
 Metadata files in NIFty have the following structural requirements:
 * One column must be called `sample_id` and contain unique identifiers for the samples; IDs in this column must match exactly to those in the `sample_id` column in the quant table
-* One column must be called `classification_label` and contain class labels corresponding to the samples
+* One column must be called `classification_label` and contain class labels corresponding to the samples (currently, NIFty only runs on datasets with 2 classes; [this code file](https://github.com/PayneLab/nifty-manuscript/blob/main/Testing/Multiclass/multiclass_wrapper.py) shows how we wrapped NIFty to work on a multiclass dataset)
 
 *NOTE: Order of rows does not matter, NIFty automatically sorts metadata tables on the `sample_id` column.*
 
