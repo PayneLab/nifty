@@ -10,8 +10,8 @@ from ExperimentalClassifier import ExperimentalClassifier
 from Colors import Colors
 
 
-MIN_SAMPLES_FEATURES = 15  # TODO: fill this in with experimentally validated minimums
-MIN_SAMPLES_TRAIN = 35  # TODO: fill this in with experimentally validated minimums
+MIN_SAMPLES_FEATURES = 15  
+MIN_SAMPLES_TRAIN = 35  
 MIN_SAMPLES_VALIDATE = 15
 
 
