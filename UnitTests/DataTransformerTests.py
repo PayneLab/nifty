@@ -31,45 +31,45 @@ class TestVectorizeAllPairs(unittest.TestCase):
         self.quant_df.set_index('sample_id', inplace=True)
         
     def test_3_pairs(self):
-        expected_bool_dict = {('P1', 'P2'): np.array([True, False, True, False, True]), 
-                              ('P1', 'P3'): np.array([False, False, True, False, True]), 
-                              ('P2', 'P3'): np.array([False, False, False, True, True])}
+        expected_bool_matrix = np.array([[True, False, True, False, True], 
+                                         [False, False, True, False, True], 
+                                         [False, False, False, True, True]])
 
-        bool_dict = self.transformer.vectorize_all_pairs(self.pairs, self.quant_df)
+        bool_matrix = self.transformer.vectorize_all_pairs(self.pairs, self.quant_df)
 
-        self.assertEqual(expected_bool_dict.keys(), bool_dict.keys())
-        self.assertEqual(self.pairs, list(bool_dict.keys()))
+        self.assertEqual(expected_bool_matrix.shape[0], len(self.pairs))
+        self.assertEqual(expected_bool_matrix.shape[1], 5)
 
-        for pair in self.pairs:
-            np.testing.assert_array_equal(expected_bool_dict[pair], bool_dict[pair])
+        for i, pair in enumerate(self.pairs):
+            np.testing.assert_array_equal(expected_bool_matrix[i, :], bool_matrix[i, :])
 
     def test_2_pairs(self):
         self.pairs.pop(1)
 
-        expected_bool_dict = {('P1', 'P2'): np.array([True, False, True, False, True]),  
-                              ('P2', 'P3'): np.array([False, False, False, True, True])}
+        expected_bool_matrix = np.array([[True, False, True, False, True],  
+                                       [False, False, False, True, True]])
 
-        bool_dict = self.transformer.vectorize_all_pairs(self.pairs, self.quant_df)
+        bool_matrix = self.transformer.vectorize_all_pairs(self.pairs, self.quant_df)
 
-        self.assertEqual(expected_bool_dict.keys(), bool_dict.keys())
-        self.assertEqual(self.pairs, list(bool_dict.keys()))
+        self.assertEqual(expected_bool_matrix.shape[0], len(self.pairs))
+        self.assertEqual(expected_bool_matrix.shape[1], 5)
 
-        for pair in self.pairs:
-            np.testing.assert_array_equal(expected_bool_dict[pair], bool_dict[pair])
+        for i, pair in enumerate(self.pairs):
+            np.testing.assert_array_equal(expected_bool_matrix[i, :], bool_matrix[i, :])
 
     def test_1_pair(self):
         self.pairs.pop(0)
         self.pairs.pop(0)
 
-        expected_bool_dict = {('P2', 'P3'): np.array([False, False, False, True, True])}
+        expected_bool_matrix = np.array([[False, False, False, True, True]])
 
-        bool_dict = self.transformer.vectorize_all_pairs(self.pairs, self.quant_df)
+        bool_matrix = self.transformer.vectorize_all_pairs(self.pairs, self.quant_df)
 
-        self.assertEqual(expected_bool_dict.keys(), bool_dict.keys())
-        self.assertEqual(self.pairs, list(bool_dict.keys()))
+        self.assertEqual(expected_bool_matrix.shape[0], len(self.pairs))
+        self.assertEqual(expected_bool_matrix.shape[1], 5)
 
-        for pair in self.pairs:
-            np.testing.assert_array_equal(expected_bool_dict[pair], bool_dict[pair])
+        for i, pair in enumerate(self.pairs):
+            np.testing.assert_array_equal(expected_bool_matrix[i, :], bool_matrix[i, :])
 
 
 class TestVectorizePair(unittest.TestCase):
@@ -118,68 +118,6 @@ class TestVectorizePair(unittest.TestCase):
         expected = np.array([False, False, False, False])
         result = self.transformer.vectorize_pair(('P1', 'P1'), df)
         np.testing.assert_array_equal(result, expected)
-
-
-class TestTransformDf(unittest.TestCase):
-
-    def setUp(self):
-        self.transformer = DataTransformer()
-
-        self.feature_df = pd.DataFrame({
-            'Protein1': ['P1', 'P1', 'P2'], 
-            'Protein2': ['P2', 'P3', 'P3']
-        })
-
-        self.pairs = list(zip(self.feature_df['Protein1'].tolist(), self.feature_df['Protein2'].tolist()))
-        
-        self.quant_df = pd.DataFrame({
-            'sample_id': ['samp1', 'samp2', 'samp3', 'samp4', 'samp5'], 
-            'P1': [0.7328, np.nan, 0.4481, np.nan, 0.9125], 
-            'P2': [np.nan, 0.1839, np.nan, 0.5921, 0.0197], 
-            'P3': [0.7416, 0.2604, np.nan, 0.4973, np.nan]})
-        
-        self.quant_df.set_index('sample_id', inplace=True)
-        
-    def test_3_pairs(self):
-        expected_bool_dict = {('P1', 'P2'): np.array([True, False, True, False, True]), 
-                              ('P1', 'P3'): np.array([False, False, True, False, True]), 
-                              ('P2', 'P3'): np.array([False, False, False, True, True])}
-
-        bool_dict = self.transformer.transform_df(self.feature_df, self.quant_df)
-
-        self.assertEqual(expected_bool_dict.keys(), bool_dict.keys())
-        self.assertEqual(self.pairs, list(bool_dict.keys()))
-
-        for pair in self.pairs:
-            np.testing.assert_array_equal(expected_bool_dict[pair], bool_dict[pair])
-
-    def test_2_pairs(self):
-        self.pairs.pop(1)
-
-        expected_bool_dict = {('P1', 'P2'): np.array([True, False, True, False, True]),  
-                              ('P2', 'P3'): np.array([False, False, False, True, True])}
-
-        bool_dict = self.transformer.vectorize_all_pairs(self.pairs, self.quant_df)
-
-        self.assertEqual(expected_bool_dict.keys(), bool_dict.keys())
-        self.assertEqual(self.pairs, list(bool_dict.keys()))
-
-        for pair in self.pairs:
-            np.testing.assert_array_equal(expected_bool_dict[pair], bool_dict[pair])
-
-    def test_1_pair(self):
-        self.pairs.pop(0)
-        self.pairs.pop(0)
-
-        expected_bool_dict = {('P2', 'P3'): np.array([False, False, False, True, True])}
-
-        bool_dict = self.transformer.vectorize_all_pairs(self.pairs, self.quant_df)
-
-        self.assertEqual(expected_bool_dict.keys(), bool_dict.keys())
-        self.assertEqual(self.pairs, list(bool_dict.keys()))
-
-        for pair in self.pairs:
-            np.testing.assert_array_equal(expected_bool_dict[pair], bool_dict[pair])
 
 
 class TestFilterRules(unittest.TestCase):
@@ -342,6 +280,7 @@ class TestPrepVectorizedPairsForScikitlearn(unittest.TestCase):
             'Protein1': ['P1', 'P1', 'P2'],
             'Protein2': ['P2', 'P3', 'P3']
         })
+        self.rules = list(zip(self.feature_df['Protein1'].tolist(), self.feature_df['Protein2'].tolist()))
 
         # Expected ordered list of joined pair strings
         self.expected_column_order = ["P1>P2", "P1>P3", "P2>P3"]
@@ -352,14 +291,14 @@ class TestPrepVectorizedPairsForScikitlearn(unittest.TestCase):
         - bool_dict contains all required pairs
         - values are boolean arrays
         """
-        bool_dict = {
-            ('P1', 'P2'): [True, False, True],
-            ('P1', 'P3'): [False, True, False],
-            ('P2', 'P3'): [True, True, False]
-        }
+        bool_matrix = np.array([
+            [True, False, True],
+            [False, True, False],
+            [True, True, False]
+        ])
 
         df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
-            self.feature_df, bool_dict
+            self.rules, bool_matrix
         )
 
         # Check correct shape
@@ -376,66 +315,16 @@ class TestPrepVectorizedPairsForScikitlearn(unittest.TestCase):
         })
         pd.testing.assert_frame_equal(df, expected_df)
 
-    def test_correct_column_order_even_if_bool_dict_is_unordered(self):
-        """
-        Confirm that even if bool_dict keys are in random order,
-        the output DataFrame still respects feature_df order.
-        """
-        bool_dict = {
-            ('P2', 'P3'): [True, True],
-            ('P1', 'P3'): [False, False],
-            ('P1', 'P2'): [True, False]
-        }
-
-        df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
-            self.feature_df, bool_dict
-        )
-
-        self.assertEqual(list(df.columns), self.expected_column_order)
-
-    def test_extra_pairs_in_bool_dict_are_ignored(self):
-        """
-        bool_dict may contain additional pairs not present in feature_df.
-        These should be ignored entirely.
-        """
-        bool_dict = {
-            ('P1', 'P2'): [True, False],
-            ('P1', 'P3'): [False, True],
-            ('P2', 'P3'): [False, False],
-            ('EXTRA', 'PAIR'): [True, True]  # should be ignored
-        }
-
-        df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
-            self.feature_df, bool_dict
-        )
-
-        self.assertEqual(list(df.columns), self.expected_column_order)
-        self.assertNotIn("EXTRA>PAIR", df.columns)
-
-    def test_missing_pair_in_bool_dict(self):
-        """
-        If a required pair is missing from bool_dict, the function should raise a KeyError.
-        """
-        bool_dict = {
-            ('P1', 'P2'): [True, False, True],
-            # ('P1', 'P3') missing intentionally
-            ('P2', 'P3'): [False, True, False]
-        }
-
-        with self.assertRaises(KeyError):
-            self.transformer.prep_vectorized_pairs_for_scikitlearn(
-                self.feature_df, bool_dict
-            )
-
     def test_empty_feature_df(self):
         """
         No features → return empty DataFrame.
         """
         feature_df = pd.DataFrame({'Protein1': [], 'Protein2': []})
-        bool_dict = {}
+        rules = list(zip(feature_df['Protein1'].tolist(), feature_df['Protein2'].tolist()))
+        bool_matrix = np.array([])
 
         df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
-            feature_df, bool_dict
+            rules, bool_matrix
         )
 
         self.assertTrue(df.empty)
@@ -444,14 +333,14 @@ class TestPrepVectorizedPairsForScikitlearn(unittest.TestCase):
         """
         If bool arrays are empty, output should be an empty DataFrame with correct columns.
         """
-        bool_dict = {
-            ('P1', 'P2'): [],
-            ('P1', 'P3'): [],
-            ('P2', 'P3'): []
-        }
+        bool_matrix = np.array([
+            [],
+            [],
+            []
+        ])
 
         df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
-            self.feature_df, bool_dict
+            self.rules, bool_matrix
         )
 
         self.assertEqual(list(df.columns), self.expected_column_order)
