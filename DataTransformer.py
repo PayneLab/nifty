@@ -12,13 +12,11 @@ class DataTransformer:
     def vectorize_all_pairs(self, pairs: list, quant_df) -> tuple[dict, np.ndarray]:
         """Vectorizes all pairs of proteins and returns a dictionary of boolean vectors.
         Rows are indexed by the string representation of each pair."""
-        bool_dict = {}
         final_matrix = np.empty((len(pairs), quant_df.shape[0]), dtype=np.int8)
         for i,pair in enumerate(pairs):
             bool_vector = self.vectorize_pair(pair, quant_df)
-            bool_dict[pair] = bool_vector
             final_matrix[i, :] = bool_vector
-        return bool_dict, final_matrix
+        return final_matrix
 
     def vectorize_pair(self, pair: tuple, quant_df) -> np.ndarray:
         '''Gets all values for two proteins of a pair, compares them and returns a boolean vector'''
@@ -46,12 +44,6 @@ class DataTransformer:
         bool_vector = prot1_values > prot2_values
 
         return bool_vector
-
-    def transform_df(self, feature_df, quant_df):
-        rules = list(zip(feature_df['Protein1'].tolist(), feature_df['Protein2'].tolist()))
-        vectorized_pairs = self.vectorize_all_pairs(rules, quant_df)
-
-        return vectorized_pairs
 
     def filter_rules(self, feature_df, quant_df):
         proteins = set()
@@ -90,16 +82,15 @@ class DataTransformer:
         
         return updated_quant_df
     
-    def prep_vectorized_pairs_for_scikitlearn(self, feature_df, bool_dict):
+    def prep_vectorized_pairs_for_scikitlearn(self, rules, bool_matrix):
         # Convert dict values (bool arrays) to int arrays
-        pairs = list(zip(feature_df['Protein1'].tolist(), feature_df['Protein2'].tolist()))
-        pairs = [">".join(pair) for pair in pairs]
-        bool_matrix = pd.DataFrame()
+        pairs = [">".join(rule) for rule in rules]
+        bool_df = pd.DataFrame()
 
-        for pair, evaluations in bool_dict.items():
-            pair = ">".join(pair)
-            bool_matrix[pair] = [int(eval) for eval in evaluations]
+        for i, rule in enumerate(rules):
+            pair = ">".join(rule)
+            bool_df[pair] = [int(eval) for eval in bool_matrix[i, :]]
 
-        bool_matrix = bool_matrix[pairs]
+        bool_df = bool_df[pairs]
 
-        return bool_matrix
+        return bool_df

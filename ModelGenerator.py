@@ -305,12 +305,13 @@ class ModelGenerator:
             configs['feature_table'] = data_transformer.filter_rules(feature_df=configs['feature_table'], quant_df=configs['validate_quant_table'])
     
         print("TRANSFORMING DATA", file=sys.stderr, flush=True)
-        train_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['train_quant_table'])
-        validate_bool_dict = data_transformer.transform_df(feature_df=configs['feature_table'], quant_df=configs['validate_quant_table'])
+        rules = list(zip(configs['feature_table']['Protein1'].tolist(), configs['feature_table']['Protein2'].tolist()))
+        train_bool_matrix = data_transformer.vectorize_all_pairs(rules, quant_df=configs['train_quant_table'])
+        validate_bool_matrix = data_transformer.vectorize_all_pairs(rules, quant_df=configs['validate_quant_table'])
 
-        train_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(feature_df=configs['feature_table'], bool_dict=train_bool_dict)
+        train_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(rules, train_bool_matrix)
         train_matrix.index = configs['train_quant_table'].index.copy()
-        validate_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(feature_df=configs['feature_table'], bool_dict=validate_bool_dict)
+        validate_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(rules, validate_bool_matrix)
         validate_matrix.index = configs['validate_quant_table'].index.copy()
 
         # train model

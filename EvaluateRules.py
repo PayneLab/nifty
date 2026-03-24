@@ -13,18 +13,6 @@ class EvaluateRules:
     def __init__(self, seed=None):
         self.seed = seed
 
-    def score_pair(self, pair: list, bool_dict, binarized_labels: np.ndarray) -> float:
-        '''Scores a pair of proteins based on how well they separate the classes in the metadata'''
-        bool_vector = bool_dict[pair]
-
-        TP = np.sum((bool_vector == 1) & (binarized_labels == 1))
-        FP = np.sum((bool_vector == 1) & (binarized_labels == 0))
-
-        TP_prop = TP / self._n_pos if self._n_pos > 0 else 0
-        FP_prop = FP / self._n_neg if self._n_neg > 0 else 0
-
-        return abs(TP_prop - FP_prop)
-
     def binarize_labels(self, meta_df) -> np.ndarray:
         '''Binarizes the labels in the metadata and computes denominators. Returns binarized labels'''
         class_labels = meta_df['classification_label'].to_numpy()
@@ -38,26 +26,8 @@ class EvaluateRules:
 
         return binarized_labels
 
-    def evaluate_pairs(self, pairs: list, bool_matrix, binarized_labels) -> list:
-        """Evaluates all pairs of proteins and returns a list of tuples with the pair and its score"""
-        
-        # score pairs
-        inverse = 1 - binarized_labels
-
-        TP = bool_matrix.dot(binarized_labels)
-        FP = bool_matrix.dot(inverse)
-
-        TP_prop = TP / self._n_pos if self._n_pos > 0 else 0
-        FP_prop = FP / self._n_neg if self._n_neg > 0 else 0
-
-        final_scores = np.abs(TP_prop - FP_prop)
-        
-        scored_pairs = zip(pairs, final_scores)
-
-        return scored_pairs
-
-    def evaluate_null(self, bool_matrix, binarized_labels) -> list:
-        """Evaluates all pairs of proteins and returns a list of tuples with the pair and its score"""
+    def evaluate_pairs(self, bool_matrix, binarized_labels) -> list:
+        """Evaluates all pairs of proteins and returns a list of scores"""
         
         # score pairs
         inverse = 1 - binarized_labels
@@ -82,8 +52,7 @@ class EvaluateRules:
         buckets = np.round(percentages).astype(int)
         return buckets
 
-    
-    def bookkeeping(self, true_scores, null_scores, bool_matrix) -> tuple[dict,dict]:
+    def bookkeeping(self, pairs, null_scores, bool_matrix) -> tuple[dict,dict]:
         """
         make score-key rule
         make score-key null score lists
@@ -92,14 +61,12 @@ class EvaluateRules:
         bucket_to_rules = {}
         bucket_to_null_scores = {}
         
-        zip(true_scores, null_scores, bucket_list)
-        for pair, true_score, null_score, bucket in zip(true_scores.keys(), true_scores.values(), null_scores, bucket_list):
+        # zip(true_scores, null_scores, bucket_list)
+        for pair, null_score, bucket in zip(pairs, null_scores, bucket_list):
             # assign pair to bucket
             if bucket not in bucket_to_rules:
                 bucket_to_rules[bucket] = []
             bucket_to_rules[bucket].append(pair)
-            # assign true score to pair
-            true_scores[pair] = true_score
             # assign null score to pair
             if bucket not in bucket_to_null_scores:
                 bucket_to_null_scores[bucket] = []
@@ -116,36 +83,37 @@ class EvaluateRules:
         else:
             return np.random.permutation(labels)
     
-    def create_null_matrix(self, bool_matrix, binarized_labels) -> np.ndarray:
+    def get_null_scores(self, bool_matrix, binarized_labels) -> np.ndarray:
         shuffled_labels = self.randomize_labels(binarized_labels)
-        null_matrix = self.evaluate_null(bool_matrix, shuffled_labels)
-        return null_matrix
+        null_scores = self.evaluate_pairs(bool_matrix, shuffled_labels)
+        return null_scores
 
-    def expand_small_null_distributions(self, buckets, bool_dict, binarized_labels, bucket_to_rules) -> dict:
-        for bucket, scores in buckets.items():
-            n = len(scores)
+    def expand_small_null_distributions(self, bucket_to_null_scores, pair_to_index, bool_matrix, binarized_labels, bucket_to_rules) -> dict:
+        for bucket, null_scores in bucket_to_null_scores.items():
+            n = len(null_scores)
             if n < 100:
-                needed_permutations = int(np.ceil(100 / n))
-                scores_all = list(scores)
+                scores_all = list(null_scores)
+                rules_index = [pair_to_index[rule] for rule in bucket_to_rules[bucket]]
+                bool_matrix_subset = bool_matrix[rules_index, :]
 
-                for i in range(needed_permutations - 1):
+                while n < 100:
                     shuffled_labels = self.randomize_labels(binarized_labels)
-                    additional_scores = [self.score_pair(pair, bool_dict, shuffled_labels) for pair in
-                                         bucket_to_rules[bucket]]
+                    additional_scores = self.evaluate_pairs(bool_matrix_subset, shuffled_labels)
                     scores_all.extend(additional_scores)
-                buckets[bucket] = np.array(scores_all)
-        return buckets
+                    n = len(scores_all)
+                bucket_to_null_scores[bucket] = np.array(scores_all)
+        return bucket_to_null_scores
 
-    def summarize_bucket_stats(self, true_scores: dict, bucket_to_rules: dict, buckets) -> pd.DataFrame:
+    def summarize_bucket_stats(self, pair_to_score: dict, bucket_to_rules: dict, bucket_to_null_scores: dict) -> pd.DataFrame:
         data = []
         for bucket, rules in bucket_to_rules.items():
-            null_distribution = buckets[bucket]
+            null_distribution = bucket_to_null_scores[bucket]
 
             null_distribution_sorted = np.sort(null_distribution)
             null_distribution_len = len(null_distribution)
 
             for rule in rules:
-                true_score = true_scores[rule]
+                true_score = pair_to_score[rule]
                 index = np.searchsorted(null_distribution_sorted, true_score, side='left')
                 count = null_distribution_len - index
                 p_value = count / null_distribution_len
@@ -159,7 +127,7 @@ class EvaluateRules:
         summary_df = pd.DataFrame(data)
         return summary_df
 
-    def filter_rules(self, summary_df, bool_vectors, k, mutual_info, mi_cutoff, disjoint):
+    def filter_rules(self, summary_df, pair_to_index, bool_matrix, k, mutual_info, mi_cutoff, disjoint):
         df = summary_df.sort_values(['P_Value', 'True_Score'],
                                     ascending=[True, False])
         used_rules = set()
@@ -183,7 +151,7 @@ class EvaluateRules:
 
                 redundant = False
                 for kept in used_rules:
-                    mi = self.calculate_mutual_information(rule, kept, bool_vectors)
+                    mi = self.calculate_mutual_information(rule, kept, pair_to_index, bool_matrix)
                     if mi >= mi_cutoff:
                         redundant = True
                         break
@@ -211,7 +179,7 @@ class EvaluateRules:
                     continue
                 redundant = False
                 for kept in used_rules:
-                    mi = self.calculate_mutual_information(rule, kept, bool_vectors)
+                    mi = self.calculate_mutual_information(rule, kept, pair_to_index, bool_matrix)
                     if mi >= mi_cutoff:
                         redundant = True
                         break
@@ -237,9 +205,9 @@ class EvaluateRules:
 
         return filtered_df
 
-    def calculate_mutual_information(self, pair1, pair2, bool_vectors):
-        vec1 = bool_vectors[pair1]
-        vec2 = bool_vectors[pair2]
+    def calculate_mutual_information(self, pair1, pair2, pair_to_index, bool_matrix):
+        vec1 = bool_matrix[pair_to_index[pair1], :]
+        vec2 = bool_matrix[pair_to_index[pair2], :]
         mi = normalized_mutual_info_score(vec1, vec2)
         return mi
 
@@ -261,23 +229,25 @@ class EvaluateRules:
 
         print(" - GENERATING RULE TABLE", file=sys.stderr, flush=True)
         data_transformer = DataTransformer()
-        bool_dict, bool_matrix = data_transformer.vectorize_all_pairs(pairs, quant_df)
+        bool_matrix = data_transformer.vectorize_all_pairs(pairs, quant_df)
 
         print(" - BINARIZING LABELS", file=sys.stderr, flush=True)
         binarized_labels = self.binarize_labels(meta_df)
 
         print(" - SCORING RULES", file=sys.stderr, flush=True)
-        true_scores = dict(self.evaluate_pairs(pairs, bool_matrix, binarized_labels))
+        true_scores = self.evaluate_pairs(bool_matrix, binarized_labels)
+        pair_to_score = dict(zip(pairs, true_scores))
+        pair_to_index = {pair: i for i, pair in enumerate(pairs)}
 
         print("EVALUATING SCORES", file=sys.stderr, flush=True)
-        null_scores = self.create_null_matrix(bool_matrix, binarized_labels)
-        bucket_to_rules, bucket_to_null_scores = self.bookkeeping(true_scores,null_scores,bool_matrix)
-        expanded_buckets = self.expand_small_null_distributions(bucket_to_null_scores, bool_dict, binarized_labels, bucket_to_rules)
+        null_scores = self.get_null_scores(bool_matrix, binarized_labels)
+        bucket_to_rules, bucket_to_null_scores = self.bookkeeping(pairs, null_scores, bool_matrix)
+        expanded_buckets = self.expand_small_null_distributions(bucket_to_null_scores, pair_to_index, bool_matrix, binarized_labels, bucket_to_rules)
 
-        summary_df = self.summarize_bucket_stats(true_scores, bucket_to_rules, expanded_buckets)
+        summary_df = self.summarize_bucket_stats(pair_to_score, bucket_to_rules, expanded_buckets)
 
         print("FILTERING RULES", file=sys.stderr, flush=True)
-        filtered_df = self.filter_rules(summary_df, bool_dict, k=configs['k_rules'], mutual_info=configs['mutual_information'], mi_cutoff=configs['mutual_information_cutoff'], disjoint=configs['disjoint'])
+        filtered_df = self.filter_rules(summary_df, pair_to_index, bool_matrix, k=configs['k_rules'], mutual_info=configs['mutual_information'], mi_cutoff=configs['mutual_information_cutoff'], disjoint=configs['disjoint'])
 
         print("SAVING RULES", file=sys.stderr, flush=True)
         output_file_path = os.path.join(configs['output_dir'], "selected_features.tsv")
