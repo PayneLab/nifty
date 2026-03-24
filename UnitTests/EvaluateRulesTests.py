@@ -40,47 +40,44 @@ class TestEvaluateRules(unittest.TestCase):
         # test pairs
         self.pairs = [("P1", "P2")]
 
-    def test_score_pair_no_separation(self):
+    def test_evaluate_pairs_no_separation(self):
         quant_df = pd.DataFrame({
             'P1': [1, 2, 3, 4],
             'P2': [4, 3, 2, 1]
         })
-        pair = ('P1', 'P2')
+        pairs = [('P1', 'P2')]
         meta_df = pd.DataFrame({'classification_label': ['H', 'D', 'H', 'D']})
         bin_labels = self.evaluator.binarize_labels(meta_df)
-        bool_dict = {pair: self.transformer.vectorize_pair(pair, quant_df)}
-        self.evaluator._n_pos = np.sum(bin_labels == 1)
-        self.evaluator._n_neg = np.sum(bin_labels == 0)
-        score = self.evaluator.score_pair(pair, bool_dict, bin_labels)
-        self.assertAlmostEqual(score, 0.0)
+        bool_matrix = self.transformer.vectorize_all_pairs(pairs, quant_df)
+        result = self.evaluator.evaluate_pairs(bool_matrix, bin_labels)
+        for score in result:
+            self.assertEqual(score, 0.0)
 
-    def test_score_pair_half_separation(self):
+    def test_evaluate_pairs_half_separation(self):
         quant_df = pd.DataFrame({
             'P1': [1, 6, 4, 7],
             'P2': [5, 5, 4, 8]
         })
-        pair = ('P1', 'P2')
+        pairs = [('P1', 'P2')]
         meta_df = pd.DataFrame({'classification_label': ['H', 'H', 'D', 'D']})
         bin_labels = self.evaluator.binarize_labels(meta_df)
-        bool_dict = {pair: self.transformer.vectorize_pair(pair, quant_df)}
-        self.evaluator._n_pos = np.sum(bin_labels == 1)
-        self.evaluator._n_neg = np.sum(bin_labels == 0)
-        score = self.evaluator.score_pair(pair, bool_dict, bin_labels)
-        self.assertAlmostEqual(score, 0.5)
+        bool_matrix = self.transformer.vectorize_all_pairs(pairs, quant_df)
+        result = self.evaluator.evaluate_pairs(bool_matrix, bin_labels)
+        for score in result:
+            self.assertEqual(score, 0.5)
 
-    def test_score_pair_full_separation_negative_selected(self):
+    def test_evaluate_pairs_full_separation_negative_selected(self):
         quant_df = pd.DataFrame({
             'P1': [1, 2, 3, 4],
             'P2': [4, 3, 2, 1]
         })
-        pair = ('P1', 'P2')
+        pairs = [('P1', 'P2')]
         meta_df = pd.DataFrame({'classification_label': ['D', 'D', 'H', 'H']})
         bin_labels = self.evaluator.binarize_labels(meta_df)
-        bool_dict = {pair: self.transformer.vectorize_pair(pair, quant_df)}
-        self.evaluator._n_pos = np.sum(bin_labels == 1)
-        self.evaluator._n_neg = np.sum(bin_labels == 0)
-        score = self.evaluator.score_pair(pair, bool_dict, bin_labels)
-        self.assertAlmostEqual(score, 1.0)
+        bool_matrix = self.transformer.vectorize_all_pairs(pairs, quant_df)
+        result = self.evaluator.evaluate_pairs(bool_matrix, bin_labels)
+        for score in result:
+            self.assertEqual(score, 1.0)
 
     def test_evaluate_pairs_output(self):
         quant_df = pd.DataFrame({
@@ -90,15 +87,14 @@ class TestEvaluateRules(unittest.TestCase):
         })
         meta_df = pd.DataFrame({'classification_label': ['H', 'D', 'H', 'D']})
         pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
-        bool_dict = self.transformer.vectorize_all_pairs(pairs, quant_df)
+        bool_matrix = self.transformer.vectorize_all_pairs(pairs, quant_df)
         bin_labels = self.evaluator.binarize_labels(meta_df)
-        result = self.evaluator.evaluate_pairs(pairs, bool_dict, bin_labels)
+        result = self.evaluator.evaluate_pairs(bool_matrix, bin_labels)
 
         self.assertEqual(len(result), len(pairs))
-        for pair, score in result:
-            self.assertIsInstance(pair, tuple)
-            self.assertEqual(len(pair), 2)
+        for score in result:
             self.assertIsInstance(score, float)
+            self.assertEqual(score, 0)
 
     def test_randomize_labels(self):
         label_array = np.array(['H', 'D', 'H', 'D', 'H', 'D', 'H'])
@@ -114,24 +110,27 @@ class TestEvaluateRules(unittest.TestCase):
             'P2': [2, 3, 6, 2, 6, 1, 2, 9]
         })
         pairs = [('P1', 'P2')]
-        expected_vector = np.array([False, True, False, True, False, True, False, False])
-        bool_vectors = self.transformer.vectorize_all_pairs(pairs, df)
-        np.testing.assert_array_equal(bool_vectors[('P1', 'P2')], expected_vector)
+        expected_matrix = np.atleast_2d([False, True, False, True, False, True, False, False])
+        bool_matrix = self.transformer.vectorize_all_pairs(pairs, df)
+        np.testing.assert_array_equal(bool_matrix, expected_matrix)
 
-    def test_get_proportion_bucket_true_false(self):
-        vector = np.array([True, False, True, False, True])
-        result = self.evaluator.get_proportion_bucket(vector)
-        self.assertEqual(result, 60)
+    def test_get_proportion_bucket_list_true_false(self):
+        vector = np.atleast_2d([True, False, True, False, True])
+        result = self.evaluator.get_proportion_bucket_list(vector)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0], 60)
 
-    def test_get_proportion_bucket_all_false(self):
-        vector = np.array([False, False, False, False, False])
-        result = self.evaluator.get_proportion_bucket(vector)
-        self.assertEqual(result, 0)
+    def test_get_proportion_bucket_list_all_false(self):
+        vector = np.atleast_2d([False, False, False, False, False])
+        result = self.evaluator.get_proportion_bucket_list(vector)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0], 0)
 
-    def test_get_proportion_bucket_all_true(self):
-        vector = np.array([True, True, True, True])
-        result = self.evaluator.get_proportion_bucket(vector)
-        self.assertEqual(result, 100)
+    def test_get_proportion_bucket_list_all_true(self):
+        vector = np.atleast_2d([True, True, True, True])
+        result = self.evaluator.get_proportion_bucket_list(vector)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0], 100)
 
     def test_get_proportion_bucket_places_scores_in_correct_buckets(self):
         test_cases = [([False, False, False, False, False], 0),
@@ -147,101 +146,87 @@ class TestEvaluateRules(unittest.TestCase):
                       ([False, False, True], 33), ]
 
         for bool_vector, proportion in test_cases:
-            vector = np.array(bool_vector)
-            bucket = self.evaluator.get_proportion_bucket(vector)
-            self.assertEqual(bucket, proportion)
+            vector = np.atleast_2d(bool_vector)
+            bucket = self.evaluator.get_proportion_bucket_list(vector)
+            self.assertEqual(len(bucket), 1)
+            self.assertEqual(bucket[0], proportion)
 
     def test_get_proportion_bucket_large_vector(self):
-        bool_vector = np.array([True] * 5000 + [False] * 5000)
-        result = self.evaluator.get_proportion_bucket(bool_vector)
-        self.assertEqual(result, 50)
+        bool_vector = np.atleast_2d([True] * 5000 + [False] * 5000)
+        result = self.evaluator.get_proportion_bucket_list(bool_vector)
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0], 50)
 
     def test_get_proportion_bucket_close_rounding(self):
-        bool_vector_1 = np.array([True, True, True, False])
-        self.assertEqual(self.evaluator.get_proportion_bucket(bool_vector_1), 75)
-        bool_vector_2 = np.array([True, True, False])
-        self.assertEqual(self.evaluator.get_proportion_bucket(bool_vector_2), 67)
-        bool_vector_3 = np.array([True, False])
-        self.assertEqual(self.evaluator.get_proportion_bucket(bool_vector_3), 50)
-
-    # To delete.
-    def test_get_rule_to_buckets_with_pairs(self):
-        pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
-        bool_dict = {
-            ('P1', 'P2'): np.array([True, True, False, False]),
-            ('P1', 'P3'): np.array([True, True, True, False]),
-            ('P2', 'P3'): np.array([True, False, False, False])
-        }
-
-        expected_rule_to_buckets = {
-            ('P1', 'P2'): 50,
-            ('P1', 'P3'): 75,
-            ('P2', 'P3'): 25
-        }
-
-        results = self.evaluator.get_rule_to_buckets(pairs, bool_dict)
-        self.assertEqual(results, expected_rule_to_buckets)
+        bool_vector_1 = np.atleast_2d([True, True, True, False])
+        self.assertEqual(len(self.evaluator.get_proportion_bucket_list(bool_vector_1)), 1)
+        self.assertEqual(self.evaluator.get_proportion_bucket_list(bool_vector_1)[0], 75)
+        bool_vector_2 = np.atleast_2d([True, True, False])
+        self.assertEqual(len(self.evaluator.get_proportion_bucket_list(bool_vector_2)), 1)
+        self.assertEqual(self.evaluator.get_proportion_bucket_list(bool_vector_2)[0], 67)
+        bool_vector_3 = np.atleast_2d([True, False])
+        self.assertEqual(len(self.evaluator.get_proportion_bucket_list(bool_vector_3)), 1)
+        self.assertEqual(self.evaluator.get_proportion_bucket_list(bool_vector_3)[0], 50)
 
     def test_get_bucket_to_rules_multiple_buckets(self):
         pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
-        bool_dict = {
-            ('P1', 'P2'): np.array([True, True, False, False]),
-            ('P1', 'P3'): np.array([True, True, True, False]),
-            ('P2', 'P3'): np.array([True, False, False, False])
-        }
+        null_scores = [0.5, 0.5, 0.5]
+        bool_matrix = np.array([[True, True, False, False],
+                                [True, True, True, False],
+                                [True, False, False, False]])
 
-        expected_rule_to_buckets = {
+        expected_bucket_to_rules = {
             50: [('P1', 'P2')],
             75: [('P1', 'P3')],
             25: [('P2', 'P3')]
         }
+        expected_bucket_to_null_scores = {
+            50: [0.5],
+            75: [0.5],
+            25: [0.5]
+        }
 
-        results = self.evaluator.get_bucket_to_rules(pairs, bool_dict)
-        self.assertEqual(results, expected_rule_to_buckets)
+        bucket_to_rules, bucket_to_null_scores = self.evaluator.bookkeeping(pairs, null_scores, bool_matrix)
+        self.assertEqual(bucket_to_rules, expected_bucket_to_rules)
+        self.assertEqual(bucket_to_null_scores, expected_bucket_to_null_scores)
 
     def test_get_bucket_to_rules_multiple_rules_same_buckets(self):
         pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
-        bool_dict = {
-            ('P1', 'P2'): np.array([True, False, False, False, True, True, True]),
-            ('P1', 'P3'): np.array([True, True, True, True, False, False, False]),
-            ('P2', 'P3'): np.array([True, True, True, True, False, False, False]),
-        }
+        null_scores = [0, 0, 0]
+        bool_matrix = np.array([[True, False, False, False, True, True, True],
+                                [True, True, True, True, False, False, False],
+                                [True, True, True, True, False, False, False]])
 
-        expected_rule_to_buckets = {
+        expected_bucket_to_rules = {
             57: [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')],
         }
+        expected_bucket_to_null_scores = {
+            57: [0, 0, 0],
+        }
 
-        results = self.evaluator.get_bucket_to_rules(pairs, bool_dict)
-        self.assertEqual(results, expected_rule_to_buckets)
+        bucket_to_rules, bucket_to_null_scores = self.evaluator.bookkeeping(pairs, null_scores, bool_matrix)
+        self.assertEqual(bucket_to_rules, expected_bucket_to_rules)
+        self.assertEqual(bucket_to_null_scores, expected_bucket_to_null_scores)
 
     def test_expand_small_null_distributions(self):
-        buckets = {57: np.array([0.1, 0.2])}
+        buckets = {57: np.array([0.1])}
         bucket_to_rules = {57: [('P1','P2')]}
+        pair_to_index = {('P1','P2'): 0}
         meta_df = pd.DataFrame({'classification_label': ['A','A','B','B']})
         binarized_labels = self.evaluator.binarize_labels(meta_df)  # sets _n_pos/_n_neg
 
-        bool_dict = {('P1','P2'): np.array([True, False, True, False])}
+        bool_matrix = np.atleast_2d([True, False, True, False])
 
-        results = self.evaluator.expand_small_null_distributions(buckets, bool_dict, binarized_labels, bucket_to_rules)
+        results = self.evaluator.expand_small_null_distributions(buckets, pair_to_index, bool_matrix, binarized_labels, bucket_to_rules)
 
         # Expected length = original_n + (needed_permutations - 1) * num_rules
-        original_n = 2
+        original_n = 1
         num_rules = 1
-        needed_permutations = int(np.ceil(100 / original_n))  # = 50
-        expected_len = original_n + (needed_permutations - 1) * num_rules  # 2 + 49*1 = 51
+        needed_permutations = 99
+        expected_len = 100
 
         self.assertEqual(len(results[57]), expected_len)
-        self.assertGreater(len(results[57]), original_n)
-
-
-    def test_create_null_distributions(self):
-        bool_dict = {('P1', 'P2'): np.array([True, False, True, False])}
-        meta_df = pd.DataFrame({'classification_label': ['A','A','B','B']})
-        bin_labels = self.evaluator.binarize_labels(meta_df)  # sets _n_pos/_n_neg
-        bucket_to_rules = {50: [('P1', 'P2')]}
-        buckets = self.evaluator.create_null_distributions_for_p_values_testing(bool_dict, bin_labels, bucket_to_rules)
-        self.assertIn(50, buckets)
-        self.assertIsInstance(buckets[50], np.ndarray)
+        self.assertGreaterEqual(len(results[57]), original_n)
 
     def test_summarize_bucket_stats_score_above_all_nulls(self):
         true_scores = {('P1', 'P2'): 0.9}
@@ -283,9 +268,7 @@ class TestEvaluateRules(unittest.TestCase):
 
         self.assertCountEqual(df['Bucket'].values, [50, 25])
 
-
     #Evaluate Buckets Wrapper tests
-    # TODO: fix these two tests with new args structure
     def test_returns_expected_outputs(self):
         """Wrapper should return true_scores dict, summary_df, and filtered_df with correct structure."""
         with TemporaryDirectory() as tmpdir:
@@ -299,9 +282,10 @@ class TestEvaluateRules(unittest.TestCase):
                 self.meta_df
             )
 
-            # true_scores should be a dict with the pair
-            self.assertIsInstance(true_scores, dict)
-            self.assertIn(("P1", "P2"), true_scores)
+            # true_scores should be an array
+            self.assertIsInstance(true_scores, np.ndarray)
+            self.assertEqual(len(true_scores), 1)
+            self.assertEqual(true_scores[0], 0)
 
             # summary_df should be a DataFrame with required columns
             self.assertIsInstance(summary_df, pd.DataFrame)
@@ -344,14 +328,17 @@ class TestEvaluateRules(unittest.TestCase):
             "True_Score": [0.9, 0.85, 0.8],
             "P_Value": [0.01, 0.02, 0.03]
         })
-
-        bool_vectors = {
-            ('P1', 'P2'): np.array([1, 0, 1, 1, 0]),
-            ('P1', 'P3'): np.array([1, 0, 1, 1, 0]),
-            ('P2', 'P3'): np.array([0, 0, 1, 1, 1])
+        pair_to_index = {
+            ('P1', 'P2'): 0,
+            ('P1', 'P3'): 1,
+            ('P2', 'P3'): 2
         }
 
-        filtered_df = self.evaluator.filter_rules(summary_df, bool_vectors, k=3, mutual_info=True, mi_cutoff=0.9, disjoint=False)
+        bool_matrix = np.array([[1, 0, 1, 1, 0],
+                                [1, 0, 1, 1, 0],
+                                [0, 0, 1, 1, 1]])
+
+        filtered_df = self.evaluator.filter_rules(summary_df, pair_to_index, bool_matrix, k=3, mutual_info=True, mi_cutoff=0.9, disjoint=False)
 
         kept = set(filtered_df["Gene_Pair"])
         self.assertIn(('P1', 'P2'), kept)
