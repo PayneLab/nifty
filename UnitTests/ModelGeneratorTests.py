@@ -568,7 +568,7 @@ class TestRunModelGenerator(unittest.TestCase):
         dt_instance.filter_rules.assert_not_called()
 
         # transform_df and prep_vectorized_pairs_for_scikitlearn called for train and validate
-        self.assertEqual(dt_instance.transform_df.call_count, 2)
+        self.assertEqual(dt_instance.vectorize_all_pairs.call_count, 2)
         self.assertEqual(dt_instance.prep_vectorized_pairs_for_scikitlearn.call_count, 2)
 
         # train_model called with train_matrix
