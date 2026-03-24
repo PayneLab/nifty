@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import statsmodels.stats.multitest as ssm
 from sklearn.metrics import normalized_mutual_info_score
+from hashlib import md5
 
 from Colors import Colors
 from DataTransformer import DataTransformer
@@ -41,6 +42,29 @@ class EvaluateRules:
         final_scores = np.abs(TP_prop - FP_prop)
 
         return final_scores
+    
+    def rule_hash(self, row):
+        # Convert 0/1 array to bytes and hash
+        return md5(row.tobytes()).hexdigest()
+
+    def remove_identical_rules_hash(self, bool_matrix, rules):
+        data_hashed = np.array([self.rule_hash(bool_matrix[i,:]) for i in range(bool_matrix.shape[0])])
+        _, unique_indices = np.unique(data_hashed, return_index=True)
+        unique_indices.sort()
+        bool_matrix_filtered = bool_matrix[unique_indices, :]
+        rules_filtered = [rules[i] for i in unique_indices]
+
+        return bool_matrix_filtered, rules_filtered
+    
+    def remove_identical_rules_structured_view(self, bool_matrix, rules):
+        data_view = np.dtype((np.void, bool_matrix.dtype.itemsize * bool_matrix.shape[1]))
+        data_structured = bool_matrix.view(data_view).ravel()
+        _, unique_indices = np.unique(data_structured, return_index=True)
+        unique_indices.sort()
+        bool_matrix_filtered = bool_matrix[unique_indices, :]
+        rules_filtered = [rules[i] for i in unique_indices]
+
+        return bool_matrix_filtered, rules_filtered
     
     def get_proportion_bucket_list(self, bool_matrix) -> np.ndarray:
         """
@@ -227,12 +251,16 @@ class EvaluateRules:
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
 
+        print(" - BINARIZING LABELS", file=sys.stderr, flush=True)
+        binarized_labels = self.binarize_labels(meta_df)
+
         print(" - GENERATING RULE TABLE", file=sys.stderr, flush=True)
         data_transformer = DataTransformer()
         bool_matrix = data_transformer.vectorize_all_pairs(pairs, quant_df)
 
-        print(" - BINARIZING LABELS", file=sys.stderr, flush=True)
-        binarized_labels = self.binarize_labels(meta_df)
+        print(" - FILTERING OUT IDENTICAL RULES", file=sys.stderr, flush=True)
+        bool_matrix, pairs = self.remove_identical_rules_structured_view(bool_matrix, pairs)
+        print(f"{Colors.INFO}INFO: {bool_matrix.shape[0]} rules remaining after filtering out identical rules.{Colors.END}", file=sys.stderr, flush=True)
 
         print(" - SCORING RULES", file=sys.stderr, flush=True)
         true_scores = self.evaluate_pairs(bool_matrix, binarized_labels)
