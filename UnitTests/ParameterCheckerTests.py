@@ -357,6 +357,7 @@ class TestCheckConfigurationsFiles(unittest.TestCase):
   
     def test_input_files_individual_feature_train_paths_identical(self):
         self.configs['input_files'] = "individual"
+        self.configs['train_model'] = True
         self.configs['feature_quant_file'] = "pretend/this/is/a/path"
         self.configs['feature_meta_file'] = "pretend/this/is/a/path"
         self.configs['train_quant_file'] = "pretend/this/is/a/path"
@@ -369,6 +370,7 @@ class TestCheckConfigurationsFiles(unittest.TestCase):
 
     def test_input_files_individual_feature_validate_paths_identical(self):
         self.configs['input_files'] = "individual"
+        self.configs['train_model'] = True
         self.configs['feature_quant_file'] = "pretend/this/is/a/path"
         self.configs['feature_meta_file'] = "pretend/this/is/a/path"
         self.configs['validate_quant_file'] = "pretend/this/is/a/path"
@@ -381,6 +383,7 @@ class TestCheckConfigurationsFiles(unittest.TestCase):
 
     def test_input_files_individual_train_validate_paths_identical(self):
         self.configs['input_files'] = "individual"
+        self.configs['train_model'] = True
         self.configs['train_quant_file'] = "pretend/this/is/a/path"
         self.configs['train_meta_file'] = "pretend/this/is/a/path"
         self.configs['validate_quant_file'] = "pretend/this/is/a/path"
@@ -393,6 +396,7 @@ class TestCheckConfigurationsFiles(unittest.TestCase):
 
     def test_input_files_individual_all_paths_identical(self):
         self.configs['input_files'] = "individual"
+        self.configs['train_model'] = True
         self.configs['feature_quant_file'] = "pretend/this/is/a/path"
         self.configs['feature_meta_file'] = "pretend/this/is/a/path"
         self.configs['train_quant_file'] = "pretend/this/is/a/path"
@@ -579,6 +583,7 @@ class TestCheckConfigurationsFiles(unittest.TestCase):
 
     def test_find_features_false_bad_feature_file_path(self):
         self.configs['input_files'] = "individual"
+        self.configs['train_model'] = True
 
         with self.assertRaises(SystemExit) as e:
             self.checker.check_configurations_files(self.configs)
@@ -587,6 +592,7 @@ class TestCheckConfigurationsFiles(unittest.TestCase):
 
     def test_find_features_false_bad_feature_file_extension(self):
         self.configs['input_files'] = "individual"
+        self.configs['train_model'] = True
 
         with TemporaryDirectory() as tmpdir:
             feature_file_path = os.path.join(tmpdir, "feature_file")
@@ -604,6 +610,7 @@ class TestCheckConfigurationsFiles(unittest.TestCase):
 
     def test_find_features_false_bad_feature_file_contents(self):
         self.configs['input_files'] = "individual"
+        self.configs['train_model'] = True
 
         with TemporaryDirectory() as tmpdir:
             feature_file_path = os.path.join(tmpdir, "feature_file.tsv")

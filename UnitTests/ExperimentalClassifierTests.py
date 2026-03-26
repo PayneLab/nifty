@@ -243,7 +243,7 @@ class TestRunExperimentalClassifier(unittest.TestCase):
         mock_dt_cls.assert_called_once()
 
         dt_instance.add_missing_proteins.assert_called_once()
-        dt_instance.transform_df.assert_called_once()
+        dt_instance.vectorize_all_pairs.assert_called_once()
         dt_instance.prep_vectorized_pairs_for_scikitlearn.assert_called_once()
 
         mock_predict.assert_called_once()
