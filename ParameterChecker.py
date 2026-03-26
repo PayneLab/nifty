@@ -209,21 +209,22 @@ class ParameterChecker:
                 configs['feature_quant_table'] = self.read_tsv(configs['feature_quant_file'])
                 configs['feature_meta_table'] = self.read_tsv(configs['feature_meta_file'])
         else:
-            # required paths:
-            #   - feature_file
-            if 'feature_file' not in configs:
-                print(f"{Colors.ERROR}ERROR: configuration file must contain 'feature_file' key if 'find_features' = false.{Colors.END}", file=sys.stderr, flush=True)
-                raise SystemExit(1)
+            if configs['train_model']:
+                # required paths:
+                #   - feature_file
+                if 'feature_file' not in configs:
+                    print(f"{Colors.ERROR}ERROR: configuration file must contain 'feature_file' key if 'find_features' = false.{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
 
-            if not os.path.isfile(configs['feature_file']):
-                print(f"{Colors.ERROR}ERROR: 'feature_file' '{configs['feature_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
-                raise SystemExit(1)
+                if not os.path.isfile(configs['feature_file']):
+                    print(f"{Colors.ERROR}ERROR: 'feature_file' '{configs['feature_file']}' does not exist.{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
 
-            if not configs['feature_file'].endswith('.tsv'):
-                print(f"{Colors.ERROR}ERROR: 'feature_file' '{configs['feature_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
-                raise SystemExit(1)
+                if not configs['feature_file'].endswith('.tsv'):
+                    print(f"{Colors.ERROR}ERROR: 'feature_file' '{configs['feature_file']}' does not have a valid file extension. Expected '.tsv'.{Colors.END}", file=sys.stderr, flush=True)
+                    raise SystemExit(1)
 
-            configs['feature_table'] = self.read_tsv(configs['feature_file'])
+                configs['feature_table'] = self.read_tsv(configs['feature_file'])
 
         if configs['train_model']:
             # required paths:

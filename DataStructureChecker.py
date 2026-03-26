@@ -367,7 +367,7 @@ class DataStructureChecker:
             print(f"{Colors.ERROR}ERROR: Feature table must have at least 1 rule, found {len(feature_df)}.{Colors.END}", file=sys.stderr, flush=True)
             raise SystemExit(1)
 
-    def check_model(self, configs, model, feature_df):
+    def check_model(self, configs, model):
         # Check that the model is a scikit-learn model
         if not isinstance(model, BaseEstimator):
             print(f"{Colors.ERROR}ERROR: Loaded model is not a valid scikit-learn model.{Colors.END}", file=sys.stderr, flush=True)
@@ -396,23 +396,23 @@ class DataStructureChecker:
                 SystemExit(1)
 
         # check that the model has features
-        n_features_experimental = len(feature_df)
         if hasattr(model, 'n_features_in_'):
             # check that the number of features in the model match the number of features in the feature_df
-            if model.n_features_in_ != n_features_experimental:
-                print(f"{Colors.ERROR}ERROR: Loaded model does not have the same number of features as the feature table. {Colors.END}", file=sys.stderr, flush=True)
+            if model.n_features_in_ == 0:
+                print(f"{Colors.ERROR}ERROR: Loaded model has zero features. {Colors.END}", file=sys.stderr, flush=True)
                 raise SystemExit(1)
         else:
-            print(f"{Colors.ERROR}ERROR: Loaded model does not have 'n_features_in_' attribute. Cannot check for feature alignment between the model and the feature table.", file=sys.stderr, flush=True)
+            print(f"{Colors.ERROR}ERROR: Loaded model does not have 'n_features_in_' attribute. Cannot check minimum feature requirement.", file=sys.stderr, flush=True)
             raise SystemExit(1)
 
         # check that the model has feature names
-        features_experimental = list(zip(feature_df['Protein1'].tolist(), feature_df['Protein2'].tolist()))
-        features_experimental = [">".join(pair) for pair in features_experimental]
         if hasattr(model, "feature_names_in_"):
-            # check that the feature names match those in the feature_df
-            if sorted(model.feature_names_in_) != sorted(features_experimental):
-                print(f"{Colors.ERROR}ERROR: Loaded model does not have the same feature names as the feature table. {Colors.END}", file=sys.stderr, flush=True)
+            # check that the feature manes match the expected format: "Protein1>Protein2"
+            if ">" not in model.feature_names_in_[0]:
+                print(f"{Colors.ERROR}ERROR: Loaded model does not have feature names in the appropriate format: 'Protein1>Protein2'. {Colors.END}", file=sys.stderr, flush=True)
+                raise SystemExit(1)
+            if len(model.feature_names_in_[0].split(">")) != 2:
+                print(f"{Colors.ERROR}ERROR: Loaded model does not have feature names in the appropriate format: 'Protein1>Protein2'. {Colors.END}", file=sys.stderr, flush=True)
                 raise SystemExit(1)
         else:
             print(f"{Colors.ERROR}ERROR: Loaded model does not have 'feature_names_in_' attribute. Cannot check for feature alignment between the model and the feature table. Model needs to be fitted on a pandas.DataFrame.", file=sys.stderr, flush=True)

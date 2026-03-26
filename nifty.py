@@ -6,6 +6,7 @@ from DataStructureChecker import DataStructureChecker
 from DataSplitter import DataSplitter
 from FeatureSelector import FeatureSelector
 from ModelGenerator import ModelGenerator
+from DataTransformer import DataTransformer
 from ExperimentalClassifier import ExperimentalClassifier
 from Colors import Colors
 
@@ -116,16 +117,20 @@ def main():
         print("", file=sys.stderr, flush=True)
         print(f"{Colors.HEADER}---APPLYING MODEL---{Colors.END}", file=sys.stderr, flush=True)
 
-        print("CHECKING EXPERIMENTAL TABLE", file=sys.stderr, flush=True)
+        print("CHECKING MODEL", file=sys.stderr, flush=True)
         data_structure_checker = DataStructureChecker()
-        configs['experimental_quant_table'] = data_structure_checker.check_quant_table(configs=configs, 
-                                                                                      quant_df=configs['experimental_quant_table'])   
-        
+        data_structure_checker.check_model(configs=configs, model=configs['model'])
+
+        print("GENERATING FEATURE TABLE FROM MODEL", file=sys.stderr, flush=True)
+        data_transformer = DataTransformer()
+        configs['feature_table'] = data_transformer.create_feature_table_from_model(model=configs['model'])
+
         print("CHECKING FEATURE TABLE", file=sys.stderr, flush=True)
         data_structure_checker.check_feature_table(feature_df=configs['feature_table'])
 
-        print("CHECKING MODEL", file=sys.stderr, flush=True)
-        data_structure_checker.check_model(configs=configs, model=configs['model'], feature_df=configs['feature_table'])
+        print("CHECKING EXPERIMENTAL TABLE", file=sys.stderr, flush=True)
+        configs['experimental_quant_table'] = data_structure_checker.check_quant_table(configs=configs, 
+                                                                                      quant_df=configs['experimental_quant_table'])   
 
         experimental_classifier = ExperimentalClassifier()
         configs['experimental_classification'] = experimental_classifier.run_experimental_classifier(configs)

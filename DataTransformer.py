@@ -61,6 +61,15 @@ class DataTransformer:
             raise SystemExit(1)
         
         return updated_feature_df
+    
+    def create_feature_table_from_model(self, model):
+        protein1 = [feature.split(">")[0] for feature in model.feature_names_in_]
+        protein2 = [feature.split(">")[1] for feature in model.feature_names_in_]
+        feature_df = pd.DataFrame({
+            "Protein1": protein1, 
+            "Protein2": protein2
+        })
+        return feature_df
 
     def add_missing_proteins(self, feature_df, quant_df):
         proteins = set()

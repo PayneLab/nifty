@@ -16,7 +16,7 @@ reference_meta_file = ""  # required if find_features or train_model are true an
 
 feature_quant_file = ""  # required if find_features = true and input_files = "individual"
 feature_meta_file = ""  # required if find_features = true and input_files = "individual"
-feature_file = ""  # required if find_features = false
+feature_file = ""  # required if find_features = false and train_model = true
 
 train_quant_file = ""  # required if train_model = true and input_files = "individual"
 train_meta_file = ""  # required if train_model = true and input_files = "individual"
