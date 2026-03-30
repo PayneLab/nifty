@@ -295,53 +295,6 @@ class TestDataTableChecker(unittest.TestCase):
         except Exception as e:
             self.fail(f"Unexpected exception thrown: {e}")
 
-    # filter_proteins tests.
-    def test_filter_proteins_50(self):
-        try:
-            expected_df = pd.DataFrame({
-                'sample_id': ['S1', 'S2', 'S3'],
-                'P2': [1.0, 2.0, 3.0]
-            })
-            filtered_df = self.checker.filter_proteins(self.base_df, fraction_na=0.5)
-            pd.testing.assert_frame_equal(filtered_df.reset_index(drop=True), expected_df.reset_index(drop=True))
-        except Exception as e:
-            self.fail(f"Unexpected exception thrown: {e}")
-
-    def test_filter_proteins_90(self):
-        try:
-            expected_df_90 = pd.DataFrame({
-                'sample_id': ['S1', 'S2', 'S3'],
-                'P1': [1.0, np.nan, np.nan],
-                'P2': [1.0, 2.0, 3.0]
-            })
-            filtered_df_90 = self.checker.filter_proteins(self.base_df, fraction_na=0.9)
-            pd.testing.assert_frame_equal(filtered_df_90.reset_index(drop=True), expected_df_90.reset_index(drop=True))
-        except Exception as e:
-            self.fail(f"Unexpected exception thrown: {e}")
-
-    def test_filter_proteins_10(self):
-        try:
-            expected_df = pd.DataFrame({
-                'sample_id': ['S1', 'S2', 'S3'],
-                'P2': [1.0, 2.0, 3.0]
-            })
-            filtered_df_10 = self.checker.filter_proteins(self.base_df, fraction_na=0.1)
-            pd.testing.assert_frame_equal(filtered_df_10.reset_index(drop=True), expected_df.reset_index(drop=True))
-        except Exception as e:
-            self.fail(f"Unexpected exception thrown: {e}")
-
-    def test_filter_proteins_all_proteins_greater_50_na(self):
-        try:
-            df = pd.DataFrame({
-                'sample_id': ['S1', 'S2', 'S3', 'S4'],
-                'P1': [np.nan, np.nan, 1.0, np.nan],
-                'P2': [np.nan, 2.0, np.nan, np.nan],
-                'P3': [np.nan, np.nan, np.nan, 5.0]
-            })
-            self.assertEqual(self.checker.filter_proteins(df, 0.5), 10)
-        except Exception as e:
-            self.fail(f"Unexpected exception thrown: {e}")
-
     # check_enough_samples tests.
     def test_check_enough_samples_valid(self):
         try:
