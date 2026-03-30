@@ -10,7 +10,7 @@ class DataTransformer:
         pass
 
     def vectorize_all_pairs(self, pairs: list, quant_df) -> tuple[dict, np.ndarray]:
-        """Vectorizes all pairs of proteins and returns a dictionary of boolean vectors.
+        """Vectorizes all pairs of proteins and returns a matrix of boolean vectors.
         Rows are indexed by the string representation of each pair."""
         
         filled_df = quant_df.fillna(-np.inf)
