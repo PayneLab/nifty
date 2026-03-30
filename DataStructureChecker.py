@@ -101,64 +101,29 @@ class DataStructureChecker:
         if df["sample_id"].duplicated().any():
             return 9
         return 0
-    
-    def filter_proteins(self, quant_df, fraction_na):
-        ''' Filter out proteins that have more than fraction_na of their values as NaN'''
-        sample_col = quant_df.iloc[:, 0]
-        protein_data = quant_df.iloc[:, 1:]
-        # Calculate the fraction of NaN values for each protein
-        na_fractions = protein_data.isna().mean()
-
-        # Filter proteins based on the specified fraction of NaN values
-        filtered_proteins = protein_data.loc[:, na_fractions <= fraction_na]
-
-        # Construct df to return
-        filtered_df = pd.concat([sample_col, filtered_proteins], axis=1)
-
-        # Check if filtered_df is empty
-        if filtered_df.shape[1] <= 1:  # only sample_id column left
-            print("No proteins left after filtering. Please adjust the fraction_na parameter.")
-            return 10
-        return filtered_df
 
     def filter_proteins_by_class(self, quant_df, class_labels, fraction_na, proteins_to_keep=[]):
         ''' Filter out proteins that have more than fraction_na of their values as NaN in both classes.'''
-        quant_labels_df = quant_df.join(class_labels, how='inner')
-        # print(quant_labels_df.shape)
-        quant_labels_df = quant_labels_df.dropna(subset=[class_labels.columns[0]])
-        # print(quant_labels_df.shape)
 
+        quant_labels_df = quant_df.join(class_labels, how="inner")
         label_col = class_labels.columns[0]
-
-        classes = class_labels['classification_label'].unique()
-
-        proteins_to_drop = []
-
-        for col in quant_df.columns:
-            drop = True
-
-            if col in proteins_to_keep:
-                drop = False
-            else:
-                for cls in classes:
-                    class_subset = quant_labels_df[quant_labels_df[label_col] == cls]
-
-                    nan_ratio = class_subset[col].isna().mean()
-
-                    if nan_ratio <= fraction_na:
-                        drop = False
-                        break
-
-            if drop:
-                proteins_to_drop.append(col)
-
+        quant_labels_df = quant_labels_df.dropna(subset=[label_col])  # this line of code should never change the dataframe, sample IDs are checked in DataStructureChecker
+        
+        
+        protein_data = quant_labels_df.drop(columns=[label_col])
+        labels_series = quant_labels_df[label_col]
+        
+        nan_fractions = protein_data.isna().groupby(labels_series).mean()
+        
+        bad_proteins_mask = (nan_fractions > fraction_na).all(axis=0)
+        
+        proteins_to_drop = bad_proteins_mask[bad_proteins_mask].index.difference(proteins_to_keep)
+        
         filtered_df = quant_df.drop(columns=proteins_to_drop)
-
-        # Check if filtered_df is empty
-        ## TODO: change fraction_na ourselves if needed, make less stringent until things work?
-        if filtered_df.shape[1] <= 1:  # only sample_id column left
+        
+        if filtered_df.shape[1] <= 1:
             return 10
-
+            
         return filtered_df
 
     def check_enough_samples(self, meta_df, min_samples):
