@@ -101,32 +101,13 @@ class DataStructureChecker:
         if df["sample_id"].duplicated().any():
             return 9
         return 0
-    
-    def filter_proteins(self, quant_df, fraction_na):
-        ''' Filter out proteins that have more than fraction_na of their values as NaN'''
-        sample_col = quant_df.iloc[:, 0]
-        protein_data = quant_df.iloc[:, 1:]
-        # Calculate the fraction of NaN values for each protein
-        na_fractions = protein_data.isna().mean()
-
-        # Filter proteins based on the specified fraction of NaN values
-        filtered_proteins = protein_data.loc[:, na_fractions <= fraction_na]
-
-        # Construct df to return
-        filtered_df = pd.concat([sample_col, filtered_proteins], axis=1)
-
-        # Check if filtered_df is empty
-        if filtered_df.shape[1] <= 1:  # only sample_id column left
-            print("No proteins left after filtering. Please adjust the fraction_na parameter.")
-            return 10
-        return filtered_df
 
     def filter_proteins_by_class(self, quant_df, class_labels, fraction_na, proteins_to_keep=[]):
         ''' Filter out proteins that have more than fraction_na of their values as NaN in both classes.'''
 
         quant_labels_df = quant_df.join(class_labels, how="inner")
         label_col = class_labels.columns[0]
-        quant_labels_df = quant_labels_df.dropna(subset=[label_col])
+        quant_labels_df = quant_labels_df.dropna(subset=[label_col])  # this line of code should never change the dataframe, sample IDs are checked in DataStructureChecker
         
         
         protein_data = quant_labels_df.drop(columns=[label_col])
