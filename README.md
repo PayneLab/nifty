@@ -38,6 +38,7 @@ NIFty requires Python (>= 3.11) and the following Python packages to be installe
 * scikit-learn
 * statsmodels
 * hashlib
+* tomllib
 
 ## Codebase Structure
 The codebase functions as follows:
