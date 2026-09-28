@@ -21,11 +21,21 @@ class DataTransformer:
         idx1 = [col_to_idx[p[0]] for p in pairs]
         idx2 = [col_to_idx[p[1]] for p in pairs]
         
-        prot1_matrix = quant_matrix[:, idx1].T 
-        prot2_matrix = quant_matrix[:, idx2].T 
-        
-        final_matrix = (prot1_matrix > prot2_matrix).astype(np.int8)
-                
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: CHUNKING CODE
+        chunk_size = 10000
+
+        final_matrix = np.empty((len(idx1), quant_matrix.shape[0]), dtype=np.int8)
+
+        for start in range(0, len(idx1), chunk_size):
+            end = min(start + chunk_size, len(idx1))
+
+            prot1_matrix = quant_matrix[:, idx1[start:end]].T
+            prot2_matrix = quant_matrix[:, idx2[start:end]].T
+
+            final_matrix[start:end] = (prot1_matrix > prot2_matrix)
+            print(f"Processed chunk {start} to {end} of {len(idx1)} pairs.")
+#:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::CHUNKING CODE
+
         return final_matrix
 
     def filter_rules(self, feature_df, quant_df):

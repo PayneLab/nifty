@@ -19,7 +19,7 @@ class EvaluateRules:
         class_labels = meta_df['classification_label'].to_numpy()
         first_label = class_labels[0]
 
-        binarized_labels = (class_labels == first_label).astype(int)
+        binarized_labels = (class_labels == first_label).astype('int8')
 
         # precompute denominators for score calculation
         self._n_pos = np.sum(binarized_labels == 1)
