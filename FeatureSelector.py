@@ -1,6 +1,6 @@
 import sys
 import os
-# import psutil
+import psutil
 import numpy as np
 import math
 
@@ -26,8 +26,8 @@ class FeatureSelector:
         # check for number of cells final rule table would have
         # max_mem = (psutil.virtual_memory().available / (1024 ** 3)) - 8  # TODO: add user parameter that allws them to set the max RAM allotment in GB and store in configs
         max_mem = 100 - 8  # TODO: add user parameter that allws them to set the max RAM allotment in GB and store in configs
-        # mem_avail = max_mem - (psutil.Process(os.getpid()).memory_info().rss / (1024 ** 3))
-        # print(f"{Colors.INFO}INFO: Memory available: {mem_avail:.2f} GB{Colors.END}", file=sys.stderr, flush=True)
+        mem_avail = max_mem - (psutil.Process(os.getpid()).memory_info().rss / (1024 ** 3))
+        print(f"{Colors.INFO}INFO: Memory available: {mem_avail:.2f} GB{Colors.END}", file=sys.stderr, flush=True)
 
         # max_cols = math.ceil(mem_avail / ((len(configs['feature_meta_table']) * np.dtype(np.int8).itemsize) / (1024 ** 3)))
         max_cols = 1000000
