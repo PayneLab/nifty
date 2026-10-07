@@ -247,7 +247,7 @@ class EvaluateRules:
         print(f"{Colors.INFO}INFO: Rules saved to '{output_file_path}'.{Colors.END}", file=sys.stderr, flush=True)
 
     #Wrapper:
-    def run_rule_evaluator(self, configs, pairs: list, quant_df, meta_df, save=True):
+    def run_rule_evaluator(self, configs, pairs: list, quant_df, meta_df):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
 
@@ -277,12 +277,9 @@ class EvaluateRules:
         print("FILTERING RULES", file=sys.stderr, flush=True)
         filtered_df = self.filter_rules(summary_df, pair_to_index, bool_matrix, k=configs['k_rules'], mutual_info=configs['mutual_information'], mi_cutoff=configs['mutual_information_cutoff'], disjoint=configs['disjoint'])
 
-        if save:
-            print("SAVING RULES", file=sys.stderr, flush=True)
-            output_file_path = os.path.join(configs['output_dir'], "selected_features.tsv")
-            self.save_rules(filtered_df, output_file_path)
+        print("SAVING RULES", file=sys.stderr, flush=True)
+        output_file_path = os.path.join(configs['output_dir'], "selected_features.tsv")
+        self.save_rules(filtered_df, output_file_path)
 
-            return true_scores, summary_df, filtered_df
-
-        return filtered_df
+        return true_scores, summary_df, filtered_df
 
