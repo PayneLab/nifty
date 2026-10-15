@@ -22,9 +22,14 @@ class DataTransformer:
         idx2 = [col_to_idx[p[1]] for p in pairs]
         
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: CHUNKING CODE
-        chunk_size = 10000
+        chunk_size = 1000
 
-        final_matrix = np.empty((len(idx1), quant_matrix.shape[0]), dtype=np.int8)
+        #Calculate how many bytes are needed to store all samples
+        n_samples = quant_matrix.shape[0]
+        n_packed_columns = (n_samples + 7) // 8 
+
+        #Initialized as uint8 to store packed bits
+        final_matrix = np.empty((len(idx1), n_packed_columns), dtype=np.uint8) 
 
         for start in range(0, len(idx1), chunk_size):
             end = min(start + chunk_size, len(idx1))
@@ -32,7 +37,7 @@ class DataTransformer:
             prot1_matrix = quant_matrix[:, idx1[start:end]].T
             prot2_matrix = quant_matrix[:, idx2[start:end]].T
 
-            final_matrix[start:end] = (prot1_matrix > prot2_matrix)
+            final_matrix[start:end] = np.packbits(prot1_matrix > prot2_matrix, axis=1, bitorder='big') #Final matrix as unit8
             print(f"Processed chunk {start} to {end} of {len(idx1)} pairs.")
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::CHUNKING CODE
 
