@@ -46,6 +46,22 @@ class EvaluateRules:
     def rule_hash(self, row):
         # Convert 0/1 array to bytes and hash
         return md5(row.tobytes()).hexdigest()
+    
+    #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::BIT-PACKING UNIQUE CODE
+    def remove_identical_rules_packed(self, bool_matrix, rules):
+
+        # Pack 8 binary values into each byte
+        packed_matrix = np.packbits(bool_matrix, axis=1) # NEW CODE FOR BIT-PACKING
+
+        data_view = np.dtype((np.void, packed_matrix.dtype.itemsize * packed_matrix.shape[1]))
+        data_structured = packed_matrix.view(data_view).ravel()
+        _, unique_indices = np.unique(data_structured, return_index=True)
+        unique_indices.sort()
+        bool_matrix_filtered = bool_matrix[unique_indices, :]
+        rules_filtered = [rules[i] for i in unique_indices]
+
+        return bool_matrix_filtered, rules_filtered
+#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::BIT-PACKING UNIQUE CODE
 
     def remove_identical_rules_hash(self, bool_matrix, rules):
         data_hashed = np.array([self.rule_hash(bool_matrix[i,:]) for i in range(bool_matrix.shape[0])])
@@ -259,7 +275,7 @@ class EvaluateRules:
         bool_matrix = data_transformer.vectorize_all_pairs(pairs, quant_df)
 
         print(" - FILTERING OUT IDENTICAL RULES", file=sys.stderr, flush=True)
-        bool_matrix, pairs = self.remove_identical_rules_structured_view(bool_matrix, pairs)
+        bool_matrix, pairs = self.remove_identical_rules_packed(bool_matrix, pairs)
         print(f"{Colors.INFO}INFO: {bool_matrix.shape[0]} rules remaining after filtering out identical rules.{Colors.END}", file=sys.stderr, flush=True)
 
         print(" - SCORING RULES", file=sys.stderr, flush=True)
