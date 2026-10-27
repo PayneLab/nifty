@@ -309,9 +309,12 @@ class ModelGenerator:
         train_bool_matrix = data_transformer.vectorize_all_pairs(rules, quant_df=configs['train_quant_table'])
         validate_bool_matrix = data_transformer.vectorize_all_pairs(rules, quant_df=configs['validate_quant_table'])
 
-        train_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(rules, train_bool_matrix)
+        n_train_samples = configs['train_quant_table'].shape[0] #::: Bit packing requires input value of num of samples
+        n_validate_samples = configs['validate_quant_table'].shape[0] #::: Bit packing requires input value of num of samples
+
+        train_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(rules, train_bool_matrix, n_train_samples)
         train_matrix.index = configs['train_quant_table'].index.copy()
-        validate_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(rules, validate_bool_matrix)
+        validate_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(rules, validate_bool_matrix, n_validate_samples)
         validate_matrix.index = configs['validate_quant_table'].index.copy()
 
         # train model

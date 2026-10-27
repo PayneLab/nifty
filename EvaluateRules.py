@@ -33,8 +33,17 @@ class EvaluateRules:
         # score pairs
         inverse = 1 - binarized_labels
 
-        TP = bool_matrix.dot(binarized_labels)
-        FP = bool_matrix.dot(inverse)
+        #Bit-pack the labels and inverse labels
+        packed_labels = np.packbits(binarized_labels, bitorder="big")
+        packed_inverse = np.packbits(inverse, bitorder="big")
+
+        #Replace dot products with bitwise operations
+        TP = np.bitwise_count(
+            np.bitwise_and(bool_matrix, packed_labels)
+            ).sum(axis=1)
+        FP = np.bitwise_count(
+            np.bitwise_and(bool_matrix, packed_inverse)
+            ).sum(axis=1)
 
         TP_prop = TP / self._n_pos if self._n_pos > 0 else 0
         FP_prop = FP / self._n_neg if self._n_neg > 0 else 0
@@ -86,9 +95,8 @@ class EvaluateRules:
         """
         Takes the full (N_pairs, N_samples) matrix and returns a 1D array of buckets.
         """
-        n_trues = np.sum(bool_matrix, axis=1)
-        total_samples = bool_matrix.shape[1]
-        percentages = (n_trues / total_samples) * 100
+        n_trues = np.bitwise_count(bool_matrix).sum(axis=1) #Counts the number of 1 bits in each rule
+        percentages = (n_trues / self.n_samples) * 100 #Use self.n_samples to get the total number of samples instead of bool_matrix shape
         buckets = np.round(percentages).astype(int)
         return buckets
 
@@ -246,8 +254,16 @@ class EvaluateRules:
         return filtered_df
 
     def calculate_mutual_information(self, pair1, pair2, pair_to_index, bool_matrix):
+        #BIT PACKING FIX OPTION 1: JUST UNPACKING
+        #- POSSIBLE OPTION 2: ???
+        # Retrieve the two packed rules
         vec1 = bool_matrix[pair_to_index[pair1], :]
         vec2 = bool_matrix[pair_to_index[pair2], :]
+
+        #Unpack only two rules
+        vec1 = np.unpackbits(vec1, count=self.n_samples, bitorder="big")
+        vec2 = np.unpackbits(vec2, count=self.n_samples, bitorder="big")
+
         mi = normalized_mutual_info_score(vec1, vec2)
         return mi
 
@@ -266,6 +282,9 @@ class EvaluateRules:
     def run_rule_evaluator(self, configs, pairs: list, quant_df, meta_df):
         ''' A wrapper function that evaluates pairs, builds null buckets by n_true and n_false and calculate p-values
         based on bucket distribution.'''
+
+        # Store the original number of samples before bit-packing::::::::::::::::::::::::::::::::::
+        self.n_samples = quant_df.shape[0]
 
         print(" - BINARIZING LABELS", file=sys.stderr, flush=True)
         binarized_labels = self.binarize_labels(meta_df)

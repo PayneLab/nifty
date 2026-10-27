@@ -22,9 +22,14 @@ class DataTransformer:
         idx2 = [col_to_idx[p[1]] for p in pairs]
         
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::: CHUNKING CODE
-        chunk_size = 10000
+        chunk_size = 1000
 
-        final_matrix = np.empty((len(idx1), quant_matrix.shape[0]), dtype=np.int8)
+        #Calculate how many bytes are needed to store all samples
+        n_samples = quant_matrix.shape[0]
+        n_packed_columns = (n_samples + 7) // 8 
+
+        #Initialized as uint8 to store packed bits
+        final_matrix = np.empty((len(idx1), n_packed_columns), dtype=np.uint8) 
 
         for start in range(0, len(idx1), chunk_size):
             end = min(start + chunk_size, len(idx1))
@@ -32,8 +37,8 @@ class DataTransformer:
             prot1_matrix = quant_matrix[:, idx1[start:end]].T
             prot2_matrix = quant_matrix[:, idx2[start:end]].T
 
-            final_matrix[start:end] = (prot1_matrix > prot2_matrix)
-            print(f"Processed chunk {start} to {end} of {len(idx1)} pairs.")
+            final_matrix[start:end] = np.packbits(prot1_matrix > prot2_matrix, axis=1, bitorder='big') #Final matrix as unit8
+            # print(f"Processed chunk {start} to {end} of {len(idx1)} pairs.")
 #:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::CHUNKING CODE
 
         return final_matrix
@@ -84,14 +89,17 @@ class DataTransformer:
         
         return updated_quant_df
     
-    def prep_vectorized_pairs_for_scikitlearn(self, rules, bool_matrix):
+    def prep_vectorized_pairs_for_scikitlearn(self, rules, bool_matrix, n_samples):
+
+        unpacked_matrix = np.unpackbits(bool_matrix, axis=1, count=n_samples, bitorder="big") #:::::: 
+
         # Convert dict values (bool arrays) to int arrays
         pairs = [">".join(rule) for rule in rules]
-        bool_df = pd.DataFrame()
+        bool_df = pd.DataFrame(index=range(n_samples))
 
         for i, rule in enumerate(rules):
             pair = ">".join(rule)
-            bool_df[pair] = [int(eval) for eval in bool_matrix[i, :]]
+            bool_df[pair] = [int(eval) for eval in unpacked_matrix[i, :]]
 
         bool_df = bool_df[pairs]
 

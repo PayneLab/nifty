@@ -112,23 +112,30 @@ class TestEvaluateRules(unittest.TestCase):
         pairs = [('P1', 'P2')]
         expected_matrix = np.atleast_2d([False, True, False, True, False, True, False, False])
         bool_matrix = self.transformer.vectorize_all_pairs(pairs, df)
-        np.testing.assert_array_equal(bool_matrix, expected_matrix)
+        unpacked_matrix = np.unpackbits(bool_matrix, axis=1, count=expected_matrix.shape[1], bitorder="big") #::::Testing with bit packing
+        np.testing.assert_array_equal(unpacked_matrix, expected_matrix)
 
     def test_get_proportion_bucket_list_true_false(self):
         vector = np.atleast_2d([True, False, True, False, True])
-        result = self.evaluator.get_proportion_bucket_list(vector)
+        self.evaluator.n_samples = vector.shape[1] #::: Bit packing requires n_samples to be intialized
+        packed_vector = np.packbits(vector, axis=1, bitorder="big") #:::::
+        result = self.evaluator.get_proportion_bucket_list(packed_vector)
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0], 60)
 
     def test_get_proportion_bucket_list_all_false(self):
         vector = np.atleast_2d([False, False, False, False, False])
-        result = self.evaluator.get_proportion_bucket_list(vector)
+        self.evaluator.n_samples = vector.shape[1] #:::
+        packed_vector = np.packbits(vector, axis=1, bitorder="big") #:::::
+        result = self.evaluator.get_proportion_bucket_list(packed_vector)
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0], 0)
 
     def test_get_proportion_bucket_list_all_true(self):
         vector = np.atleast_2d([True, True, True, True])
-        result = self.evaluator.get_proportion_bucket_list(vector)
+        self.evaluator.n_samples = vector.shape[1] #:::
+        packed_vector = np.packbits(vector, axis=1, bitorder="big") #:::::
+        result = self.evaluator.get_proportion_bucket_list(packed_vector)
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0], 100)
 
@@ -147,26 +154,38 @@ class TestEvaluateRules(unittest.TestCase):
 
         for bool_vector, proportion in test_cases:
             vector = np.atleast_2d(bool_vector)
-            bucket = self.evaluator.get_proportion_bucket_list(vector)
+            self.evaluator.n_samples = vector.shape[1] #:::
+            packed_vector = np.packbits(vector, axis=1, bitorder="big") #:::::
+            bucket = self.evaluator.get_proportion_bucket_list(packed_vector)
             self.assertEqual(len(bucket), 1)
             self.assertEqual(bucket[0], proportion)
 
     def test_get_proportion_bucket_large_vector(self):
         bool_vector = np.atleast_2d([True] * 5000 + [False] * 5000)
-        result = self.evaluator.get_proportion_bucket_list(bool_vector)
+        self.evaluator.n_samples = bool_vector.shape[1] #:::
+        packed_vector = np.packbits(bool_vector, axis=1, bitorder="big") #:::::
+        result = self.evaluator.get_proportion_bucket_list(packed_vector)
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0], 50)
 
     def test_get_proportion_bucket_close_rounding(self):
         bool_vector_1 = np.atleast_2d([True, True, True, False])
-        self.assertEqual(len(self.evaluator.get_proportion_bucket_list(bool_vector_1)), 1)
-        self.assertEqual(self.evaluator.get_proportion_bucket_list(bool_vector_1)[0], 75)
+        self.evaluator.n_samples = bool_vector_1.shape[1] #:::
+        packed_vector_1 = np.packbits(bool_vector_1, axis=1, bitorder="big") #:::::
+        self.assertEqual(len(self.evaluator.get_proportion_bucket_list(packed_vector_1)), 1)
+        self.assertEqual(self.evaluator.get_proportion_bucket_list(packed_vector_1)[0], 75)
+
         bool_vector_2 = np.atleast_2d([True, True, False])
-        self.assertEqual(len(self.evaluator.get_proportion_bucket_list(bool_vector_2)), 1)
-        self.assertEqual(self.evaluator.get_proportion_bucket_list(bool_vector_2)[0], 67)
+        self.evaluator.n_samples = bool_vector_2.shape[1] #:::
+        packed_vector_2 = np.packbits(bool_vector_2, axis=1, bitorder="big") #:::::
+        self.assertEqual(len(self.evaluator.get_proportion_bucket_list(packed_vector_2)), 1)
+        self.assertEqual(self.evaluator.get_proportion_bucket_list(packed_vector_2)[0], 67)
+
         bool_vector_3 = np.atleast_2d([True, False])
-        self.assertEqual(len(self.evaluator.get_proportion_bucket_list(bool_vector_3)), 1)
-        self.assertEqual(self.evaluator.get_proportion_bucket_list(bool_vector_3)[0], 50)
+        self.evaluator.n_samples = bool_vector_3.shape[1] #:::
+        packed_vector_3 = np.packbits(bool_vector_3, axis=1, bitorder="big") #:::::
+        self.assertEqual(len(self.evaluator.get_proportion_bucket_list(packed_vector_3)), 1)
+        self.assertEqual(self.evaluator.get_proportion_bucket_list(packed_vector_3)[0], 50)
 
     def test_get_bucket_to_rules_multiple_buckets(self):
         pairs = [('P1', 'P2'), ('P1', 'P3'), ('P2', 'P3')]
@@ -186,6 +205,9 @@ class TestEvaluateRules(unittest.TestCase):
             25: [0.5]
         }
 
+        self.evaluator.n_samples = bool_matrix.shape[1] #:::: Bit packing requires n_samples to be initialized
+        bool_matrix = np.packbits(bool_matrix, axis=1, bitorder="big") #::::: bit pack bool_matrix to properly compare
+
         bucket_to_rules, bucket_to_null_scores = self.evaluator.bookkeeping(pairs, null_scores, bool_matrix)
         self.assertEqual(bucket_to_rules, expected_bucket_to_rules)
         self.assertEqual(bucket_to_null_scores, expected_bucket_to_null_scores)
@@ -204,6 +226,9 @@ class TestEvaluateRules(unittest.TestCase):
             57: [0, 0, 0],
         }
 
+        self.evaluator.n_samples = bool_matrix.shape[1] #:::: Bit packing requires n_samples to be initialized
+        bool_matrix = np.packbits(bool_matrix, axis=1, bitorder="big") #::::: bit pack bool_matrix to properly compare
+
         bucket_to_rules, bucket_to_null_scores = self.evaluator.bookkeeping(pairs, null_scores, bool_matrix)
         self.assertEqual(bucket_to_rules, expected_bucket_to_rules)
         self.assertEqual(bucket_to_null_scores, expected_bucket_to_null_scores)
@@ -216,6 +241,9 @@ class TestEvaluateRules(unittest.TestCase):
         binarized_labels = self.evaluator.binarize_labels(meta_df)  # sets _n_pos/_n_neg
 
         bool_matrix = np.atleast_2d([True, False, True, False])
+
+        self.evaluator.n_samples = bool_matrix.shape[1] #:::: Bit packing requires n_samples to be initialized
+        bool_matrix = np.packbits(bool_matrix, axis=1, bitorder="big") #::::: bit pack bool_matrix to properly compare
 
         results = self.evaluator.expand_small_null_distributions(buckets, pair_to_index, bool_matrix, binarized_labels, bucket_to_rules)
 
@@ -337,6 +365,9 @@ class TestEvaluateRules(unittest.TestCase):
         bool_matrix = np.array([[1, 0, 1, 1, 0],
                                 [1, 0, 1, 1, 0],
                                 [0, 0, 1, 1, 1]])
+
+        self.evaluator.n_samples = bool_matrix.shape[1] #:::: Bit packing requires n_samples to be initialized
+        bool_matrix = np.packbits(bool_matrix, axis=1, bitorder="big") #::::: bit pack bool_matrix to properly compare
 
         filtered_df = self.evaluator.filter_rules(summary_df, pair_to_index, bool_matrix, k=3, mutual_info=True, mi_cutoff=0.9, disjoint=False)
 
