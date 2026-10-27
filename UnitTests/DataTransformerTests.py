@@ -41,7 +41,8 @@ class TestVectorizeAllPairs(unittest.TestCase):
         self.assertEqual(expected_bool_matrix.shape[1], 5)
 
         for i, pair in enumerate(self.pairs):
-            np.testing.assert_array_equal(expected_bool_matrix[i, :], bool_matrix[i, :])
+            unpacked_matrix = np.unpackbits(bool_matrix, axis=1, count=expected_bool_matrix.shape[1], bitorder="big") #:::: Unpack bool matrix before comparing
+            np.testing.assert_array_equal(expected_bool_matrix[i, :], unpacked_matrix[i, :])
 
     def test_2_pairs(self):
         self.pairs.pop(1)
@@ -55,7 +56,8 @@ class TestVectorizeAllPairs(unittest.TestCase):
         self.assertEqual(expected_bool_matrix.shape[1], 5)
 
         for i, pair in enumerate(self.pairs):
-            np.testing.assert_array_equal(expected_bool_matrix[i, :], bool_matrix[i, :])
+            unpacked_matrix = np.unpackbits(bool_matrix, axis=1, count=expected_bool_matrix.shape[1], bitorder="big") #:::: Unpack bool matrix before comparing
+            np.testing.assert_array_equal(expected_bool_matrix[i, :], unpacked_matrix[i, :])
 
     def test_1_pair(self):
         self.pairs.pop(0)
@@ -69,7 +71,8 @@ class TestVectorizeAllPairs(unittest.TestCase):
         self.assertEqual(expected_bool_matrix.shape[1], 5)
 
         for i, pair in enumerate(self.pairs):
-            np.testing.assert_array_equal(expected_bool_matrix[i, :], bool_matrix[i, :])
+            unpacked_matrix = np.unpackbits(bool_matrix, axis=1, count=expected_bool_matrix.shape[1], bitorder="big") #:::: Unpack bool matrix before comparing
+            np.testing.assert_array_equal(expected_bool_matrix[i, :], unpacked_matrix[i, :])
 
 
 class TestFilterRules(unittest.TestCase):
@@ -249,8 +252,10 @@ class TestPrepVectorizedPairsForScikitlearn(unittest.TestCase):
             [True, True, False]
         ])
 
+        packed_matrix = np.packbits(bool_matrix, axis=1, bitorder="big") #::: prep_vecorized...() now requires bool_matrix to be bit packed
+
         df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
-            self.rules, bool_matrix
+            self.rules, packed_matrix, n_samples=bool_matrix.shape[1] #:::prep_vecotrized...() now requires n_samples
         )
 
         # Check correct shape
@@ -273,26 +278,36 @@ class TestPrepVectorizedPairsForScikitlearn(unittest.TestCase):
         """
         feature_df = pd.DataFrame({'Protein1': [], 'Protein2': []})
         rules = list(zip(feature_df['Protein1'].tolist(), feature_df['Protein2'].tolist()))
-        bool_matrix = np.array([])
+        # bool_matrix = np.array([])
+
+        n_samples = 3
+        bool_matrix = np.empty((0, n_samples), dtype=bool) #::: bool matrix must now be 2D matrix, not 1D array
+        packed_matrix = np.packbits(bool_matrix, axis=1, bitorder="big")
 
         df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
-            rules, bool_matrix
+            rules, packed_matrix, n_samples #:::: function now takes n_samples
         )
 
         self.assertTrue(df.empty)
+        self.assertEqual(df.shape, (3, 0))
 
     def test_empty_bool_arrays(self):
         """
         If bool arrays are empty, output should be an empty DataFrame with correct columns.
         """
-        bool_matrix = np.array([
-            [],
-            [],
-            []
-        ])
+        # bool_matrix = np.array([
+        #     [],
+        #     [],
+        #     []
+        # ])
+
+        bool_matrix = np.empty((3, 0), dtype=bool) #::::: prep_vectorized...() now takes 2D matrix not 1D array
+
+        n_samples = 0 #::: prep_vectorized...() now takes n_samples
+        packed_matrix = np.packbits(bool_matrix, axis=1, bitorder="big") #:::: prep_vectorized...() now takes bit packed bool_matrix
 
         df = self.transformer.prep_vectorized_pairs_for_scikitlearn(
-            self.rules, bool_matrix
+            self.rules, packed_matrix, n_samples #::: prep_vectorized...() now takes n_samples
         )
 
         self.assertEqual(list(df.columns), self.expected_column_order)
