@@ -52,7 +52,8 @@ class ExperimentalClassifier:
 
         print("TRANSFORMING DATA", file=sys.stderr, flush=True)
         experimental_bool_matrix = data_transformer.vectorize_all_pairs(rules, quant_df=configs['experimental_quant_table'])
-        experimental_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(rules, experimental_bool_matrix)
+        n_samples = configs['experimental_quant_table'].shape[0] #::: bit packing requires the num of samples to be known
+        experimental_matrix = data_transformer.prep_vectorized_pairs_for_scikitlearn(rules, experimental_bool_matrix, n_samples) #::: bit packing requires the num of samples to be known
         experimental_matrix.index = configs['experimental_quant_table'].index.copy()
 
         print("CLASSIFYING SAMPLES", file=sys.stderr, flush=True)
