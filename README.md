@@ -1,7 +1,7 @@
 # NIFty
 Never Impute Features (thank you).
 
-The pre-print manuscript associated with this tool can be found here: [Classification with Missing Data - A *NIFty* Pipeline for Single-Cell Proteomics](https://doi.org/10.1021/acs.jproteome.6c00354)
+The manuscript associated with this tool can be found here: [Classification with Missing Data - A *NIFty* Pipeline for Single-Cell Proteomics](https://doi.org/10.1021/acs.jproteome.6c00354)
 
 NIFty is a python program for data-driven cell annotation (classification). NIFty can be used for top-scoring pairs (TSP)-based rule generation and feature selection, classification model generation, and model application on unlabaled data. NIFty is unique in that it does not require missing-value imputation, avoids common circular analysis pitfalls by default, and overcomes batch effects. 
 The primary application is for classifying large molecular data, like proteomics. 
